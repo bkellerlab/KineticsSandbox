@@ -17,7 +17,6 @@ Next steps:
 #   I M P O R T S 
 #-----------------------------------------
 import matplotlib.pyplot as plt
-import matplotlib.cm as cm
 import numpy as np
 import scipy.constants as const
 
@@ -27,6 +26,7 @@ import scipy.constants as const
 #-----------------------------------------
 #   D1_Bolhuis
 #-----------------------------------------
+
 # local packages and modules
 from potentials import D1_Bolhuis
 
@@ -34,7 +34,7 @@ from potentials import D1_Bolhuis
 my_param = [2, 1, 20, 1, 0, 0]
 print(D1_Bolhuis.V(4, *my_param))
 
-
+#%%  Plot potential for various parameters
 # set x-axis
 x = np.linspace(-5, 5, 501)
 
@@ -122,3 +122,11 @@ plt.xlabel("x")
 plt.ylabel("V(x)") 
 plt.title("Vary parameter alpha")
 plt.legend()
+
+
+
+
+
+
+
+#%% 
