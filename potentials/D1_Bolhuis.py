@@ -42,5 +42,5 @@ def V(x, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
         369.0
     """
     
-    return  k1 * ((x - a)**2 - b)**2 + k2 * x + alpha * np.exp(-c * (x - 2)**2)
+    return  k1 * ((x - a)**2 - b)**2 + k2 * x + alpha * np.exp(-c * (x - a)**2)
 
