@@ -9,8 +9,11 @@ Next steps:
     #------------------------------------------
     # package "potentials" 
 
-    - D1_Bolhuis: implement unnormalized Boltzmann dist
+    - D1_Bolhuis: test unnormalized Boltzmann dist
     - D1_Bolhuis: implement partition function
+    - D1_Bolhuis: implement function that returns the extrema
+    - D1_Bolhius: implement first derivative, analytically and numerically
+    - D1_Bolhius: implement second derivative, analytically and numerically
     
     #------------------------------------------
     # package "rate_constant" 
@@ -45,7 +48,7 @@ import scipy.constants as const
 # local packages and modules
 from potentials import D1_Bolhuis
 
-test_V = False
+test_V = True
 test_F = True
 
 
