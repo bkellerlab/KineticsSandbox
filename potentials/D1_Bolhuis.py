@@ -11,7 +11,7 @@ Created on Wed Jan 10 09:11:17 2024
 #-----------------------------------------
 import numpy as np
 import scipy.constants as const
-
+from scipy import integrate
 
 # the potential energy function 
 def V(x, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
@@ -104,7 +104,7 @@ def p(x, T, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
     """
     Calculate the unnormalized Boltzmann factor for the 1-dimensional Bolhuis potential 
 
-    The unnormalized Boltzmann facto is given by:
+    The unnormalized Boltzmann factor is given by:
     p(x) = exp(- V(x) * 1000 / (R * T))
 
     The potential is given in molar units (kJ/mol). Consequently, the ideal gas constant R is used rather than the Boltzmann constant k_B. 
@@ -127,4 +127,62 @@ def p(x, T, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
     
     return np.exp(-V(x, a, b, c, k1, k2, alpha) * 1000 / (T * const.R))
 
+# the partiition function 
+def Q(T, a=2, b=1, c=20, k1=1, k2=0, alpha=0, limits=None):
+    """
+    Calculate the partition function for the 1-dimensional Bolhuis potential 
 
+    The partition function is given by:
+    Q = \int_{-\infty}^{\infty} p(x) dx
+
+    In practice, the integration bounds are set to specific values, specified in the variable limits.
+    Integration is carried out by scipy.integrate
+
+    Parameters:
+        - T (float): temperatur in units of K
+        - a (float, optional): parameter controlling the center of the quadratic term. Default is 2.
+        - b (float, optional): parameter controlling the width of the quadratic term. Default is 1.
+        - c (float, optional): parameter controlling the width of perturbation. Default is 20
+        - k1 (float, optional): force constant of the double well. Default is 1.
+        - k2 (float, optional): force constant of the linear term. Default is 0.
+        - alpha (float, optional): strength of the perturbation. Default is 0.
+        - limits (list, optional): limits of he integrations. Default is None. 
+        
+    If the limits are not passed as an argument they are set to
+    
+    x_low = a - 3 sqrt(|b|)
+    x_high  = a + 3 sqrt(|b|)
+
+    where |b| is the absolute value of b. The reason for this is that for k2=0 and alpha=0, the extrama of the potential are located at
+    
+    x_max = a
+    x_min = a +/- sqrt(b)
+    
+    The the boundaries are located at three times the distance between minimum and maximum on either side of the maximum. 
+        
+    Returns:
+        list: The value of the partition function and an error estimate [Q, Q_error] 
+
+    """        
+    
+    try:         
+        if limits==None: 
+            # specify the limits
+            limits = [a-3*np.sqrt(np.abs(b)), a+3*np.sqrt(np.abs(b))]
+            # integrate the unnormalized Boltzmann factor within the specified limits
+            Q, Q_error = integrate.quad(p, limits[0], limits[1],  args=(a, b, c, k1, k2, alpha))
+            # return Q and the error estimates of the integation 
+            return [Q, Q_error]
+            
+        elif limits!=None and isinstance(limits, list) and len(limits) == 2:
+            # integrate the unnormalized Boltzmann factor within the specified limits
+            Q, Q_error = integrate.quad(p, limits[0], limits[1],  args=(a, b, c, k1, k2, alpha))
+            # return Q and the error estimates of the integation 
+            return [Q, Q_error]
+
+        else:
+            raise ValueError("Input is not a list with two elements.")
+
+    except Exception as e:
+        print(f"Error: {e}")
+        return False

@@ -10,7 +10,7 @@ Next steps:
     # package "potentials" 
 
     - D1_Bolhuis: test unnormalized Boltzmann dist
-    - D1_Bolhuis: implement partition function
+    - D1_Bolhuis: test partition function
     - D1_Bolhuis: implement function that returns the extrema
     - D1_Bolhius: implement first derivative, analytically and numerically
     - D1_Bolhius: implement second derivative, analytically and numerically
@@ -18,14 +18,15 @@ Next steps:
     #------------------------------------------
     # package "rate_constant" 
     
-    - create a new package "rate_constants" 
-    - within rate_constants, write a module D1 for rates from 1D-potentials
+    - create a new package "rate_theory" 
+    - within rate_theory, write a module D1 for rates from 1D-potentials
     - D1: TST
     - D1: Kramers
     - D1: SqRA
-    - D1: SqRA_rate (via Berezhkovski, Szabo)    
-    - D1: SqRA_rate_via_its (as inverse of ITS)    
-    - D1: MSM_rate_via_its (as inverse of ITS)   
+    - within rate_theory, write a module rate_matrix for rates from rate_matrices
+    - rateMatrix: SqRA_rate (via Berezhkovski, Szabo)    
+    - rateMatrix: SqRA_rate_via_its (as inverse of ITS)    
+    - rateMatrix: MSM_rate_via_its (as inverse of ITS)   
 
     #------------------------------------------
     # create a new package "integrators" 
