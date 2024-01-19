@@ -170,13 +170,13 @@ def Q(T, a=2, b=1, c=20, k1=1, k2=0, alpha=0, limits=None):
             # specify the limits
             limits = [a-3*np.sqrt(np.abs(b)), a+3*np.sqrt(np.abs(b))]
             # integrate the unnormalized Boltzmann factor within the specified limits
-            Q, Q_error = integrate.quad(p, limits[0], limits[1],  args=(a, b, c, k1, k2, alpha))
+            Q, Q_error = integrate.quad(p, limits[0], limits[1],  args=(T, a, b, c, k1, k2, alpha))
             # return Q and the error estimates of the integation 
             return [Q, Q_error]
             
         elif limits!=None and isinstance(limits, list) and len(limits) == 2:
             # integrate the unnormalized Boltzmann factor within the specified limits
-            Q, Q_error = integrate.quad(p, limits[0], limits[1],  args=(a, b, c, k1, k2, alpha))
+            Q, Q_error = integrate.quad(p, limits[0], limits[1],  args=(T, a, b, c, k1, k2, alpha))
             # return Q and the error estimates of the integation 
             return [Q, Q_error]
 
@@ -186,3 +186,4 @@ def Q(T, a=2, b=1, c=20, k1=1, k2=0, alpha=0, limits=None):
     except Exception as e:
         print(f"Error: {e}")
         return False
+

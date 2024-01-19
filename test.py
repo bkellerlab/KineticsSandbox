@@ -8,15 +8,12 @@ Created on Wed Jan 10 09:28:56 2024
 Next steps:     
     #------------------------------------------
     # package "potentials" 
-
-    - D1_Bolhuis: test unnormalized Boltzmann dist
-    - D1_Bolhuis: test partition function
+    
     - D1_Bolhuis: implement function that returns the extrema
-    - D1_Bolhius: implement first derivative, analytically and numerically
-    - D1_Bolhius: implement second derivative, analytically and numerically
+    - D1_Bolhius: implement Hessian, analytically and numerically
     
     #------------------------------------------
-    # package "rate_constant" 
+    # package "rate_theory" 
     
     - create a new package "rate_theory" 
     - within rate_theory, write a module D1 for rates from 1D-potentials
@@ -49,9 +46,9 @@ import scipy.constants as const
 # local packages and modules
 from potentials import D1_Bolhuis
 
-test_V = True
-test_F = True
-
+test_V = False
+test_F = False
+test_p = True
 
 # basis test whether the function works as expected
 my_param = [2, 1, 20, 1, 0, 0]
@@ -174,4 +171,77 @@ if test_F == True:
     plt.title("Force for various values of alpha, line: analytical, dots: numerical")
     plt.legend()
 
+#  Plot Boltzmann density for various temperatures
+if test_p == True: 
+    # set x-axis
+    x = np.linspace(0, 5, 501)
 
+    # set parameters of the potential
+    my_param = [2, 1, 5, 2, 1, 10]
+    
+    # plot the potential
+    plt.figure(figsize=(12, 6)) 
+    plt.plot(x, D1_Bolhuis.V(x, *my_param), color='blue', label='V(x)')
+
+    plt.ylim(0,20)
+    plt.xlabel("x")
+    plt.ylabel("V(x)") 
+    plt.title("Force for various values of alpha, line: analytical, dots: numerical")
+    plt.legend() 
+
+
+    # plot partition function as a function of temperature
+    T_min = 200
+    T_max = 500 
+    T_list = np.linspace(T_min, T_max, 12)
+    Q_list = np.zeros( (12,2) )
+    N_list = np.zeros(12)
+
+    for i, T in enumerate(T_list): 
+        Q_list[i]  = D1_Bolhuis.Q(T_list[i], *my_param)
+
+    plt.figure(figsize=(12, 6)) 
+    plt.plot(T_list, Q_list[:,0])
+    
+    plt.xlabel("T")
+    plt.ylabel("Q(T)") 
+    plt.title("Partition functions as a function of temperature")
+    plt.legend()
+        
+    
+    # plot Boltzmann densits for various temperatures
+    plt.figure(figsize=(12, 6)) 
+    for i, T in enumerate(T_list): 
+        color = plt.cm.coolwarm((T-T_min) / (T_max-T_min) )  # Normalize a to be in [0, 1]
+    
+        # calculate partition function 
+        Q =  D1_Bolhuis.Q(T, *my_param)
+    
+        # plot Boltzmann distrobution  
+        plt.plot(x, D1_Bolhuis.p(x, T, *my_param)/Q[0], color=color, label='T={:.0f}'.format(T))
+        plt.xlabel("x")
+        plt.ylabel("p(x)") 
+        plt.title("Normalized Boltzmann density for various temperatures")
+        
+   
+    # check wethere thes Boltzmann densities are indeed normalized
+    # this is an indirect check whether Q is correct
+    # x grid needs to be large enough to cover most of p(x) left and right of the maximum
+    x_grid = np.linspace(-1, 5, 601)
+    # grid spacing 
+    dx = 6 / 600
+
+    for i, T in enumerate(T_list): 
+        # calcualate the normalization constant 
+        # using the Riemann integral on the grid x_grid
+        N_list[i] = np.sum( D1_Bolhuis.p(x_grid, T, *my_param) ) * (1 / Q_list[i,0])* dx
+ 
+    plt.figure(figsize=(12, 6)) 
+    plt.plot(T_list, N_list)
+    
+    plt.xlabel("T")
+    plt.ylabel("N") 
+    plt.title("Norm of the normalized Boltzmann density for various temperatures")
+    
+    
+    
