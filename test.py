@@ -10,7 +10,6 @@ Next steps:
     # package "potentials" 
     
     - D1_Bolhuis: implement function that returns the extrema
-    - D1_Bolhuis: implement Hessian, analytically and numerically
     - D1_Bolhuis: change the return type of the force function to numpy array
     
     #------------------------------------------
@@ -49,14 +48,21 @@ from potentials import D1_Bolhuis
 
 test_V = False
 test_F = False
-test_p = True
+test_H = True
+test_p = False
 
-# basis test whether the function works as expected
-my_param = [2, 1, 20, 1, 0, 0]
-print(D1_Bolhuis.V(4, *my_param))
+
 
 #  Plot potential for various parameters
 if test_V == True: 
+    print("---------------------------------")
+    print(" testing the Potential   ")
+    
+    # basis test whether the function works as expected
+    my_param = [2, 1, 20, 1, 0, 0]
+    print(D1_Bolhuis.V(4, *my_param))
+
+
 
     # set x-axis
     x = np.linspace(-5, 5, 501)
@@ -148,6 +154,9 @@ if test_V == True:
 
 #  Compare force calculated analytically and numerically
 if test_F == True: 
+    print("---------------------------------")
+    print(" testing the force   ")
+    
     # set x-axis
     x = np.linspace(0, 5, 501)
     h = 0.02
@@ -172,8 +181,58 @@ if test_F == True:
     plt.title("Force for various values of alpha, line: analytical, dots: numerical")
     plt.legend()
 
+#  Compare Hessian calculated analytically and numerically
+if test_H == True: 
+    print("---------------------------------")
+    print(" testing the Hessian   ")
+
+    # set x-axis
+    x = np.linspace(0, 5, 501)
+    h = 0.002
+
+    #----------------------
+    # vary parameter alpha, plot analytical and numerical Hessian
+    plt.figure(figsize=(6, 6)) 
+    plt.axhline(y=0, color='black', linestyle='dotted', linewidth=1)
+    
+    for alpha in np.linspace(0, 4, 5):     
+        my_param = [2, 1, 20, 2, 0, alpha]
+        color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
+        
+        # plot analytical Hessian 
+        plt.plot(x, D1_Bolhuis.H(x, *my_param)[0,0,:], color=color, label='alpha={:.2f}'.format(alpha))
+        # plot numericaal  Hessian 
+        plt.plot(x, D1_Bolhuis.H_num(x, h, *my_param)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
+    
+    plt.ylim(-200,100)
+    plt.xlabel("x")
+    plt.ylabel("H(x)") 
+    plt.title("Hessian for various values of alpha, line: analytical, dots: numerical")
+    plt.legend()
+
+
+    #----------------------
+    # vary parameter alpha, plot differnece between analytical and numerical Hessian
+    plt.figure(figsize=(6, 6)) 
+    plt.axhline(y=0, color='black', linestyle='dotted', linewidth=1)
+    
+    for alpha in np.linspace(0, 4, 5):     
+        my_param = [2, 1, 20, 2, 0, alpha]
+        color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
+        
+        # plot deviation between analytical and numerical Hessian 
+        plt.plot(x, D1_Bolhuis.H(x, *my_param)[0,0,:] - D1_Bolhuis.H_num(x, h, *my_param)[0,0,:], color=color, label='alpha={:.2f}'.format(alpha))
+    
+    plt.ylim(-5,5)
+    plt.xlabel("x")
+    plt.ylabel("H(x)- H_num(x)") 
+    plt.title("Deviation between analytical Hessian and numerical Hessian for various values of alpha")
+    plt.legend()    
+    
 #  Plot Boltzmann density for various temperatures
 if test_p == True: 
+    print("---------------------------------")
+    print(" testing the Boltzmann density   ")
     # set x-axis
     x = np.linspace(0, 5, 501)
 
@@ -245,4 +304,4 @@ if test_p == True:
     plt.title("Norm of the normalized Boltzmann density for various temperatures")
     
     
-    
+print("---------------------------------")  

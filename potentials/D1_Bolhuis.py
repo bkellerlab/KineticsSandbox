@@ -124,8 +124,9 @@ def H(x, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
           numpy array: The 1x1 Hessian matrix at the given position x.
 
       """
+      
       # calculate the Hessian as a float      
-      H = 12 * k1 (x - a)**2   +   4 * k1 * b   +   2 * alpha * c * [ 4 * c * (x-a)**2 - (x-a)] * np.exp (-c *(x-2)**2 )
+      H = 12 * k1 * (x - a)**2   -   4 * k1 * b   +   2 * alpha * c * ( 2 * c * (x-a)**2 - 1 ) * np.exp (-c *(x-2)**2 )
       
       # cast Hessian as a 1x1 numpy array and return
       return  np.array([[H]])
@@ -165,7 +166,6 @@ def H_num(x, h, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
     # cast Hessian as a 1x1 numpy array and return
     return  np.array([[H]]) 
   
-    
 # the unnormalized Boltzmann factor
 def p(x, T, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
     """
