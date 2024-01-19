@@ -47,7 +47,7 @@ import scipy.constants as const
 from potentials import D1_Bolhuis
 
 test_V = False
-test_F = False
+test_F = True
 test_H = True
 test_p = False
 
@@ -159,7 +159,7 @@ if test_F == True:
     
     # set x-axis
     x = np.linspace(0, 5, 501)
-    h = 0.02
+    h = 0.001
 
     #----------------------
     # vary parameter alpha
@@ -167,7 +167,7 @@ if test_F == True:
     plt.axhline(y=0, color='black', linestyle='dotted', linewidth=1)
     
     for alpha in np.linspace(0, 4, 5):     
-        my_param = [2, 1, 20, 2, 0, alpha]
+        my_param = [2, 1, 20, 2, 1, alpha]
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot analytical force 
@@ -180,7 +180,25 @@ if test_F == True:
     plt.ylabel("F(x)") 
     plt.title("Force for various values of alpha, line: analytical, dots: numerical")
     plt.legend()
-
+    
+    #----------------------
+    # vary parameter alpha, plot differnece between analytical and numerical Hessian
+    plt.figure(figsize=(6, 6)) 
+    plt.axhline(y=0, color='black', linestyle='dotted', linewidth=1)
+    
+    for alpha in np.linspace(0, 4, 5):     
+        my_param = [2, 1, 20, 2, 0, alpha]
+        color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
+        
+        # plot deviation between analytical and numerical Hessian 
+        plt.plot(x, D1_Bolhuis.F(x, *my_param) - D1_Bolhuis.F_num(x, h, *my_param), color=color, label='alpha={:.2f}'.format(alpha))
+    
+    plt.ylim(-5,5)
+    plt.xlabel("x")
+    plt.ylabel("H(x)- H_num(x)") 
+    plt.title("Deviation between analytical force and numerical force for various values of alpha")
+    plt.legend()   
+    
 #  Compare Hessian calculated analytically and numerically
 if test_H == True: 
     print("---------------------------------")
