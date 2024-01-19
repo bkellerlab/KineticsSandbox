@@ -98,7 +98,74 @@ def F_num(x, h, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
 
     """    
     return - (V(x+h/2, a, b, c, k1, k2, alpha) - V(x-h/2, a, b, c, k1, k2, alpha)) / h
+    
+# the Hessian matrix, analytical expression
+def H(x, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
+      """
+      Calculate the Hessian matrx H(x) analytically for the 1-dimensional Bolhuis potential based on the given parameters.
+      Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+
+      The Hessian is given by:
+      H(x) = d^2 V(x) / dx^2 
+           = 12 * k1 (x - a)**2   +   4 * k1 * b   +   2 * alpha * c * [ 4 * c * (x-a)**2 - (x-a)] * exp (-c *(x-2)**2 )
+
+      The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
+
+      Parameters:
+          - x (float): position
+          - a (float, optional): parameter controlling the center of the quadratic term. Default is 2.
+          - b (float, optional): parameter controlling the width of the quadratic term. Default is 1.
+          - c (float, optional): parameter controlling the width of perturbation. Default is 20
+          - k1 (float, optional): force constant of the double well. Default is 1.
+          - k2 (float, optional): force constant of the linear term. Default is 0.
+          - alpha (float, optional): strength of the perturbation. Default is 0.
+
+      Returns:
+          numpy array: The 1x1 Hessian matrix at the given position x.
+
+      """
+      # calculate the Hessian as a float      
+      H = 12 * k1 (x - a)**2   +   4 * k1 * b   +   2 * alpha * c * [ 4 * c * (x-a)**2 - (x-a)] * np.exp (-c *(x-2)**2 )
+      
+      # cast Hessian as a 1x1 numpy array and return
+      return  np.array([[H]])
   
+# the Hessian matrix, analytical expression
+def H_num(x, h, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
+    """
+    Calculate the Hessian matrix H(x) for the 1-dimensional Bolhuis potential numerically via the second-order central finit difference.
+    Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+    
+    The Hessian is given by:
+    H(x) = [V(x+h) - 2 * V(x) + V(x-h)] / h**2
+    
+    The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
+    
+    Parameters:
+        - x (float): position
+        - h (float): spacing of the finit different point along x        
+        - a (float, optional): parameter controlling the center of the quadratic term. Default is 2.
+        - b (float, optional): parameter controlling the width of the quadratic term. Default is 1.
+        - c (float, optional): parameter controlling the width of perturbation. Default is 20
+        - k1 (float, optional): force constant of the double well. Default is 1.
+        - k2 (float, optional): force constant of the linear term. Default is 0.
+        - alpha (float, optional): strength of the perturbation. Default is 0.
+    
+    Returns:
+        numpy array: The 1x1 Hessian matrix at the given position x.
+    
+    """
+    # calculate the Hessian as a float    
+    V_x_plus_h = V(x+h, a, b, c, k1, k2, alpha)
+    V_x = V(x, a, b, c, k1, k2, alpha)
+    V_x_minus_h = V(x-h, a, b, c, k1, k2, alpha)
+    
+    H = (V_x_plus_h - 2 * V_x + V_x_minus_h) / h**2
+    
+    # cast Hessian as a 1x1 numpy array and return
+    return  np.array([[H]]) 
+  
+    
 # the unnormalized Boltzmann factor
 def p(x, T, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
     """

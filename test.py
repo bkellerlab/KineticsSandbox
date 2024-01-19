@@ -10,7 +10,8 @@ Next steps:
     # package "potentials" 
     
     - D1_Bolhuis: implement function that returns the extrema
-    - D1_Bolhius: implement Hessian, analytically and numerically
+    - D1_Bolhuis: implement Hessian, analytically and numerically
+    - D1_Bolhuis: change the return type of the force function to numpy array
     
     #------------------------------------------
     # package "rate_theory" 
