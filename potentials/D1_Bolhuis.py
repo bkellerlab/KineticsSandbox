@@ -50,6 +50,7 @@ def V(x, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
 def F(x, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
     """
     Calculate the force F(x) analytically for the 1-dimensional Bolhuis potential based on the given parameters.
+    Since the potential is one-idmensional, the force is vector with one element.
 
     The force is given by:
     F(x) = - dV(x) / dx 
@@ -67,16 +68,18 @@ def F(x, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
         - alpha (float, optional): strength of the perturbation. Default is 0.
 
     Returns:
-        float: The value of the force at the given position x.
+        numpy array: The value of the force at the given position x, returned as vector with 1 element.
 
     """
     
-    return  - 2 * k1 * ((x - a)**2 - b) * 2 * (x-a) - k2 + alpha * np.exp(-c * (x - 2)**2) * c * 2 * (x - 2)
+    F = - 2 * k1 * ((x - a)**2 - b) * 2 * (x-a) - k2 + alpha * np.exp(-c * (x - 2)**2) * c * 2 * (x - 2)
+    return np.array([F])
 
 # the force, numerical expression via finite difference
 def F_num(x, h, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
     """
     Calculate the force F(x) for the 1-dimensional Bolhuis potential numerically via the central finit difference
+    Since the potential is one-idmensional, the force is vector with one element.
 
     The force is given by:
     F(x) = - [ V(x+h/2) - V(x-h/2)] / h
@@ -94,10 +97,11 @@ def F_num(x, h, a=2, b=1, c=20, k1=1, k2=0, alpha=0):
         - alpha (float, optional): strength of the perturbation. Default is 0.
 
     Returns:
-        float: The value of the force at the given position x.
+        fnumpy array: The value of the force at the given position x, , returned as vector with 1 element.
 
     """    
-    return - (V(x+h/2, a, b, c, k1, k2, alpha) - V(x-h/2, a, b, c, k1, k2, alpha)) / h
+    F = - (V(x+h/2, a, b, c, k1, k2, alpha) - V(x-h/2, a, b, c, k1, k2, alpha)) / h
+    return np.array([F])
     
 # the Hessian matrix, analytical expression
 def H(x, a=2, b=1, c=20, k1=1, k2=0, alpha=0):

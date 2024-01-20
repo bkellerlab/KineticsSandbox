@@ -11,6 +11,10 @@ Next steps:
     
     - D1_Bolhuis: implement function that returns the extrema
     - D1_Bolhuis: change the return type of the force function to numpy array
+
+    - D1_Bolhuis: for positions change input type to float
+    - D1_Bolhuis: implement as class
+    
     
     #------------------------------------------
     # package "rate_theory" 
@@ -171,9 +175,9 @@ if test_F == True:
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot analytical force 
-        plt.plot(x, D1_Bolhuis.F(x, *my_param), color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x, D1_Bolhuis.F(x, *my_param)[0,:], color=color, label='alpha={:.2f}'.format(alpha))
         # plot numericaal  force 
-        plt.plot(x, D1_Bolhuis.F_num(x, h, *my_param), color=color, marker='o', linestyle='None', markersize=3)
+        plt.plot(x, D1_Bolhuis.F_num(x, h, *my_param)[0,:], color=color, marker='o', linestyle='None', markersize=3)
     
     plt.ylim(-20,20)
     plt.xlabel("x")
@@ -191,7 +195,7 @@ if test_F == True:
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot deviation between analytical and numerical Hessian 
-        plt.plot(x, D1_Bolhuis.F(x, *my_param) - D1_Bolhuis.F_num(x, h, *my_param), color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x, D1_Bolhuis.F(x, *my_param)[0,:] - D1_Bolhuis.F_num(x, h, *my_param)[0,:], color=color, label='alpha={:.2f}'.format(alpha))
     
     plt.ylim(-5,5)
     plt.xlabel("x")
