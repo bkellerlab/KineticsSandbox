@@ -51,8 +51,8 @@ import scipy.constants as const
 from potentials import D1_Bolhuis
 
 test_V = False
-test_F = True
-test_H = True
+test_F = False
+test_H = False
 test_p = False
 
 
@@ -325,5 +325,17 @@ if test_p == True:
     plt.ylabel("N") 
     plt.title("Norm of the normalized Boltzmann density for various temperatures")
     
-    
+
+#-----------------------------------------
+#   D1_Bolhuis  - Class
+#-----------------------------------------
+
+# local packages and modules
+from potentials import D1
+
+my_param = [2, 1, 5, 2, 1, 10]
+my_potential = D1.D1_Bolhuis(my_param)
+print(my_potential.V(1))    
+
+
 print("---------------------------------")  
