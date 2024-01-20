@@ -9,11 +9,10 @@ Next steps:
     #------------------------------------------
     # package "potentials" 
     
-    - D1_Bolhuis: implement function that returns the extrema
-    - D1_Bolhuis: change the return type of the force function to numpy array
+    - D1: test abstract class D1 and childe class Bolhuis(D1) 
 
-    - D1_Bolhuis: for positions change input type to float
-    - D1_Bolhuis: implement as class
+    - D1 -> Bolhuis: implement function that returns the extrema
+    - D1 -> Bolhuis: for positions change input type to float
     
     
     #------------------------------------------
@@ -334,8 +333,9 @@ if test_p == True:
 from potentials import D1
 
 my_param = [2, 1, 5, 2, 1, 10]
-my_potential = D1.D1_Bolhuis(my_param)
+my_potential = D1.Bolhuis(my_param)
 print(my_potential.V(1))    
+print(dir(my_potential))
 
 
 print("---------------------------------")  
