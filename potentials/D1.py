@@ -51,41 +51,41 @@ class D1(ABC):
     #-----------------------------------------------------------
     # force, numerical expression via finite difference    
     def force_num(self, x, h):
-        # """
-        # Calculate the force F(x) for the 1-dimensional Bolhuis potential numerically via the central finit difference
-        # Since the potential is one-idmensional, the force is vector with one element.
-        #
-        # The force is given by:
-        # F(x) = - [ V(x+h/2) - V(x-h/2)] / h
-        #
-        # The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.  
-        #
-        # Returns:
-        #     numpy array: The value of the force at the given position x, , returned as vector with 1 element.  
-        # """  
-        #
+        """
+        Calculate the force F(x) for the 1-dimensional Bolhuis potential numerically via the central finit difference
+        Since the potential is one-idmensional, the force is vector with one element.
+        
+        The force is given by:
+        F(x) = - [ V(x+h/2) - V(x-h/2)] / h
+        
+        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.  
+        
+        Returns:
+            numpy array: The value of the force at the given position x, , returned as vector with 1 element.  
+        """  
+        
         F = - ( self.potential(x+h/2) - self.potential(x-h/2) ) / h
         return np.array([F])
     
     # Hessian matrix, numerical expreesion via second order finite difference
     def hessian_num(self, x, h):
-        # """
-        # Calculate the Hessian matrix H(x) for the 1-dimensional Bolhuis potential numerically via the second-order central finit difference.
-        # Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
-        #
-        # The Hessian is given by:
-        #     H(x) = [V(x+h) - 2 * V(x) + V(x-h)] / h**2
-        #
-        # The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
-        #
-        # Parameters:
-        # - x (float): position
-        # - h (float): spacing of the finit different point along x
-        #
-        # Returns:
-        # numpy array: The 1x1 Hessian matrix at the given position x.
-        #
-        # """
+        """
+        Calculate the Hessian matrix H(x) for the 1-dimensional Bolhuis potential numerically via the second-order central finit difference.
+        Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+        
+        The Hessian is given by:
+            H(x) = [V(x+h) - 2 * V(x) + V(x-h)] / h**2
+        
+        The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
+        
+        Parameters:
+        - x (float): position
+        - h (float): spacing of the finit different point along x
+        
+        Returns:
+        numpy array: The 1x1 Hessian matrix at the given position x.
+        
+        """
         
         # calculate the Hessian as a float    
         V_x_plus_h = self.potential(x+h)
@@ -99,43 +99,43 @@ class D1(ABC):
     
     # unnormalized Boltzmann factor
     def boltzmann_factor(self, x, T):
-        # """
-        # Calculate the unnormalized Boltzmann factor for the 1-dimensional Bolhuis potential 
-        #
-        # The unnormalized Boltzmann factor is given by:
-        # p(x) = exp(- V(x) * 1000 / (R * T))
-        #
-        # The potential is given in molar units (kJ/mol). Consequently, the ideal gas constant R is used rather than the Boltzmann constant k_B. 
-        # The factor 1000 arises from converting kJ/mol to J/mol
-        #
-        # Parameters:
-        #     - T (float): temperature in units of K
-        #       
-        # Returns:
-        #     float: The value of the unnormalized Boltzmann factor at the given position x.
-        # """    
+        """
+        Calculate the unnormalized Boltzmann factor for the 1-dimensional Bolhuis potential 
+        
+        The unnormalized Boltzmann factor is given by:
+        p(x) = exp(- V(x) * 1000 / (R * T))
+        
+        The potential is given in molar units (kJ/mol). Consequently, the ideal gas constant R is used rather than the Boltzmann constant k_B. 
+        The factor 1000 arises from converting kJ/mol to J/mol
+        
+        Parameters:
+            - T (float): temperature in units of K
+              
+        Returns:
+            float: The value of the unnormalized Boltzmann factor at the given position x.
+        """    
         
         return np.exp(-self.potential(x) * 1000 / (T * const.R))
         
     # partiition function
     def partition_function(self, T, limits=None):
-        # """
-        # Calculate the partition function for the 1-dimensional Bolhuis potential 
-        #
-        # The partition function is given by:
-        # Q = \int_{-\infty}^{\infty} p(x) dx
-        #
-        # In practice, the integration bounds are set to specific values, specified in the variable limits.
-        # Integration is carried out by scipy.integrate
-        #
-        # Parameters:
-        #     - T (float): temperatur in units of K
-        #     - limits (list, optional): limits of he integrations. Defaults have been set at the initialization of the class 
-        #        
-        # Returns:
-        #     list: The value of the partition function and an error estimate [Q, Q_error] 
-        #
-        # """        
+        """
+        Calculate the partition function for the 1-dimensional Bolhuis potential 
+        
+        The partition function is given by:
+        Q = \int_{-\infty}^{\infty} p(x) dx
+        
+        In practice, the integration bounds are set to specific values, specified in the variable limits.
+        Integration is carried out by scipy.integrate
+        
+        Parameters:
+            - T (float): temperatur in units of K
+            - limits (list, optional): limits of he integrations. Defaults have been set at the initialization of the class 
+                
+        Returns:
+            list: The value of the partition function and an error estimate [Q, Q_error] 
+        
+        """        
         
         try:         
             if limits==None: 
@@ -230,8 +230,7 @@ class Bolhuis(D1):
         """
         
         return  self.k1 * ((x - self.a)**2 - self.b)**2 + self.k2 * x + self.alpha * np.exp(-self.c * (x - self.a)**2)
-        
-    
+          
     # the force, analytical expression
     def force(self, x):
         """

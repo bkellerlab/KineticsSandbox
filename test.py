@@ -14,12 +14,11 @@ Next steps:
 
     - D1 -> Bolhuis: implement function that returns the extrema
     - D1 -> Bolhuis: for positions change input type to float
-    
-    
+        
     #------------------------------------------
     # package "rate_theory" 
     
-    - create a new package "rate_theory" 
+    np.- create a new package "rate_theory" 
     - within rate_theory, write a module D1 for rates from 1D-potentials
     - D1: TST
     - D1: Kramers
@@ -201,7 +200,6 @@ if test_V == True:
     plt.title("Vary parameter alpha")
     plt.legend()   
 
-
 #  Compare force calculated analytically and numerically
 if test_F == True: 
     print("---------------------------------")
@@ -312,7 +310,6 @@ if test_H == True:
     plt.ylabel("H(x)- H_num(x)") 
     plt.title("Deviation between analytical Hessian and numerical Hessian for various values of alpha")
     plt.legend()    
-
 
 #  Plot Boltzmann density for various temperatures
 if test_p == True: 
