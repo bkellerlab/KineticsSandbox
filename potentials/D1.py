@@ -13,6 +13,7 @@ from abc import ABC, abstractmethod
 import numpy as np
 import scipy.constants as const
 from scipy import integrate
+from scipy.optimize import minimize
 
 
 #------------------------------------------------
@@ -49,10 +50,25 @@ class D1(ABC):
     #-----------------------------------------------------------
     #   numerical methods that are passed to a child class
     #-----------------------------------------------------------
+    # negated potential, returns - V(x)
+    def negated_potential(self, x): 
+        """
+        Calculate the negated potential energy -V(x) 
+
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+
+        Parameters:
+            - x (float): position
+
+        Returns:
+            float: negated value of the potential energy function at the given position x.
+        """
+        return -self.potential(x)    
+    
     # force, numerical expression via finite difference    
     def force_num(self, x, h):
         """
-        Calculate the force F(x) for the 1-dimensional Bolhuis potential numerically via the central finit difference
+        Calculate the force F(x) numerically via the central finit difference.
         Since the potential is one-idmensional, the force is vector with one element.
         
         The force is given by:
@@ -60,8 +76,11 @@ class D1(ABC):
         
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.  
         
+        Parameters:
+        - x (float): position
+ 
         Returns:
-            numpy array: The value of the force at the given position x, , returned as vector with 1 element.  
+            numpy array: The value of the force at the given position x , returned as vector with 1 element.  
         """  
         
         F = - ( self.potential(x+h/2) - self.potential(x-h/2) ) / h
@@ -70,7 +89,7 @@ class D1(ABC):
     # Hessian matrix, numerical expreesion via second order finite difference
     def hessian_num(self, x, h):
         """
-        Calculate the Hessian matrix H(x) for the 1-dimensional Bolhuis potential numerically via the second-order central finit difference.
+        Calculate the Hessian matrix H(x) numerically via the second-order central finit difference.
         Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
         
         The Hessian is given by:
@@ -117,7 +136,7 @@ class D1(ABC):
         
         return np.exp(-self.potential(x) * 1000 / (T * const.R))
         
-    # partiition function
+    # partition function
     def partition_function(self, T, limits=None):
         """
         Calculate the partition function for the 1-dimensional Bolhuis potential 
@@ -138,24 +157,59 @@ class D1(ABC):
         """        
         
         try:         
-            if limits==None: 
+            # no limits are passed, the class members x_low and x_high are available
+            if limits==None and hasattr(self, 'x_low') and hasattr(self, 'x_high'):
                 # integrate the unnormalized Boltzmann factor within the specified limits
                 Q, Q_error = integrate.quad(self.boltzmann_factor, self.x_low, self.x_high,  args=(T))
                 # return Q and the error estimates of the integation 
                 return [Q, Q_error]
-                
+            
+            # limits are passed, format is correct, ignore the class members x_low and x_high
             elif limits!=None and isinstance(limits, list) and len(limits) == 2:
                 # integrate the unnormalized Boltzmann factor within the specified limits
                 Q, Q_error = integrate.quad(self.boltzmann_factor, limits[0], limits[1],  args=(T))
                 # return Q and the error estimates of the integation 
                 return [Q, Q_error]
-    
-            else:
+            
+            # no limits are passed, but the class members x_low and x_high are missing
+            elif limits==None and (not hasattr(self, 'x_low') or not hasattr(self, 'x_high') ):     
+                raise ValueError("Default limits of the integration have not been implemented. Pass limits as an argument")
+            
+            # limit are passed, format is wrong, raise error
+            elif limits!=None and (not isinstance(limits, list) or not len(limits) == 2):
                 raise ValueError("Input 'limits' is not a list with two elements.")
-    
+            
         except Exception as e:
             print(f"Error: {e}")
             return False
+
+    # transition state
+    def TS(self, x_start, x_end):
+        """
+        Numerically finds the highest maximum in the interval [x_start, x_end] 
+        
+        Parameters:
+        - x_start (float): position of the reactant minimum
+        - x_start (float): position of the product minimum
+        
+        Returns:
+        float: position of the transition state
+        
+        """
+        
+        # find the largest point in [x_start, x_end] on a grid        
+        x = np.linspace(x_start, x_end, 1000)
+        y = self.potential(x)
+        i = np.argmax(y)
+        # this is our starting point for the optimization
+        TS_start = x[i]
+        
+        # minimize returns a class OptimizeResult
+        # the transition state is the class member x
+        TS = minimize(self.negated_potential, TS_start, method='BFGS').x
+        
+        # returns position of the transition state as float
+        return TS[0]     
 
 
 #------------------------------------------------
@@ -228,10 +282,10 @@ class Bolhuis(D1):
         Returns:
             float: The value of the potential energy function at the given position x.
         """
-        
+    
         return  self.k1 * ((x - self.a)**2 - self.b)**2 + self.k2 * x + self.alpha * np.exp(-self.c * (x - self.a)**2)
           
-    # the force, analytical expression
+    # the force, analytical expression t
     def force(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional Bolhuis potential.
