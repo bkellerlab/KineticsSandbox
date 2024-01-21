@@ -5,11 +5,12 @@ Created on Wed Jan 10 09:28:56 2024
 
 @author: bettina
 
-Next steps:     
+Next steps:
+     
     #------------------------------------------
     # package "potentials" 
     
-    - D1: test abstract class D1 and childe class Bolhuis(D1) 
+    - D1: clean up code-folding mess
 
     - D1 -> Bolhuis: implement function that returns the extrema
     - D1 -> Bolhuis: for positions change input type to float
@@ -49,11 +50,17 @@ import scipy.constants as const
 # local packages and modules
 from potentials import D1_Bolhuis
 
-test_V = False
-test_F = False
-test_H = False
-test_p = False
+test_V = True
+test_F = True
+test_H = True
+test_p = True
 
+#-----------------------------------------
+#   D1_Bolhuis  - Class
+#-----------------------------------------
+
+# local packages and modules
+from potentials import D1
 
 
 #  Plot potential for various parameters
@@ -61,10 +68,25 @@ if test_V == True:
     print("---------------------------------")
     print(" testing the Potential   ")
     
-    # basis test whether the function works as expected
-    my_param = [2, 1, 20, 1, 0, 0]
-    print(D1_Bolhuis.V(4, *my_param))
-
+    
+    my_param = [2, 1, 5 , 1, 2, 10]
+    my_potential = D1.Bolhuis(my_param)
+    
+    print(" ")
+    print("class members: ")
+    print(dir(my_potential))
+    print(" ")
+    print("values of the parameters")
+    print("a: ",  my_potential.a, ", ", 
+          "b: ",  my_potential.b, ", ",  
+          "c: ",  my_potential.c, ", ",  
+          "k1: ",  my_potential.k1, ", ",  
+          "k2: ",  my_potential.k2, ", ",  
+          "alpha: ",  my_potential.alpha)
+    print(" ")
+    x=1
+    print("potential at x = ", x)
+    print(my_potential.potential(x))    
 
 
     # set x-axis
@@ -73,10 +95,14 @@ if test_V == True:
     #----------------------
     # vary parameter a
     plt.figure(figsize=(12, 6)) 
-    for a in np.linspace(-2,2, 11):     
-        my_param = [a, 1, 20, 1, 0, 0]
+    for a in np.linspace(-2,2, 11):
+        # set parameters
+        this_param = [a, 1, 20, 1, 0, 0]
+        # generate instance of the potential class
+        this_potential = D1.Bolhuis(this_param)
+        # plot
         color = plt.cm.viridis((a + 2) / 4)  # Normalize a to be in [0, 1]
-        plt.plot(x, D1_Bolhuis.V(x, *my_param), color=color, label='a={:.2f}'.format(a))
+        plt.plot(x, this_potential.potential(x), color=color, label='a={:.2f}'.format(a))
         
     plt.ylim(0,20)
     plt.xlabel("x")
@@ -87,10 +113,14 @@ if test_V == True:
     #----------------------
     # vary parameter b
     plt.figure(figsize=(12, 6)) 
-    for b in np.linspace(0, 4, 11):     
-        my_param = [2, b, 20, 1, 0, 0]
+    for b in np.linspace(0, 4, 11):  
+        # set parameters
+        this_param = [2, b, 20, 1, 0, 0]
+        # generate instance of the potential class
+        this_potential = D1.Bolhuis(this_param)
+        #plot
         color = plt.cm.viridis(b / 4)  # Normalize a to be in [0, 1]
-        plt.plot(x, D1_Bolhuis.V(x, *my_param), color=color, label='b={:.2f}'.format(b))
+        plt.plot(x, this_potential.potential(x), color=color, label='b={:.2f}'.format(b))
     
     plt.ylim(0,20)
     plt.xlabel("x")
@@ -98,42 +128,54 @@ if test_V == True:
     plt.title("Vary parameter b")
     plt.legend()
     
+ 
     #----------------------
     # vary parameter k1
     plt.figure(figsize=(12, 6)) 
     for k1 in np.linspace(0, 4, 11):     
-        my_param = [2, 1, 20, k1, 0, 0]
+        # set parameters        
+        this_param = [2, 1, 20, k1, 0, 0]
+        # generate instance of the potential class
+        this_potential = D1.Bolhuis(this_param)
+        #plot
         color = plt.cm.viridis(k1 / 4)  # Normalize a to be in [0, 1]
-        plt.plot(x, D1_Bolhuis.V(x, *my_param), color=color, label='k1={:.2f}'.format(k1))
+        plt.plot(x, this_potential.potential(x), color=color, label='k1={:.2f}'.format(k1))
     
     plt.ylim(0,20)
     plt.xlabel("x")
     plt.ylabel("V(x)") 
     plt.title("Vary parameter k1")
-    plt.legend()
-    
+    plt.legend()   
+ 
     #----------------------
     # vary parameter k2
     plt.figure(figsize=(12, 6)) 
     for k2 in np.linspace(0, 4, 11):     
-        my_param = [2, 1, 20, 2, k2, 0]
+        # set parameters           
+        this_param = [2, 1, 20, 2, k2, 0]
+        # generate instance of the potential class
+        this_potential = D1.Bolhuis(this_param)
+        # plot
         color = plt.cm.viridis(k2 / 4)  # Normalize a to be in [0, 1]
-        plt.plot(x, D1_Bolhuis.V(x, *my_param), color=color, label='k2={:.2f}'.format(k2))
+        plt.plot(x, this_potential.potential(x), color=color, label='k2={:.2f}'.format(k2))
     
     plt.ylim(0,20)
     plt.xlabel("x")
     plt.ylabel("V(x)") 
     plt.title("Vary parameter k2")
-    plt.legend()
-    
-    
+    plt.legend()   
+ 
     #----------------------
     # vary parameter c
     plt.figure(figsize=(12, 6)) 
     for c in np.linspace(0, 40, 11):     
-        my_param = [2, 1, c, 2, 0, 2]
+        # set parameters          
+        this_param = [0, 1, c, 2, 0, 2]
+        # generate instance of the potential class    
+        this_potential = D1.Bolhuis(this_param)
+        # plot         
         color = plt.cm.viridis(c / 40)  # Normalize a to be in [0, 1]
-        plt.plot(x, D1_Bolhuis.V(x, *my_param), color=color, label='c={:.2f}'.format(c))
+        plt.plot(x, this_potential.potential(x), color=color, label='c={:.2f}'.format(c))
     
     plt.ylim(0,20)
     plt.xlabel("x")
@@ -144,16 +186,21 @@ if test_V == True:
     #----------------------
     # vary parameter alpha
     plt.figure(figsize=(12, 6)) 
-    for alpha in np.linspace(0, 4, 11):     
-        my_param = [2, 1, 20, 2, 0, alpha]
+    for alpha in np.linspace(0, 4, 11):  
+        # set parameters          
+        this_param = [0, 1, 20, 2, 0, alpha]
+        # generate instance of the potential class    
+        this_potential = D1.Bolhuis(this_param)
+        # plot         
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
-        plt.plot(x, D1_Bolhuis.V(x, *my_param), color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x, this_potential.potential(x), color=color, label='alpha={:.2f}'.format(alpha))
         
     plt.ylim(0,20)
     plt.xlabel("x")
     plt.ylabel("V(x)") 
     plt.title("Vary parameter alpha")
-    plt.legend()
+    plt.legend()   
+
 
 #  Compare force calculated analytically and numerically
 if test_F == True: 
@@ -169,14 +216,18 @@ if test_F == True:
     plt.figure(figsize=(6, 6)) 
     plt.axhline(y=0, color='black', linestyle='dotted', linewidth=1)
     
-    for alpha in np.linspace(0, 4, 5):     
-        my_param = [2, 1, 20, 2, 1, alpha]
+    for alpha in np.linspace(0, 4, 5):    
+        # set parameters          
+        this_param = [2, 1, 20, 2, 1, alpha]
+        # generate instance of the potential class
+        this_potential = D1.Bolhuis(this_param)
+        # colors
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot analytical force 
-        plt.plot(x, D1_Bolhuis.F(x, *my_param)[0,:], color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x, this_potential.force(x)[0,:], color=color, label='alpha={:.2f}'.format(alpha))
         # plot numericaal  force 
-        plt.plot(x, D1_Bolhuis.F_num(x, h, *my_param)[0,:], color=color, marker='o', linestyle='None', markersize=3)
+        plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
     
     plt.ylim(-20,20)
     plt.xlabel("x")
@@ -190,18 +241,22 @@ if test_F == True:
     plt.axhline(y=0, color='black', linestyle='dotted', linewidth=1)
     
     for alpha in np.linspace(0, 4, 5):     
-        my_param = [2, 1, 20, 2, 0, alpha]
+        # set parameters  
+        this_param = [2, 1, 20, 2, 1, alpha]
+        # generate instance of the potential class
+        this_potential = D1.Bolhuis(this_param)
+        # colors
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot deviation between analytical and numerical Hessian 
-        plt.plot(x, D1_Bolhuis.F(x, *my_param)[0,:] - D1_Bolhuis.F_num(x, h, *my_param)[0,:], color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x, this_potential.force(x)[0,:] - this_potential.force_num(x, h)[0,:], color=color, label='alpha={:.2f}'.format(alpha))
     
     plt.ylim(-5,5)
     plt.xlabel("x")
-    plt.ylabel("H(x)- H_num(x)") 
+    plt.ylabel("F(x)- F_num(x)") 
     plt.title("Deviation between analytical force and numerical force for various values of alpha")
     plt.legend()   
-    
+
 #  Compare Hessian calculated analytically and numerically
 if test_H == True: 
     print("---------------------------------")
@@ -217,13 +272,17 @@ if test_H == True:
     plt.axhline(y=0, color='black', linestyle='dotted', linewidth=1)
     
     for alpha in np.linspace(0, 4, 5):     
-        my_param = [2, 1, 20, 2, 0, alpha]
+        # set parameters
+        this_param = [2, 1, 20, 2, 0, alpha]
+        # generate instance of the potential class        
+        this_potential = D1.Bolhuis(this_param)
+        # colors
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot analytical Hessian 
-        plt.plot(x, D1_Bolhuis.H(x, *my_param)[0,0,:], color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x,  this_potential.hessian(x)[0,0,:], color=color, label='alpha={:.2f}'.format(alpha))
         # plot numericaal  Hessian 
-        plt.plot(x, D1_Bolhuis.H_num(x, h, *my_param)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
+        plt.plot(x, this_potential.hessian_num(x, h)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
     
     plt.ylim(-200,100)
     plt.xlabel("x")
@@ -238,18 +297,23 @@ if test_H == True:
     plt.axhline(y=0, color='black', linestyle='dotted', linewidth=1)
     
     for alpha in np.linspace(0, 4, 5):     
-        my_param = [2, 1, 20, 2, 0, alpha]
+        # set parameters
+        this_param = [2, 1, 20, 2, 0, alpha]
+        # generate instance of the potential class        
+        this_potential = D1.Bolhuis(this_param)
+        # colors
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot deviation between analytical and numerical Hessian 
-        plt.plot(x, D1_Bolhuis.H(x, *my_param)[0,0,:] - D1_Bolhuis.H_num(x, h, *my_param)[0,0,:], color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x, this_potential.hessian(x)[0,0,:] - this_potential.hessian_num(x, h)[0,0,:], color=color, label='alpha={:.2f}'.format(alpha))
     
     plt.ylim(-5,5)
     plt.xlabel("x")
     plt.ylabel("H(x)- H_num(x)") 
     plt.title("Deviation between analytical Hessian and numerical Hessian for various values of alpha")
     plt.legend()    
-    
+
+
 #  Plot Boltzmann density for various temperatures
 if test_p == True: 
     print("---------------------------------")
@@ -258,11 +322,14 @@ if test_p == True:
     x = np.linspace(0, 5, 501)
 
     # set parameters of the potential
-    my_param = [2, 1, 5, 2, 1, 10]
+    this_param = [2, 1, 5, 2, 1, 10]
+    
+    # generate instance of the potential class
+    this_potential = D1.Bolhuis(this_param)
     
     # plot the potential
     plt.figure(figsize=(12, 6)) 
-    plt.plot(x, D1_Bolhuis.V(x, *my_param), color='blue', label='V(x)')
+    plt.plot(x, this_potential.potential(x), color='blue', label='V(x)')
 
     plt.ylim(0,20)
     plt.xlabel("x")
@@ -279,7 +346,7 @@ if test_p == True:
     N_list = np.zeros(12)
 
     for i, T in enumerate(T_list): 
-        Q_list[i]  = D1_Bolhuis.Q(T_list[i], *my_param)
+        Q_list[i]  =  this_potential.partition_function(T_list[i])
 
     plt.figure(figsize=(12, 6)) 
     plt.plot(T_list, Q_list[:,0])
@@ -287,8 +354,6 @@ if test_p == True:
     plt.xlabel("T")
     plt.ylabel("Q(T)") 
     plt.title("Partition functions as a function of temperature")
-    plt.legend()
-        
     
     # plot Boltzmann densits for various temperatures
     plt.figure(figsize=(12, 6)) 
@@ -296,10 +361,10 @@ if test_p == True:
         color = plt.cm.coolwarm((T-T_min) / (T_max-T_min) )  # Normalize a to be in [0, 1]
     
         # calculate partition function 
-        Q =  D1_Bolhuis.Q(T, *my_param)
+        Q =  this_potential.partition_function(T)
     
         # plot Boltzmann distrobution  
-        plt.plot(x, D1_Bolhuis.p(x, T, *my_param)/Q[0], color=color, label='T={:.0f}'.format(T))
+        plt.plot(x, this_potential.boltzmann_factor(x, T)/Q[0], color=color, label='T={:.0f}'.format(T))
         plt.xlabel("x")
         plt.ylabel("p(x)") 
         plt.title("Normalized Boltzmann density for various temperatures")
@@ -315,7 +380,7 @@ if test_p == True:
     for i, T in enumerate(T_list): 
         # calcualate the normalization constant 
         # using the Riemann integral on the grid x_grid
-        N_list[i] = np.sum( D1_Bolhuis.p(x_grid, T, *my_param) ) * (1 / Q_list[i,0])* dx
+        N_list[i] = np.sum( this_potential.boltzmann_factor(x_grid, T) ) * (1 / Q_list[i,0])* dx
  
     plt.figure(figsize=(12, 6)) 
     plt.plot(T_list, N_list)
@@ -323,19 +388,5 @@ if test_p == True:
     plt.xlabel("T")
     plt.ylabel("N") 
     plt.title("Norm of the normalized Boltzmann density for various temperatures")
-    
-
-#-----------------------------------------
-#   D1_Bolhuis  - Class
-#-----------------------------------------
-
-# local packages and modules
-from potentials import D1
-
-my_param = [2, 1, 5, 2, 1, 10]
-my_potential = D1.Bolhuis(my_param)
-print(my_potential.V(1))    
-print(dir(my_potential))
-
-
+        
 print("---------------------------------")  

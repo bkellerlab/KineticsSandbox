@@ -21,12 +21,15 @@ from scipy import integrate
 class D1(ABC):
     #---------------------------------------------------------------------
     #   class initialization needs to be implemented in a child class
+    #
+    #   In the initialization define the parameters of the potential
+    #   and the range [x_low, x_high]
     #---------------------------------------------------------------------
     @abstractmethod    
     def __init__(self, param): 
         pass
     #---------------------------------------------------------------------
-    #   analyitical methods that need to be implemented in a child class
+    #   analyitical functions that need to be implemented in a child class
     #---------------------------------------------------------------------
     # the potential energy function 
     @abstractmethod
@@ -159,7 +162,7 @@ class D1(ABC):
 # child class: one-dimensional potentials
 #------------------------------------------------
 class Bolhuis(D1):
-    # intiialize classe
+    # intiialize class
     def __init__(self, param): 
         """
         Initialize the class for the 1-dimensional Bolhuis potential based on the given parameters.
@@ -169,7 +172,7 @@ class Bolhuis(D1):
             - param[0]: a (float) - parameter controlling the center of the quadratic term.
             - param[1]: b (float) - parameter controlling the width of the quadratic term.
             - param[2]: c (float) - parameter controlling the width of perturbation.
-            - param[3]: k1 (float) - force constant of the double well. Default is 1.
+            - param[3]: k1 (float) - force constant of the double well. Default is 1.d
             - param[4]: k2 (float) - force constant of the linear term. Default is 0.
             - param[5]: alpha (float) - strength of the perturbation.
 
@@ -227,6 +230,7 @@ class Bolhuis(D1):
         """
         
         return  self.k1 * ((x - self.a)**2 - self.b)**2 + self.k2 * x + self.alpha * np.exp(-self.c * (x - self.a)**2)
+        
     
     # the force, analytical expression
     def force(self, x):
