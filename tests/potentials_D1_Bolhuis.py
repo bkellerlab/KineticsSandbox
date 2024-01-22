@@ -5,30 +5,10 @@ Created on Wed Jan 10 09:28:56 2024
 
 @author: bettina
 
-Next steps:
-     
-    #------------------------------------------
-    # package "potentials" 
+This tests the one-dimensional Bolhuis potential 
+implemented in the potential class
 
-    - D1: DoubleWell
-    - D1: GaussianBias
-    
-    #------------------------------------------
-    # package "rate_theory" 
-    
-    np.- create a new package "rate_theory" 
-    - within rate_theory, write a module D1 for rates from 1D-potentials
-    - D1: TST
-    - D1: Kramers
-    - D1: SqRA
-    - within rate_theory, write a module rate_matrix for rates from rate_matrices
-    - rateMatrix: SqRA_rate (via Berezhkovski, Szabo)    
-    - rateMatrix: SqRA_rate_via_its (as inverse of ITS)    
-    - rateMatrix: MSM_rate_via_its (as inverse of ITS)   
-
-    #------------------------------------------
-    # create a new package "integrators" 
-
+potential.D1(Bolhuis)
 
 """
 
