@@ -59,7 +59,8 @@ import scipy.constants as const
 from scipy.optimize import minimize
 
 # local packages and modules
-from potentials import D1
+from system import system
+from potential import D1
 
 
 #-----------------------------------------

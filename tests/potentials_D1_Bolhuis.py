@@ -26,7 +26,7 @@ import numpy as np
 #   D1_Bolhuis
 #-----------------------------------------
 # local packages and modules
-from potentials import D1
+from potential import D1
 
 test_V = True
 test_F = False
