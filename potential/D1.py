@@ -183,6 +183,29 @@ class D1(ABC):
             print(f"Error: {e}")
             return False
 
+    def min(self, x_start): 
+        """
+        Numerically finds the nearest minimum in the vicinity of x_start 
+        
+        Parameters:
+        - x_start (float): start of the minimization
+        
+        Returns:
+        float: position of the minimum
+        
+        """        
+
+        # This is a convenience function.
+        # It essentially calls scipy.optimize.minimize.
+
+        # minimize returns a class OptimizeResult
+        # the minimum is the class member x
+        x_min = minimize(self.potential, x_start, method='BFGS').x
+        
+        # returns position of the minimum as float
+        return x_min[0]     
+
+
     # transition state
     def TS(self, x_start, x_end):
         """

@@ -30,8 +30,6 @@ Next steps:
     #------------------------------------------
     # package "potentials" 
 
-    - D1: add convenience function that returns the nearest minimum
-
     - D1: DoubleWell
     - D1: GaussianBias
     - D1: TripleWell
@@ -57,8 +55,7 @@ Next steps:
 #-----------------------------------------
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.constants as const
-from scipy.optimize import minimize
+#import scipy.constants as const
 
 # local packages and modules
 from system import system
@@ -131,6 +128,7 @@ plt.legend()
 # reset alpha to zero
 potential.alpha = 0
 
+
 #-----------------------------------------
 #   M I N I M A 
 #-----------------------------------------
@@ -160,8 +158,8 @@ for i, alpha in enumerate(alpha_list):
     potential.alpha = alpha
 
     # find minima using scipy optimize
-    min_1[i] = minimize( potential.potential, min_1_start, method='BFGS' ).x
-    min_2[i] = minimize( potential.potential, min_2_start, method='BFGS' ).x
+    min_1[i] = potential.min(min_1_start)
+    min_2[i] = potential.min(min_2_start)
 
     # calculate the forces in the minima
     force_min_1[i] = potential.force( min_1[i] )        
