@@ -18,9 +18,7 @@ https://en.wikipedia.org/wiki/International_System_of_Units
 
 ## Derived quantities
 The conversion between GROMACS base units and SI base units, assumes that
-$$
-u \cdot N_A = 0.99999999965(30)\cdot 10^{−3} \frac{\mbox{kg}}{\mbox{mol}} \approx 1
-$$
+$$u \cdot N_A = 0.99999999965(30)\cdot 10^{−3} \frac{\mbox{kg}}{\mbox{mol}} \approx 1$$
 where $N_A$ is Avogadro's constant.
 
 | Quantity | Symbol and definition | GROMACS base units | SI base units | Unit |
