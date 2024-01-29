@@ -28,6 +28,11 @@ Next steps:
     # create a new package "MSM" 
 
     #------------------------------------------
+    # package "system" 
+
+    - make v optional at initialization, draw v from Maxwell-Boltzmann dist
+
+    #------------------------------------------
     # package "potentials" 
 
     - D1: DoubleWell
@@ -40,7 +45,6 @@ Next steps:
     
     #------------------------------------------
     # documentation
-    - create directory "manual"
     - within "manual" write the manual as md-files (theory, how to use the code)
     - add README files to each package that explain the code structure of the package
     
@@ -65,13 +69,14 @@ from potential import D1
 #-----------------------------------------
 #   S Y S T E M
 #-----------------------------------------
-m = 1.0
+m = 100.0
 x = 0.0
 v = 0.0 
 T = 300.0
 xi = 1.0
+dt = 0.001
 # initialize the system
-system = system.D1(m, x, v, T, xi)
+system = system.D1(m, x, v, T, xi, dt)
 
 print("-----------------------------------------------------------------------")
 print(" Initialized system ")
@@ -81,7 +86,7 @@ print("Position: ", system.x, " nm")
 print("Velocity: ", system.v, " nm/ps")
 print("Temperature: ", system.T, " K")
 print("Collision frequency: ", system.xi, " 1/ps")
-
+print("Time step: ", system.dt, " ps")
 
 #-----------------------------------------
 #   P O T E N T I A L 
