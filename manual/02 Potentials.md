@@ -8,15 +8,16 @@
 
 **Potential:**
 $$
-	V(x) = kx + d
+V(x) = kx + d
 $$
+
 **Force:**
 $$
-	F(x) = - \frac{d}{dx} V(x) = k
+F(x) = - \frac{d}{dx} V(x) = k
 $$
 **Hessian:**
 $$
-	H_{11}(x) = \frac{d^2}{dx^2}V(x) = 0
+H_{11}(x) = \frac{d^2}{dx^2}V(x) = 0
 $$
 **Transition state:** A linear potential does not have a transition state. Overwrite class function, return error.
 ## Harmonic potential
