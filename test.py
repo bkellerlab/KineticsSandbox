@@ -25,14 +25,28 @@ Next steps:
     # create a new package "integrators" 
 
     #------------------------------------------
+    # create a new package "MSM" 
+
+    #------------------------------------------
     # package "potentials" 
 
     - D1: DoubleWell
     - D1: GaussianBias
     - D1: TripleWell
     - D1: Prinz potential
+    - D1: Linear potential 
     - D1: Harmonic potential
     - D1: Morse potential
+    
+    #------------------------------------------
+    # documentation
+    - create directory "manual"
+    - within "manual" write the manual as md-files (theory, how to use the code)
+    - add README files to each package that explain the code structure of the package
+    
+    #------------------------------------------
+    # cook book
+    - create a directory "cookbook" for example use cases.
 
 """
 
@@ -205,3 +219,4 @@ print(hessian_TS)
 #-----------------------------------------
 #   T S T  R A T E
 #-----------------------------------------
+
