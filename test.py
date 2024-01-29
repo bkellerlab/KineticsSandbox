@@ -30,6 +30,8 @@ Next steps:
     #------------------------------------------
     # package "potentials" 
 
+    - D1: add convenience function that returns the nearest minimum
+
     - D1: DoubleWell
     - D1: GaussianBias
     - D1: TripleWell
@@ -66,7 +68,23 @@ from potential import D1
 #-----------------------------------------
 #   S Y S T E M
 #-----------------------------------------
-mass = 1
+m = 1.0
+x = 0.0
+v = 0.0 
+T = 300.0
+xi = 1.0
+# initialize the system
+system = system.D1(m, x, v, T, xi)
+
+print("-----------------------------------------------------------------------")
+print(" Initialized system ")
+print("-----------------------------------------------------------------------")
+print("Mass: ", system.m, " u")
+print("Position: ", system.x, " nm")
+print("Velocity: ", system.v, " nm/ps")
+print("Temperature: ", system.T, " K")
+print("Collision frequency: ", system.xi, " 1/ps")
+
 
 #-----------------------------------------
 #   P O T E N T I A L 
@@ -81,6 +99,17 @@ x = np.linspace(-2, 6, 501)
 
 #set list of alpha values
 alpha_list = np.linspace(0, 38, 20)
+
+print("-----------------------------------------------------------------------")
+print(" Initialized 1-dimensional Bolhuis potential ")
+print("-----------------------------------------------------------------------")
+print("a: ", potential.a)
+print("b: ", potential.b)
+print("c: ", potential.c)
+print("k1: ", potential.k1)
+print("k2: ", potential.k2)
+print("alpha: ", potential.alpha)
+
 
 #----------------------
 # vary parameter alpha
