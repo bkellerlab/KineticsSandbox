@@ -1,5 +1,10 @@
 # 1-dimensional potentials
 
+## Class D1
+Class D1 is the parent class for all one-dimensioanl potentials. It provides 
+**Abstract mehods**
+- __inti__
+
 ## Linear potential
 
 **Parameters:** $k, d$
