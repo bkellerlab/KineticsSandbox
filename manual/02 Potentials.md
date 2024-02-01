@@ -1,9 +1,23 @@
 # 1-dimensional potentials
 
 ## Class D1
-Class D1 is the parent class for all one-dimensioanl potentials. It provides 
-**Abstract mehods**
-- __inti__
+
+Class D1 is the parent class for all one-dimensional potentials. It provides the following a **abstract mehods** which need to be implemented for each specific potential $V(x)$.
+
+- **\_\_init\_\_**:  set the parameters of the potential and a likely range of the potential
+- **potential**: expects $x$, returns $V(x)$, should be implemented as an analytical expression
+- **force:** expects x, returns $-dV(x)/dx$, should be implemented as an analytical expression
+- **hessian**: expects x, returns  $d^2V(x)/dx^2$, should be implemented as an analytical expression
+
+The also class provides methods that are inherited by the child classes
+
+- **negated_potential**: expects $x$, calls method potentials, returns $-V(x)$
+- **force_num**: expects $x$ and $h$, calls method potentials, returns $-dV(x)/dx$ calculated via finite difference
+- **hessian_num**: expects $x$ and $h$, calls method potentials, returns  $d^2V(x)/dx^2$ calculated via finite difference
+- **min:** expects $x_{\mathrm{start}}$, returns location of the nearest minimum calculated via scipy.optimize
+- **TS:** expects $x_{\mathrm{start}}$ and $x_{\mathrm{end}}$, returns location of the highest energy point in the intervall $[x_{\mathrm{start}}, x_{\mathrm{end}}]$$ (i.e. the transition state), calculated via scipy.optimize
+
+For potentials that do not have minimum or a transition state, **min** and **TS** need to be overwritten so that they return an error.
 
 ## Linear potential
 
