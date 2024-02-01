@@ -116,73 +116,7 @@ class D1(ABC):
         # cast Hessian as a 1x1 numpy array and return
         return  np.array([[H]]) 
     
-    # unnormalized Boltzmann factor
-    def boltzmann_factor(self, x, T):
-        """
-        Calculate the unnormalized Boltzmann factor for the 1-dimensional Bolhuis potential 
-        
-        The unnormalized Boltzmann factor is given by:
-        p(x) = exp(- V(x) * 1000 / (R * T))
-        
-        The potential is given in molar units (kJ/mol). Consequently, the ideal gas constant R is used rather than the Boltzmann constant k_B. 
-        The factor 1000 arises from converting kJ/mol to J/mol
-        
-        Parameters:
-            - T (float): temperature in units of K
-              
-        Returns:
-            float: The value of the unnormalized Boltzmann factor at the given position x.
-        """    
-        
-        return np.exp(-self.potential(x) * 1000 / (T * const.R))
-        
-    # partition function
-    def partition_function(self, T, limits=None):
-        """
-        Calculate the partition function for the 1-dimensional Bolhuis potential 
-        
-        The partition function is given by:
-        Q = \int_{-\infty}^{\infty} p(x) dx
-        
-        In practice, the integration bounds are set to specific values, specified in the variable limits.
-        Integration is carried out by scipy.integrate
-        
-        Parameters:
-            - T (float): temperatur in units of K
-            - limits (list, optional): limits of he integrations. Defaults have been set at the initialization of the class 
-                
-        Returns:
-            list: The value of the partition function and an error estimate [Q, Q_error] 
-        
-        """        
-        
-        try:         
-            # no limits are passed, the class members x_low and x_high are available
-            if limits==None and hasattr(self, 'x_low') and hasattr(self, 'x_high'):
-                # integrate the unnormalized Boltzmann factor within the specified limits
-                Q, Q_error = integrate.quad(self.boltzmann_factor, self.x_low, self.x_high,  args=(T))
-                # return Q and the error estimates of the integation 
-                return [Q, Q_error]
-            
-            # limits are passed, format is correct, ignore the class members x_low and x_high
-            elif limits!=None and isinstance(limits, list) and len(limits) == 2:
-                # integrate the unnormalized Boltzmann factor within the specified limits
-                Q, Q_error = integrate.quad(self.boltzmann_factor, limits[0], limits[1],  args=(T))
-                # return Q and the error estimates of the integation 
-                return [Q, Q_error]
-            
-            # no limits are passed, but the class members x_low and x_high are missing
-            elif limits==None and (not hasattr(self, 'x_low') or not hasattr(self, 'x_high') ):     
-                raise ValueError("Default limits of the integration have not been implemented. Pass limits as an argument")
-            
-            # limit are passed, format is wrong, raise error
-            elif limits!=None and (not isinstance(limits, list) or not len(limits) == 2):
-                raise ValueError("Input 'limits' is not a list with two elements.")
-            
-        except Exception as e:
-            print(f"Error: {e}")
-            return False
-
+    # nearest minimum
     def min(self, x_start): 
         """
         Numerically finds the nearest minimum in the vicinity of x_start 
@@ -204,7 +138,6 @@ class D1(ABC):
         
         # returns position of the minimum as float
         return x_min[0]     
-
 
     # transition state
     def TS(self, x_start, x_end):

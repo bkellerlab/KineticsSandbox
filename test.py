@@ -35,6 +35,8 @@ Next steps:
     #------------------------------------------
     # package "potentials" 
 
+    - move Boltzmann factor and partition function to a different module
+
     - D1: DoubleWell
     - D1: GaussianBias
     - D1: TripleWell
