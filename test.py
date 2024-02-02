@@ -11,7 +11,6 @@ Next steps:
     #------------------------------------------
     # module "rate_theory" 
     
-    - rate_theory: TST, high-temperature
     - rate_theory: Kramers
     - rate_theory:: SqRA
     - within rate_theory, write a module rate_matrix for rates from rate_matrices
@@ -265,9 +264,11 @@ print(" TST rate")
 print("-----------------------------------------------------------------------")
 
 
-# initizalize list TST rates
+# initizalize list of TST rates
 k_AB = np.zeros( len(alpha_list) )
 k_BA = np.zeros( len(alpha_list) )
+k_AB_ht = np.zeros( len(alpha_list) )
+k_BA_ht = np.zeros( len(alpha_list) )
 
 # loop over alpha
 for i, alpha in enumerate(alpha_list):
@@ -275,22 +276,30 @@ for i, alpha in enumerate(alpha_list):
     # set alpha value in the potential
     potential.alpha = alpha_list[i]
     
-    
-    # calculate the TST rates
+    # calculate the Eyring TST rates
     k_AB[i] = rate_theory.TST_D1(min_1[i], TS[i], system.T, system.m, potential)
     k_BA[i] = rate_theory.TST_D1(min_2[i], TS[i], system.T, system.m, potential)
+
+    # calculate the high-temperature approximation of the Eyring TST rates
+    k_AB_ht[i] = rate_theory.TST_ht_D1(min_1[i], TS[i], system.T, system.m, potential)
+    k_BA_ht[i] = rate_theory.TST_ht_D1(min_2[i], TS[i], system.T, system.m, potential)
 
 print("k_AB")
 print(k_AB)
 print("k_BA")
 print(k_BA)
-
+print("k_AB, ht")
+print(k_AB_ht)
+print("k_BA, th")
+print(k_BA_ht)
 
 # vary parameter alpha
 plt.figure(figsize=(12, 6)) 
     
 plt.semilogy(alpha_list, k_AB, color="red", label='k_AB, TST')
 plt.semilogy(alpha_list, k_BA, color="blue", label='k_BA, TST')
+plt.semilogy(alpha_list, k_AB_ht, color="darkred", marker='o', linestyle='dashed', label='k_AB, high temperature TST')
+plt.semilogy(alpha_list, k_BA_ht, color="darkblue", marker='o', linestyle='dashed', label='k_BA, high temperature TST')
 
     
 plt.xlabel("alpha")
