@@ -39,3 +39,21 @@ These units are consistent with units for the derivates of the potential energy 
 | hessian | $h(x)= \frac{d^2}{dx^2}V(x)$ | $\mbox{u}\frac{1}{\mbox{ps}^2}$ | $10^{21}\frac{\mbox{kg}}{\mbox{mol}}\frac{1}{\mbox{s}^2}$ | $\frac{\mbox{kJ}}{\mbox{mol}\cdot\mbox{nm}^2}$ |
 
 ## Natural constants
+| Symbol | Name | Value | Implementation |
+| ---- | ---- | ---- | ---- |
+| $N_A$ | Avogadro constant | $6.02214076\cdot 10^{23} \, \mathrm{mol}^{-1}$ | scipy.constants.Avogadro |
+| $R$ | Ideal gas constant | $8.314462618 \cdot 10^{-3}\, \mathrm{kJ}\, \mathrm{mol}^{-1}\, \mathrm{K}^{-1}$ | scipy.constants.Avogadro * 0.001 |
+| $h$ | Planck constant | $0.399031271\,\mathrm{kJ}\,\mathrm{mol}^{−1}\,\mathrm{ps}$ | h = scipy.constants.h *  scipy.constants.h * 0.001 *  1e12 |
+|  |  |  |  |
+
+# System
+
+As system is implemented by the system class, which holds information on 
+
+- particle masses
+- state of the system, i.e. positions and momenta
+- thermodynamic state of the system, i.e. temperature 
+- parameters for the interaction with the thermal bath, i.e. collision frequency and simulation time step
+
+## One-dimensional systems
+
