@@ -48,6 +48,8 @@ def TST_D1(x_A, x_TS, T, m, potential):
     
     k_AB = R*T / h *  (q_TS / q_A) * np.exp(- E_b / (R * T)) 
 
+    The unit of k_AB is 1/ps
+
     Note: This function assumes a one-dimensional reaction coordinate.
     """
     

@@ -9,13 +9,11 @@ Next steps:
      
     
     #------------------------------------------
-    # package "rate_theory" 
+    # module "rate_theory" 
     
-    - create a new package "rate_theory" 
-    - within rate_theory, write a module D1 for rates from 1D-potentials
-    - D1: TST
-    - D1: Kramers
-    - D1: SqRA
+    - rate_theory: TST, high-temperature
+    - rate_theory: Kramers
+    - rate_theory:: SqRA
     - within rate_theory, write a module rate_matrix for rates from rate_matrices
     - rateMatrix: SqRA_rate (via Berezhkovski, Szabo)    
     - rateMatrix: SqRA_rate_via_its (as inverse of ITS)    
@@ -29,7 +27,7 @@ Next steps:
 
     #------------------------------------------
     # package "system" 
-
+    
     - make v optional at initialization, draw v from Maxwell-Boltzmann dist
 
     #------------------------------------------
@@ -47,7 +45,6 @@ Next steps:
     
     #------------------------------------------
     # documentation
-    - within "manual" write the manual as md-files (theory, how to use the code)
     - add README files to each package that explain the code structure of the package
     
     #------------------------------------------
