@@ -16,12 +16,12 @@ import numpy as np
 
 # local packages and modules
 #from potential import D1
-#from system import system
+from system import system
 
 
 
 def TST(sys_min, sys_TS, potential): 
 
-    sys_min.x
+    print("here")
     
     return None
