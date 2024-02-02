@@ -290,7 +290,7 @@ print("k_BA")
 print(k_BA)
 print("k_AB, ht")
 print(k_AB_ht)
-print("k_BA, th")
+print("k_BA, ht")
 print(k_BA_ht)
 
 # vary parameter alpha
