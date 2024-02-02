@@ -20,7 +20,6 @@ from potential import D1
 #from system import system
 
 
-
 def TST_D1(x_A, x_TS, T, m, potential): 
     """
     Calculate the rate constant using Eyring Transition State Theory (TST) for a unimolecular reaction.
@@ -77,7 +76,6 @@ def TST_D1(x_A, x_TS, T, m, potential):
     return k_AB
 
 
-
 def TST_ht_D1(x_A, x_TS, T, m, potential): 
     """
     Calculate the rate constant using the high-temperature approximaton of 
@@ -126,3 +124,5 @@ def TST_ht_D1(x_A, x_TS, T, m, potential):
     k_AB = nu_A * np.exp(- E_b / (R * T))    
     
     return k_AB
+
+
