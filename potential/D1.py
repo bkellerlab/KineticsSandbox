@@ -187,21 +187,6 @@ class Bolhuis(D1):
             - param[5]: alpha (float) - strength of the perturbation.
 
 
-        For the partition function, we need to speficy an intervall  [x_low, x_high]. 
-        This intervall is set to default values at the intialization, 
-        but can other limits can be specified in the function call for the partition function. 
-        
-        x_low = a - 3 sqrt(|b|)
-        x_high  = a + 3 sqrt(|b|)
-    
-        where |b| is the absolute value of b. The reason for this is that for k2=0 and alpha=0, the extrama of the potential are located at
-        
-        x_max = a
-        x_min = a +/- sqrt(b)
-        
-        The the boundaries are located at three times the distance between minimum and maximum on either side of the maximum. 
-
-
         Raises:
         - ValueError: If param does not have exactly 6 elements.
         """
