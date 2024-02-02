@@ -9,10 +9,10 @@ https://en.wikipedia.org/wiki/International_System_of_Units
 ## Base quantities
 | Quantity | Symbol | Unit | Unit name |
 | ---- | ---- | ---- | ---- |
-| time | $t$ | ps $= 10^{-12}$ s | picosecond |
+| time | $t$ | $\mbox{ps}= 10^{-12}\, \mbox{s}$ | picosecond |
 | length | $x$ | $\mbox{nm} = 10^{-9}\,\mbox{m}$ | nanometer |
 | mass | $m$ | $\mbox{u} = 1.66054 \cdot 10^{−27}\,  \mbox{kg} \approx 10^{-3} \frac{\mbox{kg}}{\mbox{mol}}$ | unified atomic mass unit  / Dalton |
-| temperature | $T$ | K | Kelvin |
+| temperature | $T$ | $\mbox{K}$ | Kelvin |
 | charge | $q$ | e??? | elementary charge ??? |
 | collision frequency | $\xi$ | $\mbox{ps}^{-1} = 10^{12}\, \mbox{s}^{-1}$ |  |
 

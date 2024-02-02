@@ -61,44 +61,19 @@ Next steps:
 #-----------------------------------------
 import matplotlib.pyplot as plt
 import numpy as np
-import scipy.constants as const
+#import scipy.constants as const
 
 # local packages and modules
 from system import system
 from potential import D1
-#from rate_theory import D1
+from utils import rate_theory
 
 
 #-----------------------------------------
 #   F U N C T I O N S
 #-----------------------------------------
 
-def TST_D1(x_A, x_TS, T, m, potential): 
 
-    # get natural constants in the right units    
-    h = const.h * const.Avogadro * 0.001 *  1e12
-    R = const.R * 0.001
-    
-    # extract positions of A and TS, temperature and mass
-    
-    # get the energy barrier
-    E_b = potential.potential(x_TS) - potential.potential(x_A)
-
-    #get the force consant in the transition state
-    k = potential.hessian(x_A)[0,0]
-    
-    # calculate the frequency
-    nu = 1/(2* np.pi) * np.sqrt(k/m)
-    
-    #set vibrational partition function of the TS to one
-    q_TS = 1
-    
-    # calculate the partition function of A
-    q_A = np.exp(- h * nu / (2 * R * T)) /  (1 - np.exp(- h * nu / ( R * T)) )
-    
-    k_AB = R * T / h * (q_TS / q_A) * np.exp(- E_b / (R * T))    
-    
-    return k_AB
 
 
 #-----------------------------------------
@@ -305,8 +280,8 @@ for i, alpha in enumerate(alpha_list):
     
     
     # calculate the TST rates
-    k_AB[i] = TST_D1(min_1[i], TS[i], system.T, system.m, potential)
-    k_BA[i] = TST_D1(min_2[i], TS[i], system.T, system.m, potential)
+    k_AB[i] = rate_theory.TST_D1(min_1[i], TS[i], system.T, system.m, potential)
+    k_BA[i] = rate_theory.TST_D1(min_2[i], TS[i], system.T, system.m, potential)
 
 print("k_AB")
 print(k_AB)
