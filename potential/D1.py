@@ -218,10 +218,6 @@ class Bolhuis(D1):
         self.k2 = param[4]
         self.alpha = param[5]
         
-        # calculate a likely range of the function 
-        self.x_low = self.a-3*np.sqrt(np.abs(self.b))
-        self.x_high = self.a+3*np.sqrt(np.abs(self.b))
-
     # the potential energy function 
     def potential(self, x):
         """

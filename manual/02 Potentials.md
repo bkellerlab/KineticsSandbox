@@ -4,7 +4,7 @@
 
 Class D1 is the parent class for all one-dimensional potentials. It provides the following a **abstract mehods** which need to be implemented for each specific potential $V(x)$.
 
-- **\_\_init\_\_**:  set the parameters of the potential and a likely range of the potential
+- **\_\_init\_\_**:  set the parameters of the potential
 - **potential**: expects $x$, returns $V(x)$, should be implemented as an analytical expression
 - **force:** expects x, returns $-dV(x)/dx$, should be implemented as an analytical expression
 - **hessian**: expects x, returns  $d^2V(x)/dx^2$, should be implemented as an analytical expression
