@@ -42,6 +42,7 @@ $$H_{11}(x) = \frac{d^2}{dx^2}V(x) = 2k$$
 
 **Transition state:** A harmonic potential does not have a transition state. Overwrite class function, return error.
 ## Morse potential
+## Lennard-Jones potential
 ## Gaussian bias
 ## Double well
 ## Bolhuis potential

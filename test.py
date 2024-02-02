@@ -32,8 +32,6 @@ Next steps:
     #------------------------------------------
     # package "potentials" 
 
-    - move Boltzmann factor and partition function to a different module
-
     - D1: DoubleWell
     - D1: GaussianBias
     - D1: TripleWell
@@ -41,14 +39,22 @@ Next steps:
     - D1: Linear potential 
     - D1: Harmonic potential
     - D1: Morse potential
+    - D1: Lennard Jones potential
+    
+    #------------------------------------------
+    # module "thermodynamics"
+    
+    - implement Boltzmann factor
+    - implement partition function
+    - implement entropy
     
     #------------------------------------------
     # documentation
     - add README files to each package that explain the code structure of the package
     
+    
     #------------------------------------------
     # cook book
-    - create a directory "cookbook" for example use cases.
 
 """
 
