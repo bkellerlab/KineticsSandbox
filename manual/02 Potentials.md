@@ -22,13 +22,8 @@ For potentials that do not have minimum or a transition state, **min** and **TS*
 ## Linear potential
 
 **Parameters:** $k, d$
-
-**Range**: $x_{\mathrm{min}} = -\frac{d}{k} - 5$, $x_{\mathrm{max}} = -\frac{d}{k} + 5$ 
-($\pm$ 5 nm from the zero point)
-
 **Potential:**
 $$V(x) = kx + d$$
-
 **Force:**
 $$F(x) = - \frac{d}{dx} V(x) = k$$
 **Hessian:**
@@ -37,10 +32,6 @@ $$H_{11}(x) = \frac{d^2}{dx^2}V(x) = 0$$
 ## Harmonic potential
 
 **Parameters:** $k, a, d$
-
-**Range**: $x_{\mathrm{min}} = a - 5$, $x_{\mathrm{max}} = a + 5$ 
-($\pm$ 5 nm from the minimum)
-
 **Potential:**
 $$V(x) = k (x-a)^2 + d$$
 **Force:**
