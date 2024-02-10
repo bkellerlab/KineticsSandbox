@@ -63,10 +63,39 @@ $$
 \mathcal{O}\mathcal{B}\mathcal{A} \left(\begin{array}{c} x_{k}\\v_{k}\end{array}\right) 
 $$
 #### ABOBA
+The ABO algorithm implements the update operator
+$$
+\left(\begin{array}{c} x_{k+1}\\v_{k+1}\end{array}\right) =
+\mathcal{A}'\mathcal{B}'\mathcal{O}\mathcal{B}'\mathcal{A}' \left(\begin{array}{c} x_{k}\\v_{k}\end{array}\right) 
+$$
 #### AOBOA
+$$
+\left(\begin{array}{c} x_{k+1}\\v_{k+1}\end{array}\right) =
+\mathcal{A}'\mathcal{O}'\mathcal{B}\mathcal{O}'\mathcal{A}' \left(\begin{array}{c} x_{k}\\v_{k}\end{array}\right) 
+$$
 #### BAOAB
-#### BOAOB
-#### OBABO
-#### OABAO
-#### BAOA
+$$
+\left(\begin{array}{c} x_{k+1}\\v_{k+1}\end{array}\right) =
+\mathcal{B}'\mathcal{A}'\mathcal{O}\mathcal{A}'\mathcal{B}' \left(\begin{array}{c} x_{k}\\v_{k}\end{array}\right) 
+$$
 
+#### BOAOB
+$$
+\left(\begin{array}{c} x_{k+1}\\v_{k+1}\end{array}\right) =
+\mathcal{B}'\mathcal{O}'\mathcal{A}\mathcal{O}'\mathcal{B}' \left(\begin{array}{c} x_{k}\\v_{k}\end{array}\right) 
+$$
+#### OBABO
+$$
+\left(\begin{array}{c} x_{k+1}\\v_{k+1}\end{array}\right) =
+\mathcal{O}'\mathcal{B}'\mathcal{A}\mathcal{B}'\mathcal{O}' \left(\begin{array}{c} x_{k}\\v_{k}\end{array}\right) 
+$$
+#### OABAO
+$$
+\left(\begin{array}{c} x_{k+1}\\v_{k+1}\end{array}\right) =
+\mathcal{O}'\mathcal{A}'\mathcal{B}\mathcal{A}'\mathcal{O}' \left(\begin{array}{c} x_{k}\\v_{k}\end{array}\right) 
+$$
+#### BAOA
+$$
+\left(\begin{array}{c} x_{k+1}\\v_{k+1}\end{array}\right) =
+\mathcal{A}'\mathcal{O}\mathcal{A}'\mathcal{B} \left(\begin{array}{c} x_{k}\\v_{k}\end{array}\right) 
+$$
