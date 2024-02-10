@@ -41,7 +41,7 @@ Next steps:
     - D1: Morse potential
     - D1: Lennard Jones potential
     
-    #------------------------------------------
+    #---44---------------------------------------
     # module "thermodynamics"
     
     - implement Boltzmann factor
@@ -63,14 +63,134 @@ Next steps:
 #-----------------------------------------
 import matplotlib.pyplot as plt
 import numpy as np
-#import scipy.constants as const
+import scipy.constants as const
 
 # local packages and modules
 from system import system
 from potential import D1
-from utils import rate_theory
+#from utils import rate_theory
 
 
+
+#-----------------------------------------
+#  F U N C T I O N S
+#-----------------------------------------
+# A step
+def A_step(system, half_step ='False'):
+    """
+    Perform the A-step in a Langevin splitting integrator
+
+    Parameters:
+        - system (object): An object representing the physical system undergoing Langevin integration.
+                  It should have attributes 'x' (position), 'v' (velocity), and 'dt' (time step).
+        - half_step (bool, optional): If True, perform a half-step integration. Default is False, performing
+                              a full-step integration. A half-step is often used in the velocity
+                              Verlet algorithm for symplectic integration.
+
+    Returns:
+        None: The function modifies the 'x' (position) attribute of the provided system object in place.
+    """
+ 
+    # set time step, depending on whether a half- or full step is performed
+    if half_step == True:
+        dt = 0.5 * system.dt
+    else:
+        dt = system.dt
+        
+    system.x = system.x + system.v * dt
+    
+    return None
+
+# B step
+def B_step(system, potential, half_step ='False'):
+    """
+    Perform a Langevin integration B-step for a given system.
+
+    Parameters:
+    - system (object): An object representing the physical system undergoing Langevin integration.
+                      It should have attributes 'v' (velocity), 'm' (mass), and 'x' (position).
+    - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - half_step (bool, optional): If True, perform a half-step integration. Default is False, performing
+                                  a full-step integration. A half-step is often used in the velocity
+                                  Verlet algorithm for symplectic integration.
+
+    Returns:
+    None: The function modifies the 'v' (velocity) attribute of the provided system object in place based on the
+          force calculated by the provided potential object.
+    """
+    
+    # set time step, depending on whether a half- or full step is performed
+    if half_step == True:
+        dt = 0.5 * system.dt
+    else:
+        dt = system.dt
+    
+    system.v = system.v + (1 / system.m) * dt * potential.force_num( system.x, 0.001 )[0]
+    
+    return None
+
+# O_step
+def O_step(system, half_step ='False', eta_k = 'None'):
+    
+    """
+    Perform the O-step in a Langevin integrator.
+
+     Parameters:
+         - system (object): An object representing the physical system undergoing Langevin integration.
+                   It should have attributes 'v' (velocity), 'm' (mass), 'xi' (friction coefficient),
+                   'T' (temperature), 'dt' (time step).
+         - half_step (bool, optional): If True, perform a half-step integration. Default is False, performing
+                   a full-step integration. 
+         - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                   in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+     Returns:
+     None: The function modifies the 'v' (velocity) attribute of the provided system object in place.
+     """
+
+    # get natural constants in the appropriate units    
+    R = const.R * 0.001
+    
+    # set time step, depending on whether a half- or full step is performed
+    if half_step == True:
+        dt = 0.5 * system.dt
+    else:
+        dt = system.dt
+
+    # if eta_k is not provided, draw eta_k from Gaussian normal distribution
+    if eta_k == 'None':
+        eta_k = np.random.normal()
+
+    d = np.exp(- system.xi * dt)
+    f_v = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-2 * system.xi * dt)) )
+
+    system.v = d * system.v +  f_v * eta_k
+    return None
+
+# ABO integrator
+def ABO(system, potential, eta_k = 'None'):
+    """
+    Perform a full Langevin integration step consisting of A-step, B-step, and O-step.
+
+    Parameters:
+    - system (object): An object representing the physical system undergoing Langevin integration.
+                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
+                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
+    - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+    Returns:
+    None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
+    """    
+    
+    A_step(system)
+    B_step(system, potential)
+    O_step(system, eta_k)     
+    return None   
+    
 
 #-----------------------------------------
 #   S Y S T E M
@@ -80,9 +200,10 @@ x = 0.0
 v = 0.0 
 T = 300.0
 xi = 1.0
-dt = 0.001
+dt = 0.1
 # initialize the system
 system = system.D1(m, x, v, T, xi, dt)
+
 
 print("-----------------------------------------------------------------------")
 print(" Initialized system ")
@@ -95,57 +216,77 @@ print("Collision frequency: ", system.xi, " 1/ps")
 print("Time step: ", system.dt, " ps")
 
 
+#-----------------------------------------
+#   P O T E N T I A L 
+#-----------------------------------------
+
+# initialize one-dimensional Bolhuis potential
+param = [2, 2, 5 , 1, 1, 4]
+potential = D1.Bolhuis(param)
+
+# set x-axis
+x = np.linspace(-2, 6, 501)
 
 
-# #-----------------------------------------
-# #   P O T E N T I A L 
-# #-----------------------------------------
 
-# # initialize one-dimensional Bolhuis potential
-# param = [2, 2, 5 , 1, 2, 0]
-# potential = D1.Bolhuis(param)
-
-# # set x-axis
-# x = np.linspace(-2, 6, 501)
-
-# #set list of alpha values
-# alpha_list = np.linspace(0, 38, 20)
-
-# print("-----------------------------------------------------------------------")
-# print(" Initialized 1-dimensional Bolhuis potential ")
-# print("-----------------------------------------------------------------------")
-# print("a: ", potential.a)
-# print("b: ", potential.b)
-# print("c: ", potential.c)
-# print("k1: ", potential.k1)
-# print("k2: ", potential.k2)
-# print("alpha: ", potential.alpha)
+print("-----------------------------------------------------------------------")
+print(" Initialized 1-dimensional Bolhuis potential ")
+print("-----------------------------------------------------------------------")
+print("a: ", potential.a)
+print("b: ", potential.b)
+print("c: ", potential.c)
+print("k1: ", potential.k1)
+print("k2: ", potential.k2)
+print("alpha: ", potential.alpha)
 
 
-# #----------------------
-# # vary parameter alpha
-# plt.figure(figsize=(12, 6)) 
-# for i, alpha in enumerate(alpha_list):
+#----------------------
+# vary parameter alpha
+plt.figure(figsize=(12, 6)) 
+
+plt.plot(x, potential.potential(x) , color="darkblue")
     
-#     # change alpha in the class instance
-#     potential.alpha = alpha
-#     # plot
-#     color = plt.cm.viridis( alpha / len(alpha_list) )  # Normalize alpha to be in [0, 1]
-#     plt.plot(x, potential.potential(x) , color=color, label='alpha={:.2f}'.format(alpha))
-    
-# plt.ylim(0,50)
-# plt.xlabel("x in nm")
-# plt.ylabel("V(x) in kJ/mol") 
-# plt.title("Vary parameter alpha")
-# plt.legend()
+plt.ylim(0,50)
+plt.xlim(-2,10)
+plt.xlabel("x in nm")
+plt.ylabel("V(x) in kJ/mol") 
+plt.title("The potential energy function")
+plt.legend()
 
-# # reset alpha to zero
-# potential.alpha = 0
 
+#-----------------------------------------
+#   S I M U L A T I O N 
+#-----------------------------------------
+#np.random.seed(42)
+
+n_steps = 1_000_000
+pos = np.zeros(n_steps)
+vel = np.zeros(n_steps)
+
+for k in range(n_steps):
+    # perform an integration step
+    ABO(system, potential)
+    # save position and velocity to an array
+    pos[k] = system.x
+    vel[k] = system.v    
+
+print("-----------------------------------------------------------------------")
+#print(eta)
+
+plt.figure(figsize=(12, 6)) 
+plt.plot(pos)
+
+plt.figure(figsize=(12, 6)) 
+counts, bins = np.histogram(pos, bins=100)
+plt.stairs(counts, bins)
+
+#plt.vlines(eta_mean, 0, 0.05)
+#plt.vlines(eta_mean + eta_var, 0, 0.05, color="gray")
+#plt.vlines(eta_mean - eta_var, 0, 0.05, color="gray")
 
 # #-----------------------------------------
 # #   M I N I M A 
-# #-----------------------------------------
+# #-----------------------------------------a
 
 # # initizalize lists for the two minima
 # min_1 = np.zeros( len(alpha_list) )
