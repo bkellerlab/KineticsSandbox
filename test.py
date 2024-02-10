@@ -69,7 +69,7 @@ import scipy.constants as const
 from system import system
 from potential import D1
 from integrator import stochastic as sd
-#from utils import rate_theory
+from utils import thermodynamics as thermo
 
 
 
@@ -140,16 +140,19 @@ plt.legend()
 #-----------------------------------------
 #np.random.seed(42)
 
-n_steps = 1_000_000
-pos = np.zeros(n_steps)
-vel = np.zeros(n_steps)
+n_steps = 10_000_000
+n_steps_out = 10
+
+pos = np.array([system.x])
+vel = np.array([system.x])
 
 for k in range(n_steps):
     # perform an integration step
     sd.ABO(system, potential)
     # save position and velocity to an array
-    pos[k] = system.x
-    vel[k] = system.v    
+    if k % n_steps_out == 0:
+        pos = np.append(pos, system.x)
+        vel = np.append(vel, system.v)
 
 print("-----------------------------------------------------------------------")
 #print(eta)
@@ -157,9 +160,20 @@ print("-----------------------------------------------------------------------")
 plt.figure(figsize=(12, 6)) 
 plt.plot(pos)
 
-plt.figure(figsize=(12, 6)) 
+# get a histogram of the sampled density
 counts, bins = np.histogram(pos, bins=100)
-plt.stairs(counts, bins)
+# normalize counts
+counts = counts.astype(float) / np.sum(counts)
+
+# get analytical boltzmann density
+boltzmann_density = thermo.boltzmann_factor(potential, bins[0:-1], system.T)
+# normalize boltzmann_density
+boltzmann_density = boltzmann_density / np.sum(boltzmann_density)
+
+plt.figure(figsize=(12, 6)) 
+plt.stairs(counts, bins, label="sampled distribution")
+plt.stairs(boltzmann_density, bins, label="Boltzmann distribution")
+plt.legend(fontsize=16)
 
 #plt.vlines(eta_mean, 0, 0.05)
 #plt.vlines(eta_mean + eta_var, 0, 0.05, color="gray")
