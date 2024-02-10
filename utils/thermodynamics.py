@@ -5,26 +5,39 @@ Created on Thu Feb  1 15:28:49 2024
 
 @author: bettina
 """
+#-----------------------------------------
+#   I M P O R T S 
+#-----------------------------------------
+import numpy as np
+import scipy.constants as const
 
-    # # unnormalized Boltzmann factor
-    # def boltzmann_factor(self, x, T):
-    #     """
-    #     Calculate the unnormalized Boltzmann factor for the 1-dimensional Bolhuis potential 
-        
-    #     The unnormalized Boltzmann factor is given by:
-    #     p(x) = exp(- V(x) * 1000 / (R * T))
-        
-    #     The potential is given in molar units (kJ/mol). Consequently, the ideal gas constant R is used rather than the Boltzmann constant k_B. 
-    #     The factor 1000 arises from converting kJ/mol to J/mol
-        
-    #     Parameters:
-    #         - T (float): temperature in units of K
-              
-    #     Returns:
-    #         float: The value of the unnormalized Boltzmann factor at the given position x.
-    #     """    
-        
-    #     return np.exp(-self.potential(x) * 1000 / (T * const.R))
+# unnormalized Boltzmann factor
+# 
+# for higher-dimensional potentials:
+# if potential.potential(x) accepts a numpy array as x, 
+# this function should be usable for higher-dimensional potentials, too. 
+#
+def boltzmann_factor(potential, x, T):
+    """
+    Calculate the unnormalized Boltzmann factor 
+    
+    The unnormalized Boltzmann factor is given by:
+    p(x) = exp(- V(x)  / (R * T))
+    
+    
+    Parameters:
+        - potential (object): An object representing the potential energy landscape of the system.
+                             It should have a 'potential' method that calculates the potential at a given position.
+        - x (float): position 
+        - T (float): temperature in units of K
+          
+    Returns:
+        float: The value of the unnormalized Boltzmann factor at the given position x.
+    """    
+    # get natural constants in the appropriate units    
+    R = const.R * 0.001
+    
+    return np.exp(- potential.potential(x)  / (T * R))
         
     # # partition function
     # def partition_function(self, T, limits=None):
