@@ -12,11 +12,6 @@ import numpy as np
 import scipy.constants as const
 
 # unnormalized Boltzmann factor
-# 
-# for higher-dimensional potentials:
-# if potential.potential(x) accepts a numpy array as x, 
-# this function should be usable for higher-dimensional potentials, too. 
-#
 def boltzmann_factor(potential, x, T):
     """
     Calculate the unnormalized Boltzmann factor 
@@ -38,7 +33,30 @@ def boltzmann_factor(potential, x, T):
     R = const.R * 0.001
     
     return np.exp(- potential.potential(x)  / (T * R))
-        
+ 
+# velocity density for one-dimensional systems
+def velocity_density_D1(v, m, T):
+    """
+    Calculate the one-dimensional velocity density as 
+    
+    The unnormalized Boltzmann factor is given by:
+    p(v) = sqrt(m /(2 * pi * R * T) ) * exp(- v * v * m  / (2 * R * T))
+    
+    
+    Parameters:
+        - v (float): velocity
+        - m (float): mass        
+        - T (float): temperature in units of K
+          
+    Returns:
+        float: The value of the one-dimensional velocity densityat the given velocity v.
+    """    
+    # get natural constants in the appropriate units    
+    R = const.R * 0.001
+    
+    return np.sqrt(m /(2 * const.pi * R * T) ) * np.exp(- ( v * v * m )  / (2 * R * T))
+
+
 
 
     # # partition function
