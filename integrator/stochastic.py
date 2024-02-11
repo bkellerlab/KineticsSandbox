@@ -104,7 +104,7 @@ def O_step(system, half_step = False, eta_k = None):
         dt = system.dt
 
     # if eta_k is not provided, draw eta_k from Gaussian normal distribution
-    if eta_k is not None:
+    if eta_k is None:
         eta_k = np.random.normal()
 
     d = np.exp(- system.xi * dt)
