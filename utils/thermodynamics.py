@@ -39,6 +39,8 @@ def boltzmann_factor(potential, x, T):
     
     return np.exp(- potential.potential(x)  / (T * R))
         
+
+
     # # partition function
     # def partition_function(self, T, limits=None):
     #     """
