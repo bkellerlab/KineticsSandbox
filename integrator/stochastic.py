@@ -8,15 +8,17 @@ Created on Sat Feb 10 20:48:01 2024
 #-----------------------------------------
 #   I M P O R T S 
 #-----------------------------------------
-import matplotlib.pyplot as plt
 import numpy as np
 import scipy.constants as const
 
-# local packages and modules
-#from system import system
-#from potential import D1
-#from utils import rate_theory
+#---------------------------------------------------------------------
+#   O V E R D A M P E D   L A N G E V I N   D Y N A M I C S
+#---------------------------------------------------------------------
 
+
+#---------------------------------------------------------------------
+#   B A S I C   L A N G E V I N   I N T E G R A T I O N   S T E P S
+#---------------------------------------------------------------------
 
 # A step
 def A_step(system, half_step = False):
@@ -111,6 +113,10 @@ def O_step(system, half_step = False, eta_k = None):
     system.v = d * system.v +  f_v * eta_k
     return None
 
+#--------------------------------------------------------------
+#   L A N G E V I N   S P L I T T I N G   A L G O R I T H M S 
+#--------------------------------------------------------------
+
 # ABO integrator
 def ABO(system, potential, eta_k = None):
     """
@@ -131,13 +137,40 @@ def ABO(system, potential, eta_k = None):
     
     A_step(system)
     B_step(system, potential)
-    O_step(system, eta_k)     
+    O_step(system, eta_k = eta_k)
+     
     return None   
 
 # ABOBA integrator
 def ABOBA(system, potential, eta_k = None):
     """
-    Perform a full Langevin integration step consisting of A-step, B-step, and O-step.
+    Perform a full Langevin integration step for the ABOBA algorithm
+
+    Parameters:
+    - system (object): An object representing the physical system undergoing Langevin integration.
+                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
+                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
+    - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+    Returns:
+    None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
+    """    
+    
+    A_step(system, half_step= True)
+    B_step(system, potential, half_step = True) 
+    O_step(system, eta_k = eta_k)    
+    B_step(system, potential, half_step = True) 
+    A_step(system, half_step = True)
+    
+    return None   
+
+# ABOBA integrator
+def AOBOA(system, potential, eta_k = None):
+    """
+    Perform a full Langevin integration step for the AOBOA algorithm
 
     Parameters:
     - system (object): An object representing the physical system undergoing Langevin integration.
@@ -153,9 +186,143 @@ def ABOBA(system, potential, eta_k = None):
     """    
     
     A_step(system, half_step = True)
-    B_step(system, potential, half_step = True) 
-    O_step(system, eta_k)     
-    B_step(system, potential, half_step = True) 
+    O_step(system, half_step = True, eta_k = eta_k)    
+    B_step(system, potential) 
+    O_step(system, half_step = True, eta_k = eta_k) 
     A_step(system, half_step = True)
+    
     return None   
         
+# BAOAB integrator
+def BAOAB(system, potential, eta_k = None):
+    """
+    Perform a full Langevin integration step for the BAOAB algorithm
+
+    Parameters:
+    - system (object): An object representing the physical system undergoing Langevin integration.
+                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
+                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
+    - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+    Returns:
+    None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
+    """    
+    
+    B_step(system, potential, half_step = True) 
+    A_step(system, half_step = True)
+    O_step(system, eta_k = eta_k)    
+    A_step(system, half_step = True)
+    B_step(system, potential, half_step = True) 
+    
+    return None   
+
+# BOAOB integrator
+def BOAOB(system, potential, eta_k = None):
+    """
+    Perform a full Langevin integration step for the BOAOB algorithm
+
+    Parameters:
+    - system (object): An object representing the physical system undergoing Langevin integration.
+                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
+                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
+    - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+    Returns:
+    None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
+    """    
+    
+    B_step(system, potential, half_step = True) 
+    O_step(system, half_step = True, eta_k = eta_k)   
+    A_step(system)   
+    O_step(system, half_step = True, eta_k = eta_k)   
+    B_step(system, potential, half_step = True)     
+    
+    return None 
+
+# OBABO integrator
+def OBABO(system, potential, eta_k = None):
+    """
+    Perform a full Langevin integration step for the OBABO algorithm
+
+    Parameters:
+    - system (object): An object representing the physical system undergoing Langevin integration.
+                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
+                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
+    - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+    Returns:
+    None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
+    """    
+    
+    O_step(system, half_step = True, eta_k = eta_k)   
+    B_step(system, potential, half_step = True) 
+    A_step(system)   
+    B_step(system, potential, half_step = True)     
+    O_step(system, half_step = True, eta_k = eta_k)   
+    
+    return None 
+
+# OABAO integrator
+def OABAO(system, potential, eta_k = None):
+    """
+    Perform a full Langevin integration step for the OABAO algorithm
+
+    Parameters:
+    - system (object): An object representing the physical system undergoing Langevin integration.
+                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
+                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
+    - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+    Returns:
+    None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
+    """    
+    
+    O_step(system, half_step = True, eta_k = eta_k)   
+    A_step(system, half_step = True)   
+    B_step(system, potential, half_step = True) 
+    A_step(system, half_step = True)   
+    O_step(system, half_step = True, eta_k = eta_k)   
+    
+    return None 
+
+# BAOA integrator
+def BAOA(system, potential, eta_k = None):
+    """
+    Perform a full Langevin integration step for the BAOA algorithm
+
+    Parameters:
+    - system (object): An object representing the physical system undergoing Langevin integration.
+                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
+                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
+    - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+    Returns:
+    None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
+    """    
+    
+    B_step(system, potential) 
+    A_step(system, half_step = True)   
+    O_step(system, eta_k = eta_k)   
+    A_step(system, half_step = True)   
+    
+    return None 
+
+
+#----------------------------------------------------------------------------
+#   B I A S E D   L A N G E V I N   S P L I T T I N G   A L G O R I T H M S 
+#----------------------------------------------------------------------------
