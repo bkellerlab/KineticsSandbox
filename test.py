@@ -6,32 +6,52 @@ Created on Wed Jan 10 09:28:56 2024
 @author: bettina
 
 Next steps:
-     
     
+    #------------------------------------------  
+    # package "utils"
     #------------------------------------------
     # module "rate_theory" 
+
+    - implement Kramers
+    - implement transition count across barrier
+    - implement Peter's rate estimate
+
+    #------------------------------------------
+    # module "thermodynamics"
+
+    - implement Maxwell-Boltzmann factor    
+    - implement partition function
+    - implement entropy
+
+    #------------------------------------------------
+    # create a new module "FP_discretized" 
     
-    - rate_theory: Kramers
     - rate_theory:: SqRA
     - within rate_theory, write a module rate_matrix for rates from rate_matrices
     - rateMatrix: SqRA_rate (via Berezhkovski, Szabo)    
     - rateMatrix: SqRA_rate_via_its (as inverse of ITS)    
     - rateMatrix: MSM_rate_via_its (as inverse of ITS)   
 
-    #------------------------------------------
-    # create a new package "integrators" 
+    #------------------------------------------------
+    # create a new module "Markov_model" 
 
     #------------------------------------------
-    # create a new package "MSM" 
+    # package "integrators" 
+    #------------------------------------------
+    # module "stochastic"
+    - implement EM algorithm
+    - implement integrators for biased potentials
 
     #------------------------------------------
     # package "system" 
     
     - make v optional at initialization, draw v from Maxwell-Boltzmann dist
+    - add variables for bias force and random number
+    - add variables for force -> more efficient implementation of Langevin integrators
 
     #------------------------------------------
     # package "potentials" 
-
+    #------------------------------------------
     - D1: DoubleWell
     - D1: GaussianBias
     - D1: TripleWell
@@ -41,21 +61,27 @@ Next steps:
     - D1: Morse potential
     - D1: Lennard Jones potential
     
-    #---44---------------------------------------
-    # module "thermodynamics"
-    
-    - implement Boltzmann factor
-    - implement partition function
-    - implement entropy
-    
     #------------------------------------------
     # documentation
+    #------------------------------------------
+    - update main README file
     - add README files to each package that explain the code structure of the package
-    
     
     #------------------------------------------
     # cook book
+    #------------------------------------------
+    - Langevin simulation
 
+    #------------------------------------------
+    # application
+    #------------------------------------------
+    - Simulate Bolhuis potential for various values of alpha, 5 traj each, Langevin dynamics
+        - 1e5 steps
+        - 1e6 steps
+        - 1e7 steps
+        - 1e8 steps (?)
+    - Estimate rate via transition count
+    - Estimate rate via Peter's estimate
 """
 
 #-----------------------------------------
@@ -169,6 +195,8 @@ counts = counts.astype(float) / np.sum(counts)
 boltzmann_density = thermo.boltzmann_factor(potential, bins[0:-1], system.T)
 # normalize boltzmann_density
 boltzmann_density = boltzmann_density / np.sum(boltzmann_density)
+
+
 
 plt.figure(figsize=(12, 6)) 
 plt.stairs(counts, bins, label="sampled distribution")
