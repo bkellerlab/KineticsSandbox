@@ -19,7 +19,7 @@ import scipy.constants as const
 
 
 # A step
-def A_step(system, half_step ='False'):
+def A_step(system, half_step = False):
     """
     Perform the A-step in a Langevin splitting integrator
 
@@ -45,7 +45,7 @@ def A_step(system, half_step ='False'):
     return None
 
 # B step
-def B_step(system, potential, half_step ='False'):
+def B_step(system, potential, half_step = False):
     """
     Perform a Langevin integration B-step for a given system.
 
@@ -74,7 +74,7 @@ def B_step(system, potential, half_step ='False'):
     return None
 
 # O_step
-def O_step(system, half_step ='False', eta_k = 'None'):
+def O_step(system, half_step = False, eta_k = None):
     
     """
     Perform the O-step in a Langevin integrator.
@@ -102,7 +102,7 @@ def O_step(system, half_step ='False', eta_k = 'None'):
         dt = system.dt
 
     # if eta_k is not provided, draw eta_k from Gaussian normal distribution
-    if eta_k == 'None':
+    if eta_k is not None:
         eta_k = np.random.normal()
 
     d = np.exp(- system.xi * dt)
@@ -112,7 +112,7 @@ def O_step(system, half_step ='False', eta_k = 'None'):
     return None
 
 # ABO integrator
-def ABO(system, potential, eta_k = 'None'):
+def ABO(system, potential, eta_k = None):
     """
     Perform a full Langevin integration step consisting of A-step, B-step, and O-step.
 
@@ -133,4 +133,29 @@ def ABO(system, potential, eta_k = 'None'):
     B_step(system, potential)
     O_step(system, eta_k)     
     return None   
+
+# ABOBA integrator
+def ABOBA(system, potential, eta_k = None):
+    """
+    Perform a full Langevin integration step consisting of A-step, B-step, and O-step.
+
+    Parameters:
+    - system (object): An object representing the physical system undergoing Langevin integration.
+                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
+                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
+    - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+    Returns:
+    None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
+    """    
     
+    A_step(system, half_step = True)
+    B_step(system, potential, half_step = True) 
+    O_step(system, eta_k)     
+    B_step(system, potential, half_step = True) 
+    A_step(system, half_step = True)
+    return None   
+        
