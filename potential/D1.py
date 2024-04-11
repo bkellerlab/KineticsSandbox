@@ -30,7 +30,7 @@ class D1(ABC):
     def __init__(self, param): 
         pass
     #---------------------------------------------------------------------
-    #   analyitical functions that need to be implemented in a child class
+    #   analytical functions that need to be implemented in a child class
     #---------------------------------------------------------------------
     # the potential energy function 
     @abstractmethod
