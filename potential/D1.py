@@ -14,6 +14,8 @@ import numpy as np
 import scipy.constants as const
 from scipy import integrate
 from scipy.optimize import minimize
+import matplotlib.pyplot as plt
+from numpy.typing import ArrayLike
 
 
 #------------------------------------------------
@@ -84,7 +86,7 @@ class D1(ABC):
         """  
         
         F = - ( self.potential(x+h/2) - self.potential(x-h/2) ) / h
-        return np.array([F])
+        return np.array([F]).flatten() # use .flatten() for shape match
     
     # Hessian matrix, numerical expreesion via second order finite difference
     def hessian_num(self, x, h):
@@ -166,7 +168,37 @@ class D1(ABC):
         
         # returns position of the transition state as float
         return TS[0]     
+   
+    
+    # plotting
+    def plot_function(self,x_values)-> None:
+         """
+         plot the potential function over a given range of x values
+         """
 
+
+         y_values = self.potential(x_values)
+         dy_force = self.force(x_values)
+         dy_force_num= self.force_num(x_values)
+
+         plt.plot(x_values, y_values, label="f(x)", color="blue", linewidth=2, marker=".", markerfacecolor="k",
+                  markersize=4)
+
+         plt.plot(x_values, dy_force, label="f'(x) - analytical", color="red", linewidth=2, marker=".", markerfacecolor="k",
+                  markersize=4)
+         plt.plot(x_values, dy_force_num, label="f'(x) - numerical", color="green", linewidth=2, marker=".",
+                  markerfacecolor="k",
+                  markersize=4)
+
+
+         plt.title(f"{self.__class__.__name__}  and Derivatives Plot")
+
+         plt.xlabel("x")
+         plt.ylabel("f(x)/f'(x)")
+         plt.savefig(f"{self.__class__.__name__} and Derivatives fig.pdf")
+         plt.legend()
+         plt.show()
+    # ------------------------------------------------
 
 #------------------------------------------------
 # child class: one-dimensional potentials
@@ -271,6 +303,144 @@ class Bolhuis(D1):
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])
       
-    
+  class Linear_Potential(D1):
+    # intiialize class
+    def __init__(self, param):
+       
+      # Parameters:
+        #             - param (list): a list of parameters representing:
+        #             - param[0]: c (float)
+        #             - param[1]: m(float)
+
+        self.c = param[0]
+        self.m = param[1]
+    def potential(self, x: ArrayLike) -> ArrayLike:
+            """
+             calculate the linear potential
+                Args:
+
+                    x:x_value
+
+                Returns:linear potential for all x
+
+            """
+
+
+            return self.m * x + self.c
+
+    def force(self, x: ArrayLike):
+            """
+            calculate the  analytical derivative of a linear function
+                Args:
+                    x: x_value
+
+                Returns:force(analytical derivative) -m
+
+            """
+
+
+            return -1 * (np.full_like(x, self.m))
+
+
+    def hessian(self, x):
+        pass
+
+
+
+
+class Quadratic_Potential(D1):
+    # intiialize class
+    def __init__(self, param):
+        # Parameters:
+        #             - param (list): a list of parameters representing:
+        #             - param[0]: a (float)
+        #             - param[1]: b (float)
+        #             - param[2]: c (float)
+
+
+        self.a = param[0]
+        self.b = param[1]
+        self.c = param[2]
+
+
+
+    def potential(self, x: ArrayLike)-> ArrayLike:
+        """
+        calculate the quadratic potential
+             Args:
+                x: x_value
+
+             Returns:quadratic potential
+
+        """
+
+
+
+        return self.a * x**2 + self.b * x + self.c
+
+    def force(self,x: ArrayLike):
+        """
+        calculate the analytical derivative of a quadratic potential
+            Args:
+                x: x_value
+
+            Returns:force(analytical derivative)   -(2ax+b)
+
+        """
+
+        return -1 * (self.a * 2 * x + self.b)
+
+    def hessian(self, x):
+        pass
+
+
+
+class DoubleWell_Potential(D1):
+
+    # intiialize class
+
+    def __init__(self,param):
+        # Parameters:
+        #             - param (list): a list of parameters representing:
+        #             - param[0]: a (float)
+        #             - param[1]: b (float)
+        #             - param[2]: c (float)
+
+
+        self.a = param[0]
+        self.b = param[1]
+        self.c = param[2]
+
+
+    def potential(self, x: ArrayLike)-> ArrayLike:
+        """
+        calculate the double well potential
+            Args:
+                x: x_value
+
+            Returns:double well potential
+
+        """
+
+
+        return  self.a * x**4 - self.b * x**2 + self.c
+
+    def force(self,x: ArrayLike):
+        """
+        calculate the analytical derivative of double well potential
+            Args:
+                x: x_value
+
+            Returns:analytical derivative -(4ax^3-2bx)
+
+        """
+
+
+        return -1 * (self.a * 4 * x ** 3 - self.b * 2 * x)
+
+    def hessian(self, x):
+        pass
+
+  
 
 
