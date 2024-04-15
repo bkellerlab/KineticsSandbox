@@ -307,7 +307,7 @@ class Bolhuis(D1):
 # child class: one-dimensional potentials
 #------------------------------------------------
 class Linear_Potential(D1):
-    # intiialize class
+    # initialize class
     def __init__(self, param):
          """
          Initialize the class for the 1-dimensional Linear potential based on the given parameters.
@@ -326,7 +326,7 @@ class Linear_Potential(D1):
             V(x) = m * x + c
             parameters:
 
-                x:x_value
+                x:position
 
             Returns:linear potential for all x
 
@@ -341,7 +341,7 @@ class Linear_Potential(D1):
             F(x) = - dV(x) / dx
                  = - m
             parameters:
-                    x: x_value
+                    x: position
 
             Returns:numpy array: The value of the force at the given position x
 
@@ -383,7 +383,7 @@ class Quadratic_Potential(D1):
         The function is given by:
         V(x) = a * x ** 2 * b * x + c
         parameters:
-                x:x_value
+                x:position
 
         Returns:Quadratic potential for all x
 
@@ -400,7 +400,7 @@ class Quadratic_Potential(D1):
             F(x) = - dV(x) / dx
                  = - (2 * a * x + b)
             parameters:
-                    x: x_value
+                    x: position
 
         Returns:numpy array: The value of the force at the given position x
 
@@ -413,13 +413,13 @@ class Quadratic_Potential(D1):
 #-----------------------------------------------
 # child class: one-dimensional potentials
 #-----------------------------------------------
-class DoubleWell_Potential(D1):
+class Double_Well_Potential(D1):
 
 
 
     def __init__(self,param):
         """
-        Initialize the class for the 1-dimensional Quadratic potential based on the given parameters.
+        Initialize the class for the 1-dimensional Double well potential based on the given parameters.
         parameters:
           - param (list): a list of parameters representing:
           - param[0]: a (float) - controlling steepness of the wells
@@ -441,7 +441,7 @@ class DoubleWell_Potential(D1):
         The function is given by:
         V(x) = a + x^^4 + b * x^2 + c
         parameters:
-                x:x_value
+                x:position
 
         Returns:Double well potential for all x
         """
@@ -456,7 +456,7 @@ class DoubleWell_Potential(D1):
         F(x) = - dV(x) / dx
              = - (4 * a * x ^ 3 - 2 * b * x)
         parameters:
-             x: x_value
+             x: position
         Returns:numpy array: The value of the force at the given position x
 
         """
