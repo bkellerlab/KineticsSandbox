@@ -306,35 +306,41 @@ class Bolhuis(D1):
   class Linear_Potential(D1):
     # intiialize class
     def __init__(self, param):
-       
-      # Parameters:
-        #             - param (list): a list of parameters representing:
-        #             - param[0]: c (float)
-        #             - param[1]: m(float)
-
-        self.c = param[0]
-        self.m = param[1]
+         """
+         Initialize the class for the 1-dimensional Linear potential based on the given parameters.
+         parameters:
+           - param (list): a list of parameters representing:
+           - param[0]: c (float) -parameter controlling the steepness of the line
+           - param[1]: m (float) _parameter giving the y-intercept
+         """
+         #assign parameters
+         self.c = param[0]
+         self.m = param[1]
     def potential(self, x: ArrayLike) -> ArrayLike:
             """
-             calculate the linear potential
-                Args:
+            calculate the linear potential energy V(x),
+            The function is given by:
+            V(x) = m * x + c
+            parameters:
 
-                    x:x_value
+                x:x_value
 
-                Returns:linear potential for all x
+            Returns:linear potential for all x
 
             """
-
 
             return self.m * x + self.c
 
     def force(self, x: ArrayLike):
             """
-            calculate the  analytical derivative of a linear function
-                Args:
+            Calculate the force F(x) analytically for Linear potential
+            The force is given by:
+            F(x) = - dV(x) / dx
+                 = - m
+            parameters:
                     x: x_value
 
-                Returns:force(analytical derivative) -m
+            Returns:numpy array: The value of the force at the given position x
 
             """
 
@@ -349,15 +355,19 @@ class Bolhuis(D1):
 
 
 class Quadratic_Potential(D1):
-    # intiialize class
+
     def __init__(self, param):
-        # Parameters:
-        #             - param (list): a list of parameters representing:
-        #             - param[0]: a (float)
-        #             - param[1]: b (float)
-        #             - param[2]: c (float)
 
+        """
+        Initialize the class for the 1-dimensional Quadratic potential based on the given parameters.
+        parameters:
+             - param (list): a list of parameters representing:
+             - param[0]: a (float) - controlling width of parabola
+             - param[1]: b (float) - controlling horizontal displacement of parabola
+             - param[2]: c (float) - controlling the vertical displacement if parabola
 
+        """
+       #assign parameters
         self.a = param[0]
         self.b = param[1]
         self.c = param[2]
@@ -366,11 +376,13 @@ class Quadratic_Potential(D1):
 
     def potential(self, x: ArrayLike)-> ArrayLike:
         """
-        calculate the quadratic potential
-             Args:
-                x: x_value
+        calculate the quadratic potential energy V(x),
+        The function is given by:
+        V(x) = a * x ** 2 * b * x + c
+        parameters:
+                x:x_value
 
-             Returns:quadratic potential
+        Returns:Quadratic potential for all x
 
         """
 
@@ -380,11 +392,14 @@ class Quadratic_Potential(D1):
 
     def force(self,x: ArrayLike):
         """
-        calculate the analytical derivative of a quadratic potential
-            Args:
-                x: x_value
+        Calculate the force F(x) analytically for Quadratic potential
+            The force is given by:
+            F(x) = - dV(x) / dx
+                 = - (2 * a * x + b)
+            parameters:
+                    x: x_value
 
-            Returns:force(analytical derivative)   -(2ax+b)
+        Returns:numpy array: The value of the force at the given position x
 
         """
 
@@ -397,16 +412,20 @@ class Quadratic_Potential(D1):
 
 class DoubleWell_Potential(D1):
 
-    # intiialize class
+
 
     def __init__(self,param):
-        # Parameters:
-        #             - param (list): a list of parameters representing:
-        #             - param[0]: a (float)
-        #             - param[1]: b (float)
-        #             - param[2]: c (float)
+        """
+        Initialize the class for the 1-dimensional Quadratic potential based on the given parameters.
+        parameters:
+          - param (list): a list of parameters representing:
+          - param[0]: a (float) - controlling steepness of the walls
+          - param[1]: b (float) - controlling  width and height of barrier between the wells
+          - param[2]: c (float) - controlling the vertical shift of potential
 
+        """
 
+       #assign parameters
         self.a = param[0]
         self.b = param[1]
         self.c = param[2]
@@ -414,12 +433,14 @@ class DoubleWell_Potential(D1):
 
     def potential(self, x: ArrayLike)-> ArrayLike:
         """
-        calculate the double well potential
-            Args:
-                x: x_value
 
-            Returns:double well potential
+        calculate the Double Well potential energy V(x),
+        The function is given by:
+        V(x) = a + x^^4 + b * x^2 + c
+        parameters:
+                x:x_value
 
+        Returns:Double well potential for all x
         """
 
 
@@ -427,11 +448,13 @@ class DoubleWell_Potential(D1):
 
     def force(self,x: ArrayLike):
         """
-        calculate the analytical derivative of double well potential
-            Args:
-                x: x_value
-
-            Returns:analytical derivative -(4ax^3-2bx)
+        Calculate the force F(x) analytically for Double Well  potential
+        The force is given by:
+        F(x) = - dV(x) / dx
+             = - (4 * a * x ^ 3 - 2 * b * x)
+        parameters:
+             x: x_value
+        Returns:numpy array: The value of the force at the given position x
 
         """
 
