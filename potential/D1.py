@@ -302,8 +302,11 @@ class Bolhuis(D1):
           
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])
-      
-  class Linear_Potential(D1):
+
+#---------------------------------------------
+# child class: one-dimensional potentials
+#------------------------------------------------
+class Linear_Potential(D1):
     # intiialize class
     def __init__(self, param):
          """
@@ -350,9 +353,9 @@ class Bolhuis(D1):
 
     def hessian(self, x):
         pass
-
-
-
+#------------------------------------------------------
+# child class: one-dimensional potentials
+#------------------------------------------------------
 
 class Quadratic_Potential(D1):
 
@@ -407,9 +410,9 @@ class Quadratic_Potential(D1):
 
     def hessian(self, x):
         pass
-
-
-
+#-----------------------------------------------
+# child class: one-dimensional potentials
+#-----------------------------------------------
 class DoubleWell_Potential(D1):
 
 
@@ -419,7 +422,7 @@ class DoubleWell_Potential(D1):
         Initialize the class for the 1-dimensional Quadratic potential based on the given parameters.
         parameters:
           - param (list): a list of parameters representing:
-          - param[0]: a (float) - controlling steepness of the walls
+          - param[0]: a (float) - controlling steepness of the wells
           - param[1]: b (float) - controlling  width and height of barrier between the wells
           - param[2]: c (float) - controlling the vertical shift of potential
 
