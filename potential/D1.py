@@ -15,7 +15,6 @@ import scipy.constants as const
 from scipy import integrate
 from scipy.optimize import minimize
 import matplotlib.pyplot as plt
-from numpy.typing import ArrayLike
 
 
 #------------------------------------------------
@@ -319,36 +318,39 @@ class Linear_Potential(D1):
          #assign parameters
          self.c = param[0]
          self.m = param[1]
-    def potential(self, x: ArrayLike) -> ArrayLike:
-            """
-            calculate the linear potential energy V(x),
-            The function is given by:
-            V(x) = m * x + c
-            parameters:
+    def potential(self, x):
+        """
+        calculate the linear potential energy V(x),
+        The function is given by:
+        V(x) = m * x + c
+        parameters:
 
-                x:position
+            x:position
 
-            Returns:linear potential for all x
+        Returns:linear potential for all x
 
-            """
+        """
 
-            return self.m * x + self.c
+        return self.m * x + self.c
 
-    def force(self, x: ArrayLike):
-            """
-            Calculate the force F(x) analytically for Linear potential
-            The force is given by:
-            F(x) = - dV(x) / dx
-                 = - m
-            parameters:
-                    x: position
+    def force(self, x):
+        """
+        Calculate the force F(x) analytically for Linear potential
+        The force is given by:
+        F(x) = - dV(x) / dx
+             = - m
+        parameters:
+                x: position
 
-            Returns:numpy array: The value of the force at the given position x
+        Returns:numpy array: The value of the force at the given position x
 
-            """
+        """
+        if isinstance(x, float) or isinstance(x, int):
+            return -1 * self.m
+        else:
+            # you are allowed to input x as an array, in this case the return is an array the same shape as x
+            return np.full(x.shape, -1 * self.m)
 
-
-            return -1 * (np.full_like(x, self.m))
 
 
     def hessian(self, x):
@@ -377,7 +379,7 @@ class Quadratic_Potential(D1):
 
 
 
-    def potential(self, x: ArrayLike)-> ArrayLike:
+    def potential(self, x):
         """
         calculate the quadratic potential energy V(x),
         The function is given by:
@@ -393,7 +395,7 @@ class Quadratic_Potential(D1):
 
         return self.a * x**2 + self.b * x + self.c
 
-    def force(self,x: ArrayLike):
+    def force(self,x):
         """
         Calculate the force F(x) analytically for Quadratic potential
             The force is given by:
@@ -434,12 +436,12 @@ class Double_Well_Potential(D1):
         self.c = param[2]
 
 
-    def potential(self, x: ArrayLike)-> ArrayLike:
+    def potential(self, x):
         """
 
         calculate the Double Well potential energy V(x),
         The function is given by:
-        V(x) = a + x^^4 + b * x^2 + c
+        V(x) = a * x^^4 - b * x^2 + c
         parameters:
                 x:position
 
@@ -449,7 +451,7 @@ class Double_Well_Potential(D1):
 
         return  self.a * x**4 - self.b * x**2 + self.c
 
-    def force(self,x: ArrayLike):
+    def force(self,x):
         """
         Calculate the force F(x) analytically for Double Well  potential
         The force is given by:
