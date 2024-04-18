@@ -185,10 +185,10 @@ class D1(ABC):
         plt.plot(x_values, y_values, label="f(x)", color="blue", linewidth=2, marker=".", markerfacecolor="k",
               markersize=4)
 
-        plt.plot(x_values, dy_force, label="f'(x) - analytical", color="red", linewidth=2, marker=".", markerfacecolor="k",
+        plt.plot(x_values, dy_force, label="f'(x) - force", color="red", linewidth=2, marker=".", markerfacecolor="k",
               markersize=4)
 
-        plt.plot(x_values, dy_force_num, label="f'(x) - numerical", color="green", linewidth=2, marker=".",
+        plt.plot(x_values, dy_force_num, label="f'(x) - force_num", color="green", linewidth=2, marker=".",
               markerfacecolor="k",
               markersize=4)
 
@@ -204,11 +204,14 @@ class D1(ABC):
         plt.title(f"{self.__class__.__name__}  and Derivatives Plot")
 
         plt.xlabel("x")
-        plt.ylabel("f(x)/f'(x)")
-        plt.savefig(f"{self.__class__.__name__} and Derivatives fig.pdf")
+        plt.ylabel("f(x)/f'(x)/f''(x)")
         plt.legend()
         plt.grid()
+        plt.savefig(f"{self.__class__.__name__}_and_Derivatives_fig.pdf")
         plt.show()
+
+
+
     # ------------------------------------------------
 
 #------------------------------------------------
@@ -534,6 +537,6 @@ class Double_Well_Potential(D1):
 
         # ----------------------------
 
-  
+
 
 

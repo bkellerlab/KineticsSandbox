@@ -238,7 +238,7 @@ class D1(ABC):
 
         # Adjust layout to prevent overlap
         plt.tight_layout()
-        plt.savefig(f"{self.__class__.__name__} and Derivatives Subplots fig.pdf")
+        plt.savefig(f"{self.__class__.__name__}_and_Derivatives_Subplots_fig.pdf")
         # Display the plot
         plt.show()
     # ------------------------------------------------
@@ -556,5 +556,4 @@ class Double_Well_Potential(D1):
 
         return 12 * x ** 2 * self.a - 2 * self.b
 
-        # ----------------------------
-
+        # --------------------------
