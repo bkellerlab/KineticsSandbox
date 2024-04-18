@@ -5,7 +5,6 @@ __pycache__/
 *.pyc
 *.pyo
 *.pyd
-
-
+*.pdf
 # ignore jupyter checkpoints
 cookbooks/.ipynb_checkpoints
