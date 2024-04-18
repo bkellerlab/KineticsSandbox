@@ -556,4 +556,3 @@ class Double_Well_Potential(D1):
 
         return 12 * x ** 2 * self.a - 2 * self.b
 
-        # --------------------------
