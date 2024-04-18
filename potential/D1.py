@@ -67,7 +67,7 @@ class D1(ABC):
         return -self.potential(x)    
     
     # force, numerical expression via finite difference    
-    def force_num(self, x, h):
+    def force_num(self, x, h=0.0001):
         """
         Calculate the force F(x) numerically via the central finit difference.
         Since the potential is one-idmensional, the force is vector with one element.
@@ -88,7 +88,7 @@ class D1(ABC):
         return np.array([F]).flatten() # use .flatten() for shape match
     
     # Hessian matrix, numerical expreesion via second order finite difference
-    def hessian_num(self, x, h):
+    def hessian_num(self, x, h=0.0001):
         """
         Calculate the Hessian matrix H(x) numerically via the second-order central finit difference.
         Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
@@ -115,7 +115,7 @@ class D1(ABC):
         H = (V_x_plus_h - 2 * V_x + V_x_minus_h) / h**2
         
         # cast Hessian as a 1x1 numpy array and return
-        return  np.array([[H]]) 
+        return  np.array([[H]]).flatten()
     
     # nearest minimum
     def min(self, x_start): 
@@ -170,33 +170,45 @@ class D1(ABC):
    
     
     # plotting
-    def plot_function(self,x_values)-> None:
-         """
-         plot the potential function over a given range of x values
-         """
+    def plot_function(self,x_values):
+        """
+        plot the potential function over a given range of x values
+        """
 
 
-         y_values = self.potential(x_values)
-         dy_force = self.force(x_values)
-         dy_force_num= self.force_num(x_values)
+        y_values = self.potential(x_values)
+        dy_force = self.force(x_values)
+        dy_force_num= self.force_num(x_values)
+        dy_hessian = self.hessian(x_values)
+        dy_hessian_num = self.hessian_num(x_values)
 
-         plt.plot(x_values, y_values, label="f(x)", color="blue", linewidth=2, marker=".", markerfacecolor="k",
-                  markersize=4)
+        plt.plot(x_values, y_values, label="f(x)", color="blue", linewidth=2, marker=".", markerfacecolor="k",
+              markersize=4)
 
-         plt.plot(x_values, dy_force, label="f'(x) - analytical", color="red", linewidth=2, marker=".", markerfacecolor="k",
-                  markersize=4)
-         plt.plot(x_values, dy_force_num, label="f'(x) - numerical", color="green", linewidth=2, marker=".",
-                  markerfacecolor="k",
-                  markersize=4)
+        plt.plot(x_values, dy_force, label="f'(x) - analytical", color="red", linewidth=2, marker=".", markerfacecolor="k",
+              markersize=4)
+
+        plt.plot(x_values, dy_force_num, label="f'(x) - numerical", color="green", linewidth=2, marker=".",
+              markerfacecolor="k",
+              markersize=4)
+
+        plt.plot(x_values, dy_hessian, label="f''(x) - hessian", color="yellow", linewidth=2, marker=".",
+              markerfacecolor="k",
+              markersize=4)
+
+        plt.plot(x_values, dy_hessian_num, label="f''(x) - hessian_num", color="grey", linewidth=2, marker=".",
+              markerfacecolor="k",
+              markersize=4)
 
 
-         plt.title(f"{self.__class__.__name__}  and Derivatives Plot")
+        plt.title(f"{self.__class__.__name__}  and Derivatives Plot")
 
-         plt.xlabel("x")
-         plt.ylabel("f(x)/f'(x)")
-         plt.savefig(f"{self.__class__.__name__} and Derivatives fig.pdf")
-         plt.legend()
-         plt.show()
+        plt.xlabel("x")
+        plt.ylabel("f(x)/f'(x)")
+        plt.savefig(f"{self.__class__.__name__} and Derivatives fig.pdf")
+        plt.legend()
+        plt.grid()
+        plt.show()
     # ------------------------------------------------
 
 #------------------------------------------------
@@ -278,29 +290,29 @@ class Bolhuis(D1):
     
     # the Hessian matrix, analytical expression
     def hessian(self, x):
-          """
-          Calculate the Hessian matrx H(x) analytically for the 1-dimensional Bolhuis potential.
+        """
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional Bolhuis potential.
           Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
-    
+
           The Hessian is given by:
-          H(x) = d^2 V(x) / dx^2 
+          H(x) = d^2 V(x) / dx^2
                 = 12 * k1 (x - a)**2   +   4 * k1 * b   +   2 * alpha * c * [ 4 * c * (x-a)**2 - (x-a)] * exp (-c *(x-2)**2 )
-    
+
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
-    
+
         Parameters:
             - x (float): position
 
           Returns:
               numpy array: The 1x1 Hessian matrix at the given position x.
-    
+
           """
           
-          # calculate the Hessian as a float      
-          H = 12 * self.k1 * (x - self.a)**2   -   4 * self.k1 * self.b   +   2 * self.alpha * self.c * ( 2 * self.c * (x-self.a)**2 - 1 ) * np.exp (-self.c *(x-self.a)**2 )
-          
-          # cast Hessian as a 1x1 numpy array and return
-          return  np.array([[H]])
+        # calculate the Hessian as a float
+        H = 12 * self.k1 * (x - self.a)**2   -   4 * self.k1 * self.b   +   2 * self.alpha * self.c * ( 2 * self.c * (x-self.a)**2 - 1 ) * np.exp (-self.c *(x-self.a)**2 )
+
+        # cast Hessian as a 1x1 numpy array and return
+        return  np.array([[H]])
 
 #---------------------------------------------
 # child class: one-dimensional potentials
@@ -354,7 +366,12 @@ class Linear_Potential(D1):
 
 
     def hessian(self, x):
-        pass
+        if isinstance(x, float) or isinstance(x, int):
+            return 0
+        else:
+            # you are allowed to input x as an array, in this case the return is an array the same shape as x
+            return np.full(x.shape, 0)
+
 #------------------------------------------------------
 # child class: one-dimensional potentials
 #------------------------------------------------------
@@ -372,7 +389,7 @@ class Quadratic_Potential(D1):
              - param[2]: c (float) - controlling the vertical displacement if parabola
 
         """
-       #assign parameters
+        #assign parameters
         self.a = param[0]
         self.b = param[1]
         self.c = param[2]
@@ -411,10 +428,35 @@ class Quadratic_Potential(D1):
         return -1 * (self.a * 2 * x + self.b)
 
     def hessian(self, x):
-        pass
+        """
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional quadratic potential.
+        Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+
+        The Hessian is given by:
+        H(x) = d^2 V(x) / dx^2
+             =  2 * self.a
+
+
+
+        Parameters:
+            - x (float): position
+
+
+        """
+
+        if isinstance(x, float) or isinstance(x, int):
+            return 2 * self.a
+        else:
+            # you are allowed to input x as an array, in this case the return is an array the same shape as x
+            return np.full(x.shape, 2 * self.a)
+
 #-----------------------------------------------
 # child class: one-dimensional potentials
 #-----------------------------------------------
+class Double_Well_Potential:
+    pass
+
+
 class Double_Well_Potential(D1):
 
 
@@ -467,7 +509,30 @@ class Double_Well_Potential(D1):
         return -1 * (self.a * 4 * x ** 3 - self.b * 2 * x)
 
     def hessian(self, x):
-        pass
+        """
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional quadratic potential.
+        Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+
+        The Hessian is given by:
+        H(x) = d^2 V(x) / dx^2
+             = 12 * x **2 * self.a - 2 * self.b
+
+
+
+        Parameters:
+             - x (float): position
+
+
+        """
+
+        return 12 * x **2 * self.a - 2 * self.b
+
+
+
+
+
+
+        # ----------------------------
 
   
 
