@@ -6,9 +6,9 @@ Created on Sat Jan 20 07:05:58 2024
 @author: bettina
 """
 
-#-----------------------------------------
-#   I M P O R T S 
-#-----------------------------------------
+# -----------------------------------------
+#   I M P O R T S
+# -----------------------------------------
 from abc import ABC, abstractmethod
 import numpy as np
 import scipy.constants as const
@@ -17,44 +17,45 @@ from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 
-#------------------------------------------------
+# ------------------------------------------------
 # abstract class: one-dimensional potentials
-#------------------------------------------------
+# ------------------------------------------------
 class D1(ABC):
-    #---------------------------------------------------------------------
+    # ---------------------------------------------------------------------
     #   class initialization needs to be implemented in a child class
     #
     #   In the initialization define the parameters of the potential
     #   and the range [x_low, x_high]
-    #---------------------------------------------------------------------
-    @abstractmethod    
-    def __init__(self, param): 
+    # ---------------------------------------------------------------------
+    @abstractmethod
+    def __init__(self, param):
         pass
-    #---------------------------------------------------------------------
+
+    # ---------------------------------------------------------------------
     #   analytical functions that need to be implemented in a child class
-    #---------------------------------------------------------------------
-    # the potential energy function 
+    # ---------------------------------------------------------------------
+    # the potential energy function
     @abstractmethod
     def potential(self, x):
         pass
-    
+
     # the force, analytical expression
     @abstractmethod
     def force(self, x):
         pass
-    
+
     # the Hessian matrix, analytical expression
-    @abstractmethod    
+    @abstractmethod
     def hessian(self, x):
         pass
 
-    #-----------------------------------------------------------
+    # -----------------------------------------------------------
     #   numerical methods that are passed to a child class
-    #-----------------------------------------------------------
+    # -----------------------------------------------------------
     # negated potential, returns - V(x)
-    def negated_potential(self, x): 
+    def negated_potential(self, x):
         """
-        Calculate the negated potential energy -V(x) 
+        Calculate the negated potential energy -V(x)
 
         The units of V(x) are kJ/mol, following the convention in GROMACS.
 
@@ -64,71 +65,72 @@ class D1(ABC):
         Returns:
             float: negated value of the potential energy function at the given position x.
         """
-        return -self.potential(x)    
-    
-    # force, numerical expression via finite difference    
+        return -self.potential(x)
+
+        # force, numerical expression via finite difference
+
     def force_num(self, x, h=0.0001):
         """
         Calculate the force F(x) numerically via the central finit difference.
         Since the potential is one-idmensional, the force is vector with one element.
-        
+
         The force is given by:
         F(x) = - [ V(x+h/2) - V(x-h/2)] / h
-        
-        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.  
-        
+
+        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
+
         Parameters:
         - x (float): position
- 
+
         Returns:
-            numpy array: The value of the force at the given position x , returned as vector with 1 element.  
-        """  
-        
-        F = - ( self.potential(x+h/2) - self.potential(x-h/2) ) / h
-        return np.array([F]).flatten() # use .flatten() for shape match
-    
+            numpy array: The value of the force at the given position x , returned as vector with 1 element.
+        """
+
+        F = - (self.potential(x + h / 2) - self.potential(x - h / 2)) / h
+        return np.array([F]).flatten()  # use .flatten() for shape match
+
     # Hessian matrix, numerical expreesion via second order finite difference
     def hessian_num(self, x, h=0.0001):
         """
         Calculate the Hessian matrix H(x) numerically via the second-order central finit difference.
         Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
-        
+
         The Hessian is given by:
             H(x) = [V(x+h) - 2 * V(x) + V(x-h)] / h**2
-        
+
         The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
-        
+
         Parameters:
         - x (float): position
         - h (float): spacing of the finit different point along x
-        
+
         Returns:
         numpy array: The 1x1 Hessian matrix at the given position x.
-        
+
         """
-        
-        # calculate the Hessian as a float    
-        V_x_plus_h = self.potential(x+h)
+
+        # calculate the Hessian as a float
+        V_x_plus_h = self.potential(x + h)
         V_x = self.potential(x)
-        V_x_minus_h = self.potential(x-h)
-        
-        H = (V_x_plus_h - 2 * V_x + V_x_minus_h) / h**2
-        
+        V_x_minus_h = self.potential(x - h)
+
+        H = (V_x_plus_h - 2 * V_x + V_x_minus_h) / h ** 2
+
         # cast Hessian as a 1x1 numpy array and return
-        return  np.array([[H]]).flatten()
-    
+        return np.array([[H]]).flatten()
+
     # nearest minimum
-    def min(self, x_start): 
+    def min(self, x_start):
         """
-        Numerically finds the nearest minimum in the vicinity of x_start 
-        
+        Numerically finds the nearest minimum in the vicinity of x_start
+
         Parameters:
         - x_start (float): start of the minimization
-        
+
         Returns:
         float: position of the minimum
-        
-        """        
+
+        """
 
         # This is a convenience function.
         # It essentially calls scipy.optimize.minimize.
@@ -136,89 +138,115 @@ class D1(ABC):
         # minimize returns a class OptimizeResult
         # the minimum is the class member x
         x_min = minimize(self.potential, x_start, method='BFGS').x
-        
-        # returns position of the minimum as float
-        return x_min[0]     
 
-    # transition state
+        # returns position of the minimum as float
+        return x_min[0]
+
+        # transition state
+
     def TS(self, x_start, x_end):
         """
-        Numerically finds the highest maximum in the interval [x_start, x_end] 
-        
+        Numerically finds the highest maximum in the interval [x_start, x_end]
+
         Parameters:
         - x_start (float): position of the reactant minimum
         - x_start (float): position of the product minimum
-        
+
         Returns:
         float: position of the transition state
-        
+
         """
-        
-        # find the largest point in [x_start, x_end] on a grid        
+
+        # find the largest point in [x_start, x_end] on a grid
         x = np.linspace(x_start, x_end, 1000)
         y = self.potential(x)
         i = np.argmax(y)
         # this is our starting point for the optimization
         TS_start = x[i]
-        
+
         # minimize returns a class OptimizeResult
         # the transition state is the class member x
         TS = minimize(self.negated_potential, TS_start, method='BFGS').x
-        
+
         # returns position of the transition state as float
-        return TS[0]     
-   
-    
-    # plotting
-    def plot_function(self,x_values):
+        return TS[0]
+
+        # plotting
+
+    def plot_function(self, x_values):
         """
         plot the potential function over a given range of x values
         """
 
-
         y_values = self.potential(x_values)
         dy_force = self.force(x_values)
-        dy_force_num= self.force_num(x_values)
+        dy_force_num = self.force_num(x_values)
         dy_hessian = self.hessian(x_values)
         dy_hessian_num = self.hessian_num(x_values)
 
+        #plotting subplots
+        fig, axes = plt.subplots(2, 3, figsize=(15,9))  # Adjust the figsize as needed
 
-        plt.plot(x_values, y_values, label="f(x)", color="blue", linewidth=2, marker=".", markerfacecolor="k",
-              markersize=4)
+        # Plot the original function on the first subplot
 
-        plt.plot(x_values, dy_force, label="f'(x) - force", color="red", linewidth=2, marker=".", markerfacecolor="k",
-              markersize=4)
-
-        plt.plot(x_values, dy_force_num, label="f'(x) - force_num", color="green", linewidth=2, marker=".",
-              markerfacecolor="k",
-              markersize=4)
-
-        plt.plot(x_values, dy_hessian, label="f''(x) - hessian", color="yellow", linewidth=2, marker=".",
-              markerfacecolor="k",
-              markersize=4)
-
-        plt.plot(x_values, dy_hessian_num, label="f''(x) - hessian_num", color="grey", linewidth=2, marker=".",
-              markerfacecolor="k",
-              markersize=4)
+        axes[0,0].plot(x_values, y_values, color='blue', label="f(x)", marker=".", markerfacecolor="k", markersize=4)
+        axes[0,0].set_title('Potential')
+        axes[0,0].set_xlabel('x')
+        axes[0,0].set_ylabel('f(x)')
 
 
-        plt.title(f"{self.__class__.__name__}  and Derivatives Plot")
+        # Plot the analytical derivative on the second subplot
+        axes[0,1].plot(x_values, dy_force, color='red', label="f'(x) - force_num", marker=".", markerfacecolor="k",
+                     markersize=4)
+        axes[0,1].set_title('Force')
+        axes[0,1].set_xlabel('x')
+        axes[0,1].set_ylabel("f'(x)")
 
-        plt.xlabel("x")
-        plt.ylabel("f(x)/f'(x)/f''(x)")
-        plt.legend()
-        plt.grid()
-        plt.savefig(f"{self.__class__.__name__}_and_Derivatives_fig.pdf")
+
+        # Plot the numerical derivative on the third subplot
+        axes[0,2].plot(x_values, dy_force_num, color='green', label="f'(x) - force_num", marker=".", markerfacecolor="k",
+                     markersize=4)
+        axes[0,2].set_title('Force_num')
+        axes[0,2].set_xlabel('x')
+        axes[0,2].set_ylabel("f'(x)")
+
+
+
+        # Plot the numerical derivative on the fourth subplot
+
+        axes[1,0].plot(x_values, dy_hessian, color='yellow', label="f''(x) - hessian", marker=".", markerfacecolor="k",
+                     markersize=4)
+        axes[1,0].set_title('Hessian')
+        axes[1,0].set_xlabel('x')
+        axes[1,0].set_ylabel("f'(x)")
+
+
+
+
+        # Plot the numerical derivative on the fifth subplot
+        axes[1,1].plot(x_values, dy_hessian_num, color='grey', label="f''(x) - hessian_num", marker=".", markerfacecolor="k",
+                     markersize=4)
+        axes[1,1].set_title('Hessian_num')
+        axes[1,1].set_xlabel('x')
+        axes[1,1].set_ylabel("f'(x)")
+
+
+
+        # Hide the empty subplot
+        axes[1, 2].axis('off')
+
+
+        # Adjust layout to prevent overlap
+        plt.tight_layout()
+        plt.savefig(f"{self.__class__.__name__}_and_Derivatives_Subplots_fig.pdf")
+        # Display the plot
         plt.show()
-
-
-
-
     # ------------------------------------------------
 
-#------------------------------------------------
+
+# ------------------------------------------------
 # child class: one-dimensional potentials
-#------------------------------------------------
+# ------------------------------------------------
 class Bolhuis(D1):
     # intiialize class
     def __init__(self, param):
@@ -268,7 +296,8 @@ class Bolhuis(D1):
             float: The value of the potential energy function at the given position x.
         """
 
-        return  self.k1 * ((x - self.a)**2 - self.b)**2 + self.k2 * x + self.alpha * np.exp(-self.c * (x - self.a)**2)
+        return self.k1 * ((x - self.a) ** 2 - self.b) ** 2 + self.k2 * x + self.alpha * np.exp(
+            -self.c * (x - self.a) ** 2)
 
     # the force, analytical expression t
     def force(self, x):
@@ -290,7 +319,8 @@ class Bolhuis(D1):
 
         """
 
-        F = - 2 * self.k1 * ((x - self.a)**2 - self.b) * 2 * (x - self.a) - self.k2 + self.alpha * np.exp(-self.c * (x - self.a)**2) * self.c * 2 * (x - self.a)
+        F = - 2 * self.k1 * ((x - self.a) ** 2 - self.b) * 2 * (x - self.a) - self.k2 + self.alpha * np.exp(
+            -self.c * (x - self.a) ** 2) * self.c * 2 * (x - self.a)
         return np.array([F])
 
     # the Hessian matrix, analytical expression
@@ -313,29 +343,31 @@ class Bolhuis(D1):
 
           """
 
+        # calculate the Hessian as a float
+        H = 12 * self.k1 * (x - self.a) ** 2 - 4 * self.k1 * self.b + 2 * self.alpha * self.c * (
+                    2 * self.c * (x - self.a) ** 2 - 1) * np.exp(-self.c * (x - self.a) ** 2)
 
-          # calculate the Hessian as a float
-        H = 12 * self.k1 * (x - self.a)**2   -   4 * self.k1 * self.b   +   2 * self.alpha * self.c * ( 2 * self.c * (x-self.a)**2 - 1 ) * np.exp (-self.c *(x-self.a)**2 )
+        # cast Hessian as a 1x1 numpy array and return
+        return np.array([[H]])
 
-          # cast Hessian as a 1x1 numpy array and return
-        return  np.array([[H]])
 
-#---------------------------------------------
+# ---------------------------------------------
 # child class: one-dimensional potentials
-#------------------------------------------------
+# ------------------------------------------------
 class Linear_Potential(D1):
     # initialize class
     def __init__(self, param):
-         """
-         Initialize the class for the 1-dimensional Linear potential based on the given parameters.
-         parameters:
-           - param (list): a list of parameters representing:
-           - param[0]: c (float) -parameter controlling the steepness of the line
-           - param[1]: m (float) _parameter giving the y-intercept
-         """
-         #assign parameters
-         self.c = param[0]
-         self.m = param[1]
+        """
+        Initialize the class for the 1-dimensional Linear potential based on the given parameters.
+        parameters:
+          - param (list): a list of parameters representing:
+          - param[0]: c (float) -parameter controlling the steepness of the line
+          - param[1]: m (float) _parameter giving the y-intercept
+        """
+        # assign parameters
+        self.c = param[0]
+        self.m = param[1]
+
     def potential(self, x):
         """
         calculate the linear potential energy V(x),
@@ -369,19 +401,17 @@ class Linear_Potential(D1):
             # you are allowed to input x as an array, in this case the return is an array the same shape as x
             return np.full(x.shape, -1 * self.m)
 
-
-
     def hessian(self, x):
-
         if isinstance(x, float) or isinstance(x, int):
             return 0
         else:
             # you are allowed to input x as an array, in this case the return is an array the same shape as x
             return np.full(x.shape, 0)
 
-#------------------------------------------------------
+
+# ------------------------------------------------------
 # child class: one-dimensional potentials
-#------------------------------------------------------
+# ------------------------------------------------------
 
 class Quadratic_Potential(D1):
 
@@ -396,12 +426,10 @@ class Quadratic_Potential(D1):
              - param[2]: c (float) - controlling the vertical displacement if parabola
 
         """
-        #assign parameters
+        # assign parameters
         self.a = param[0]
         self.b = param[1]
         self.c = param[2]
-
-
 
     def potential(self, x):
         """
@@ -415,11 +443,9 @@ class Quadratic_Potential(D1):
 
         """
 
+        return self.a * x ** 2 + self.b * x + self.c
 
-
-        return self.a * x**2 + self.b * x + self.c
-
-    def force(self,x):
+    def force(self, x):
         """
         Calculate the force F(x) analytically for Quadratic potential
             The force is given by:
@@ -436,38 +462,38 @@ class Quadratic_Potential(D1):
 
     def hessian(self, x):
         """
-        Calculate the Hessian matrx H(x) analytically for the 1-dimensional Quadratic potential.
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional quadratic potential.
         Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
 
-            The Hessian is given by:
-            H(x) = d^2 V(x) / dx^2
-                 = 2a
+        The Hessian is given by:
+        H(x) = d^2 V(x) / dx^2
+             =  2 * self.a
 
-            Parameters:
-                - x (float): position
 
-        Returns:
-                numpy array: The 1x1 Hessian matrix at the given position x.
+
+        Parameters:
+            - x (float): position
+
 
         """
 
-        # calculate the Hessian as a float
-        return   2 * self.a
+        if isinstance(x, float) or isinstance(x, int):
+            return 2 * self.a
+        else:
+            # you are allowed to input x as an array, in this case the return is an array the same shape as x
+            return np.full(x.shape, 2 * self.a)
 
 
-
-#-----------------------------------------------
+# -----------------------------------------------
 # child class: one-dimensional potentials
-#-----------------------------------------------
+# -----------------------------------------------
 class Double_Well_Potential:
     pass
 
 
 class Double_Well_Potential(D1):
 
-
-
-    def __init__(self,param):
+    def __init__(self, param):
         """
         Initialize the class for the 1-dimensional Double well potential based on the given parameters.
         parameters:
@@ -478,28 +504,26 @@ class Double_Well_Potential(D1):
 
         """
 
-       #assign parameters
+        # assign parameters
         self.a = param[0]
         self.b = param[1]
         self.c = param[2]
-
 
     def potential(self, x):
         """
 
         calculate the Double Well potential energy V(x),
         The function is given by:
-        V(x) = a * x^4 - b * x^2 + c
+        V(x) = a * x^^4 - b * x^2 + c
         parameters:
                 x:position
 
         Returns:Double well potential for all x
         """
 
+        return self.a * x ** 4 - self.b * x ** 2 + self.c
 
-        return  self.a * x**4 - self.b * x**2 + self.c
-
-    def force(self,x):
+    def force(self, x):
         """
         Calculate the force F(x) analytically for Double Well  potential
         The force is given by:
@@ -511,37 +535,24 @@ class Double_Well_Potential(D1):
 
         """
 
-
         return -1 * (self.a * 4 * x ** 3 - self.b * 2 * x)
 
     def hessian(self, x):
         """
-        Calculate the Hessian matrx H(x) analytically for the 1-dimensional Quadratic potential.
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional quadratic potential.
         Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
 
-         The Hessian is given by:
-         H(x) = d^2 V(x) / dx^2
-              =
+        The Hessian is given by:
+        H(x) = d^2 V(x) / dx^2
+             = 12 * x **2 * self.a - 2 * self.b
 
-         Parameters:
+
+
+        Parameters:
              - x (float): position
 
-        Returns:
-            numpy array: The 1x1 Hessian matrix at the given position x.
 
         """
 
-        # calculate the Hessian as a float
-        return  12 * self.a * x**2 - 2 * self.b
-
-
-
-
-
-
-
-        # ----------------------------
-
-
-
+        return 12 * x ** 2 * self.a - 2 * self.b
 
