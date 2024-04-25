@@ -11,9 +11,9 @@ Created on Sat Jan 20 07:05:58 2024
 #-----------------------------------------
 from abc import ABC, abstractmethod
 import numpy as np
-import scipy.constants as const
-from scipy import integrate
-from scipy.optimize import minimize
+#import scipy.constants as const
+#from scipy import integrate
+#from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 
@@ -182,6 +182,7 @@ class D1(ABC):
         dy_hessian = self.hessian(x_values)
         dy_hessian_num = self.hessian_num(x_values)
 
+
         plt.plot(x_values, y_values, label="f(x)", color="blue", linewidth=2, marker=".", markerfacecolor="k",
               markersize=4)
 
@@ -212,6 +213,7 @@ class D1(ABC):
 
 
 
+
     # ------------------------------------------------
 
 #------------------------------------------------
@@ -219,7 +221,7 @@ class D1(ABC):
 #------------------------------------------------
 class Bolhuis(D1):
     # intiialize class
-    def __init__(self, param): 
+    def __init__(self, param):
         """
         Initialize the class for the 1-dimensional Bolhuis potential based on the given parameters.
 
@@ -236,11 +238,11 @@ class Bolhuis(D1):
         Raises:
         - ValueError: If param does not have exactly 6 elements.
         """
-        
+
         # Check if param has the correct number of elements
         if len(param) != 6:
             raise ValueError("param must have exactly 6 elements.")
-        
+
         # Assign parameters
         self.a = param[0]
         self.b = param[1]
@@ -248,49 +250,49 @@ class Bolhuis(D1):
         self.k1 = param[3]
         self.k2 = param[4]
         self.alpha = param[5]
-        
-    # the potential energy function 
+
+    # the potential energy function
     def potential(self, x):
         """
         Calculate the potential energy V(x) for the 1-dimensional Bolhuis potential.
-    
+
         The potential energy function is given by:
         V(x) = k1 * ((x - a)**2 - b)**2 + k2 * x + alpha * np.exp(-c * (x - a)**2)
-    
+
         The units of V(x) are kJ/mol, following the convention in GROMACS.
-    
+
         Parameters:
             - x (float): position
 
         Returns:
             float: The value of the potential energy function at the given position x.
         """
-    
+
         return  self.k1 * ((x - self.a)**2 - self.b)**2 + self.k2 * x + self.alpha * np.exp(-self.c * (x - self.a)**2)
-          
+
     # the force, analytical expression t
     def force(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional Bolhuis potential.
         Since the potential is one-idmensional, the force is a vector with one element.
-    
+
         The force is given by:
-        F(x) = - dV(x) / dx 
+        F(x) = - dV(x) / dx
               = - 2 * k1 * ((x - a)**2 - b) * 2 * (x-a) - k2 + alpha * np.exp(-c * (x - a)**2) * c * 2 * (x - a)
-    
+
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
-    
+
         Parameters:
             - x (float): position
-    
+
         Returns:
             numpy array: The value of the force at the given position x, returned as vector with 1 element.
-    
+
         """
-        
+
         F = - 2 * self.k1 * ((x - self.a)**2 - self.b) * 2 * (x - self.a) - self.k2 + self.alpha * np.exp(-self.c * (x - self.a)**2) * self.c * 2 * (x - self.a)
         return np.array([F])
-    
+
     # the Hessian matrix, analytical expression
     def hessian(self, x):
         """
@@ -310,11 +312,12 @@ class Bolhuis(D1):
               numpy array: The 1x1 Hessian matrix at the given position x.
 
           """
-          
-        # calculate the Hessian as a float
+
+
+          # calculate the Hessian as a float
         H = 12 * self.k1 * (x - self.a)**2   -   4 * self.k1 * self.b   +   2 * self.alpha * self.c * ( 2 * self.c * (x-self.a)**2 - 1 ) * np.exp (-self.c *(x-self.a)**2 )
 
-        # cast Hessian as a 1x1 numpy array and return
+          # cast Hessian as a 1x1 numpy array and return
         return  np.array([[H]])
 
 #---------------------------------------------
@@ -369,6 +372,7 @@ class Linear_Potential(D1):
 
 
     def hessian(self, x):
+
         if isinstance(x, float) or isinstance(x, int):
             return 0
         else:
@@ -452,21 +456,22 @@ class Quadratic_Potential(D1):
 
     def hessian(self, x):
         """
-        Calculate the Hessian matrx H(x) analytically for the 1-dimensional quadratic potential.
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional Quadratic potential.
         Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
 
-        The Hessian is given by:
-        H(x) = d^2 V(x) / dx^2
-             =  2 * self.a
+            The Hessian is given by:
+            H(x) = d^2 V(x) / dx^2
+                 = 2a
 
+            Parameters:
+                - x (float): position
 
-
-        Parameters:
-            - x (float): position
-
+        Returns:
+                numpy array: The 1x1 Hessian matrix at the given position x.
 
         """
 
+        # calculate the Hessian as a float
         if isinstance(x, float) or isinstance(x, int):
             return 2 * self.a
         else:
@@ -474,6 +479,7 @@ class Quadratic_Potential(D1):
             return np.full(x.shape, 2 * self.a)
 
 
+<<<<<<< HEAD
     def riemann(self, a, b, n):
         """
         calculate the Riemann integral of the potential energy function over the interval [a,b)
@@ -493,6 +499,9 @@ class Quadratic_Potential(D1):
             area += self.potential(s) * h
 
         return area
+=======
+
+>>>>>>> d5803e3bd00e4c0c83c051385b1b4aba8a1d5047
 #-----------------------------------------------
 # child class: one-dimensional potentials
 #-----------------------------------------------
@@ -526,7 +535,7 @@ class Double_Well_Potential(D1):
 
         calculate the Double Well potential energy V(x),
         The function is given by:
-        V(x) = a * x^^4 - b * x^2 + c
+        V(x) = a * x^4 - b * x^2 + c
         parameters:
                 x:position
 
@@ -553,21 +562,20 @@ class Double_Well_Potential(D1):
 
     def hessian(self, x):
         """
-        Calculate the Hessian matrx H(x) analytically for the 1-dimensional quadratic potential.
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional Quadratic potential.
         Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
 
-        The Hessian is given by:
-        H(x) = d^2 V(x) / dx^2
-             = 12 * x **2 * self.a - 2 * self.b
+         The Hessian is given by:
+         H(x) = d^2 V(x) / dx^2
+              =
 
-
-
-        Parameters:
+         Parameters:
              - x (float): position
 
+        Returns:
+            numpy array: The 1x1 Hessian matrix at the given position x.
 
         """
-
         return 12 * x **2 * self.a - 2 * self.b
 
     def riemann(self, a, b, n):
@@ -590,15 +598,18 @@ class Double_Well_Potential(D1):
 
         return area
 
-linear_potential_1 = Linear_Potential((1, 1))
-print(linear_potential_1.riemann(1,2,10))
-print(linear_potential_1.riemann(1,3,1000))
-quadratic_potential_1 = Quadratic_Potential((1, 2, 1))
-print(quadratic_potential_1.riemann(-10,10,1000))
-doublewell = Double_Well_Potential((1, -2, 1))
-print(doublewell.riemann(-2,2,1000))
-print(doublewell.riemann(-1,1,100000))
-print(linear_potential_1.hessian(1))
+
+
+linear = Linear_Potential((2, -3))  # linear potential with m=2,c=-3
+linear.plot_function(np.linspace(-10, 10, 100))
+quadratic = Quadratic_Potential((1, -5, 6))  # Quadratic potential with a=1, b=-5, c=6
+quadratic.plot_function(np.linspace(-10, 15, 100))
+doublewell = Double_Well_Potential((1, 2, -1))  # double well potential with a=1,b=2,c=-1
+doublewell.plot_function(np.linspace(-1.5, 1.5, 100))
+
+
+        # ----------------------------
+
 
 
 

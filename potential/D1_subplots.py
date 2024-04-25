@@ -11,9 +11,9 @@ Created on Sat Jan 20 07:05:58 2024
 # -----------------------------------------
 from abc import ABC, abstractmethod
 import numpy as np
-import scipy.constants as const
-from scipy import integrate
-from scipy.optimize import minimize
+#import scipy.constants as const
+#from scipy import integrate
+#from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 
@@ -190,7 +190,7 @@ class D1(ABC):
         # Plot the original function on the first subplot
 
         axes[0,0].plot(x_values, y_values, color='blue', label="f(x)", marker=".", markerfacecolor="k", markersize=4)
-        axes[0,0].set_title('Potential')
+        axes[0,0].set_title(f"{self.__class__.__name__}")
         axes[0,0].set_xlabel('x')
         axes[0,0].set_ylabel('f(x)')
 
@@ -212,7 +212,7 @@ class D1(ABC):
 
 
 
-        # Plot the numerical derivative on the fourth subplot
+        # Plot the hessian on the fourth subplot
 
         axes[1,0].plot(x_values, dy_hessian, color='yellow', label="f''(x) - hessian", marker=".", markerfacecolor="k",
                      markersize=4)
@@ -556,3 +556,9 @@ class Double_Well_Potential(D1):
 
         return 12 * x ** 2 * self.a - 2 * self.b
 
+linear = Linear_Potential((2, -3))# linear potential with m=2,c=-3
+linear.plot_function(np.linspace(-10,10,100))
+quadratic = Quadratic_Potential((1, -5, 6))  # Quadratic potential with a=1, b=-5, c=6
+quadratic.plot_function(np.linspace(-10,15,100))
+doublewell = Double_Well_Potential((1,2,-1))#double well potential with a=1,b=2,c=-1
+doublewell.plot_function(np.linspace(-1.5,1.5,100))
