@@ -375,6 +375,26 @@ class Linear_Potential(D1):
             # you are allowed to input x as an array, in this case the return is an array the same shape as x
             return np.full(x.shape, 0)
 
+    def riemann(self, a, b, n):
+        """
+        calculate the Riemann integral of the potential energy function over the interval [a,b)
+        using riemann central method
+        parameters:
+                a(float): lower limit of integration
+                b(float):upper limit of integration
+                h(float):step size or width  of rectangle
+                s(float):midpoint of interval
+        return:
+           area under the curve
+        """
+        h = (b - a) / n
+        area = 0
+        for i in range(n):
+            s = a + (i + 0.5) * h
+            area += self.potential(s) * h
+
+        return area
+
 #------------------------------------------------------
 # child class: one-dimensional potentials
 #------------------------------------------------------
@@ -453,6 +473,26 @@ class Quadratic_Potential(D1):
             # you are allowed to input x as an array, in this case the return is an array the same shape as x
             return np.full(x.shape, 2 * self.a)
 
+
+    def riemann(self, a, b, n):
+        """
+        calculate the Riemann integral of the potential energy function over the interval [a,b)
+        using riemann central method
+        parameters:
+                a(float): lower limit of integration
+                b(float):upper limit of integration
+                h(float):step size or width  of rectangle
+                s(float):midpoint of interval
+        return:
+           area under the curve
+        """
+        h = (b - a) / n
+        area = 0
+        for i in range(n):
+            s = a + (i + 0.5) * h
+            area += self.potential(s) * h
+
+        return area
 #-----------------------------------------------
 # child class: one-dimensional potentials
 #-----------------------------------------------
@@ -530,13 +570,35 @@ class Double_Well_Potential(D1):
 
         return 12 * x **2 * self.a - 2 * self.b
 
+    def riemann(self, a, b, n):
+        """
+        calculate the Riemann integral of the potential energy function over the interval [a,b)
+        using riemann central method
+        parameters:
+                    a(float): lower limit of integration
+                    b(float):upper limit of integration
+                    h(float):step size or width  of rectangle
+                    s(float):midpoint of interval
+        return:
+               area under the curve
+        """
+        h = (b - a) / n
+        area = 0
+        for i in range(n):
+            s = a + (i + 0.5) * h
+            area += self.potential(s) * h
 
+        return area
 
-
-
-
-        # ----------------------------
-
+linear_potential_1 = Linear_Potential((1, 1))
+print(linear_potential_1.riemann(1,2,10))
+print(linear_potential_1.riemann(1,3,1000))
+quadratic_potential_1 = Quadratic_Potential((1, 2, 1))
+print(quadratic_potential_1.riemann(-10,10,1000))
+doublewell = Double_Well_Potential((1, -2, 1))
+print(doublewell.riemann(-2,2,1000))
+print(doublewell.riemann(-1,1,100000))
+print(linear_potential_1.hessian(1))
 
 
 
