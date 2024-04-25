@@ -479,7 +479,6 @@ class Quadratic_Potential(D1):
             return np.full(x.shape, 2 * self.a)
 
 
-<<<<<<< HEAD
     def riemann(self, a, b, n):
         """
         calculate the Riemann integral of the potential energy function over the interval [a,b)
@@ -499,9 +498,7 @@ class Quadratic_Potential(D1):
             area += self.potential(s) * h
 
         return area
-=======
 
->>>>>>> d5803e3bd00e4c0c83c051385b1b4aba8a1d5047
 #-----------------------------------------------
 # child class: one-dimensional potentials
 #-----------------------------------------------
