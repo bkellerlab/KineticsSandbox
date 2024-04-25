@@ -11,9 +11,9 @@ Created on Sat Jan 20 07:05:58 2024
 #-----------------------------------------
 from abc import ABC, abstractmethod
 import numpy as np
-import scipy.constants as const
-from scipy import integrate
-from scipy.optimize import minimize
+#import scipy.constants as const
+#from scipy import integrate
+#from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 
@@ -452,7 +452,11 @@ class Quadratic_Potential(D1):
         """
 
         # calculate the Hessian as a float
-        return   2 * self.a
+        if isinstance(x, float) or isinstance(x, int):
+            return 2 * self.a
+        else:
+            # you are allowed to input x as an array, in this case the return is an array the same shape as x
+            return np.full(x.shape, 2 * self.a)
 
 
 
@@ -534,10 +538,12 @@ class Double_Well_Potential(D1):
         # calculate the Hessian as a float
         return  12 * self.a * x**2 - 2 * self.b
 
-
-
-
-
+linear = Linear_Potential((2, -3))  # linear potential with m=2,c=-3
+linear.plot_function(np.linspace(-10, 10, 100))
+quadratic = Quadratic_Potential((1, -5, 6))  # Quadratic potential with a=1, b=-5, c=6
+quadratic.plot_function(np.linspace(-10, 15, 100))
+doublewell = Double_Well_Potential((1, 2, -1))  # double well potential with a=1,b=2,c=-1
+doublewell.plot_function(np.linspace(-1.5, 1.5, 100))
 
 
         # ----------------------------

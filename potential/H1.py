@@ -11,9 +11,9 @@ Created on Sat Jan 20 07:05:58 2024
 # -----------------------------------------
 from abc import ABC, abstractmethod
 import numpy as np
-import scipy.constants as const
-from scipy import integrate
-from scipy.optimize import minimize
+#import scipy.constants as const
+#from scipy import integrate
+#from scipy.optimize import minimize
 import matplotlib.pyplot as plt
 
 
@@ -185,7 +185,7 @@ class D1(ABC):
 
 
 
-        h_values = [ 0.001,0.01,0.1]
+        h_values = [ 1.0,0.01,0.1]
 
         for i, h in enumerate(h_values):
 
@@ -223,7 +223,7 @@ class D1(ABC):
                 markerfacecolor="k",
                 markersize=1.0)
 
-        h_values = [0.001, 0.01, 0.1]
+        h_values = [1.0, 0.01, 0.1]
 
         for i, h in enumerate(h_values):
             dy_hessian_num = self.hessian_num(x_values, h)
@@ -246,7 +246,7 @@ class D1(ABC):
         plot difference between analytical and numerical for force
 
         """
-        h_values = [0.001,0.01,0.1]
+        h_values = [1.0,0.01,0.1]
 
         for i, h in enumerate(h_values):
             dy_differences=self.force_num(x_values,h) - self.force(x_values)
