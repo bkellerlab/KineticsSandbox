@@ -283,7 +283,7 @@ class Linear(D1):
 
 
         Raises:
-        - ValueError: If param does not have exactly 6 elements.
+        - ValueError: If param does not have exactly 2 elements.
         """
         
         # Check if param has the correct number of elements
@@ -311,7 +311,7 @@ class Linear(D1):
             float: The value of the potential energy function at the given position x.
         """
     
-        return  self.k1 * x +self.c
+        return  self.k * x +self.c
           
     # the force, analytical expression t
     def force(self, x):
@@ -362,3 +362,100 @@ class Linear(D1):
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])
 
+
+class Quadratic(D1):
+    # intiialize class
+    def __init__(self, param): 
+        """
+        Initialize the class for the 1-dimensional Bolhuis potential based on the given parameters.
+
+        Parameters:
+            - param (list): a list of parameters representing:
+            - param[0]: k (float) - force constant of the linear potential
+            - param[1]: a (float) - parameter that shifts the extremum left and right
+            - param[2]: c (float) - parameter controlling the offset
+
+
+        Raises:
+        - ValueError: If param does not have exactly 3 elements.
+        """
+        
+        # Check if param has the correct number of elements
+        if len(param) != 3:
+            raise ValueError("param must have exactly 3 elements.")
+        
+        # Assign parameters
+        self.k = param[0]
+        self.a = param[1]
+        self.c = param[2]
+        
+    # the potential energy function 
+    def potential(self, x):
+        """
+        Calculate the potential energy V(x) for the 1-dimensional linear potential.
+    
+        The potential energy function is given by:
+        V(x) = k * (x-a)**2 + c
+    
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+        Returns:
+            float: The value of the potential energy function at the given position x.
+        """
+    
+        return  self.k * (x - self.a)**2  + self.c
+          
+    # the force, analytical expression t
+    def force(self, x):
+        """
+        Calculate the force F(x) analytically for the 1-dimensional linear potential.
+        Since the potential is one-idmensional, the force is a vector with one element.
+    
+        The force is given by:
+        F(x) = - dV(x) / dx 
+              = - 2 * k * (x-a)
+    
+        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+    
+        Returns:
+            numpy array: The value of the force at the given position x, returned as vector with 1 element.
+    
+        """
+        
+        F = -2 * self.k * (x - self.a)
+        return np.array([F])
+    
+    # the Hessian matrix, analytical expression
+    def hessian(self, x):
+          """
+          Calculate the Hessian matrx H(x) analytically for the 1-dimensional linear potential.
+          Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+    
+          The Hessian is given by:
+          H(x) = d^2 V(x) / dx^2 
+                = 2k
+    
+          The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+          Returns:
+              numpy array: The 1x1 Hessian matrix at the given position x.
+    
+          """
+          
+          # calculate the Hessian as a float      
+          H = 2 * self.k
+          
+          # cast Hessian as a 1x1 numpy array and return
+          return  np.array([[H]])
+      
+      
+     
