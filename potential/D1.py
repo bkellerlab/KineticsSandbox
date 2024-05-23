@@ -292,7 +292,7 @@ class Linear(D1):
         
         # Assign parameters
         self.k = param[0]
-        self.c = param[1]
+        self.d = param[1]
         
     # the potential energy function 
     def potential(self, x):
@@ -300,7 +300,7 @@ class Linear(D1):
         Calculate the potential energy V(x) for the 1-dimensional linear potential.
     
         The potential energy function is given by:
-        V(x) = k * x + c
+        V(x) = k * x + d
     
         The units of V(x) are kJ/mol, following the convention in GROMACS.
     
@@ -311,7 +311,7 @@ class Linear(D1):
             float: The value of the potential energy function at the given position x.
         """
     
-        return  self.k * x +self.c
+        return  self.k * x +self.d
           
     # the force, analytical expression t
     def force(self, x):
@@ -373,7 +373,7 @@ class Quadratic(D1):
             - param (list): a list of parameters representing:
             - param[0]: k (float) - force constant of the linear potential
             - param[1]: a (float) - parameter that shifts the extremum left and right
-            - param[2]: c (float) - parameter controlling the offset
+            - param[2]: d (float) - parameter controlling the offset
 
 
         Raises:
@@ -387,7 +387,7 @@ class Quadratic(D1):
         # Assign parameters
         self.k = param[0]
         self.a = param[1]
-        self.c = param[2]
+        self.d = param[2]
         
     # the potential energy function 
     def potential(self, x):
@@ -395,7 +395,7 @@ class Quadratic(D1):
         Calculate the potential energy V(x) for the 1-dimensional linear potential.
     
         The potential energy function is given by:
-        V(x) = k * (x-a)**2 + c
+        V(x) = k * (x-a)**2 + d
     
         The units of V(x) are kJ/mol, following the convention in GROMACS.
     
@@ -406,7 +406,7 @@ class Quadratic(D1):
             float: The value of the potential energy function at the given position x.
         """
     
-        return  self.k * (x - self.a)**2  + self.c
+        return  self.k * (x - self.a)**2  + self.d
           
     # the force, analytical expression t
     def force(self, x):
