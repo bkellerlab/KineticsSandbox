@@ -11,8 +11,6 @@ Created on Sat Jan 20 07:05:58 2024
 #-----------------------------------------
 from abc import ABC, abstractmethod
 import numpy as np
-import scipy.constants as const
-from scipy import integrate
 from scipy.optimize import minimize
 
 
@@ -272,5 +270,95 @@ class Bolhuis(D1):
           return  np.array([[H]])
       
     
+class Linear(D1):
+    # intiialize class
+    def __init__(self, param): 
+        """
+        Initialize the class for the 1-dimensional Bolhuis potential based on the given parameters.
 
+        Parameters:
+            - param (list): a list of parameters representing:
+            - param[0]: k (float) - force constant of the linear potential
+            - param[1]: c (float) - parameter controlling the offset
+
+
+        Raises:
+        - ValueError: If param does not have exactly 6 elements.
+        """
+        
+        # Check if param has the correct number of elements
+        if len(param) != 2:
+            raise ValueError("param must have exactly 2 elements.")
+        
+        # Assign parameters
+        self.k = param[0]
+        self.c = param[1]
+        
+    # the potential energy function 
+    def potential(self, x):
+        """
+        Calculate the potential energy V(x) for the 1-dimensional linear potential.
+    
+        The potential energy function is given by:
+        V(x) = k * x + c
+    
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+        Returns:
+            float: The value of the potential energy function at the given position x.
+        """
+    
+        return  self.k1 * x +self.c
+          
+    # the force, analytical expression t
+    def force(self, x):
+        """
+        Calculate the force F(x) analytically for the 1-dimensional linear potential.
+        Since the potential is one-idmensional, the force is a vector with one element.
+    
+        The force is given by:
+        F(x) = - dV(x) / dx 
+              = - k
+    
+        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+    
+        Returns:
+            numpy array: The value of the force at the given position x, returned as vector with 1 element.
+    
+        """
+        
+        F = -self.k
+        return np.array([F])
+    
+    # the Hessian matrix, analytical expression
+    def hessian(self, x):
+          """
+          Calculate the Hessian matrx H(x) analytically for the 1-dimensional linear potential.
+          Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+    
+          The Hessian is given by:
+          H(x) = d^2 V(x) / dx^2 
+                = 0
+    
+          The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+          Returns:
+              numpy array: The 1x1 Hessian matrix at the given position x.
+    
+          """
+          
+          # calculate the Hessian as a float      
+          H = 0
+          
+          # cast Hessian as a 1x1 numpy array and return
+          return  np.array([[H]])
 
