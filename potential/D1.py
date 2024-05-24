@@ -208,7 +208,7 @@ class Constant(D1):
             float: The value of the potential energy function at the given position x.
         """
     
-        return  self.d 
+        return  np.full_like(x, self.d)
           
     # the force, analytical expression t
     def force(self, x):
@@ -230,7 +230,7 @@ class Constant(D1):
     
         """
         
-        F = 0
+        F = np.full_like(x, 0)
         return np.array([F])
     
     # the Hessian matrix, analytical expression
@@ -254,10 +254,10 @@ class Constant(D1):
           """
           
           # calculate the Hessian as a float      
-          H = 0
+          H = np.full_like(x, 0)
           
           # cast Hessian as a 1x1 numpy array and return
-          return  0
+          return  np.array([[H]]) 
       
 class Linear(D1):
     # intiialize class
@@ -321,7 +321,7 @@ class Linear(D1):
     
         """
         
-        F = -self.k
+        F = np.full_like(x, -self.k)
         return np.array([F])
     
     # the Hessian matrix, analytical expression
@@ -345,7 +345,7 @@ class Linear(D1):
           """
           
           # calculate the Hessian as a float      
-          H = 0
+          H = np.full_like(x, 0)
           
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])
@@ -436,7 +436,7 @@ class Quadratic(D1):
           """
           
           # calculate the Hessian as a float      
-          H = 2 * self.k
+          H = np.full_like(x, 2 * self.k)
           
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])
@@ -637,7 +637,6 @@ class Polynomial(D1):
           
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])
-
 
 class Bolhuis(D1):
     # intiialize class
