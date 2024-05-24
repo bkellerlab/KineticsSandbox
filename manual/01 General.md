@@ -7,14 +7,14 @@ https://manual.gromacs.org/documentation/2019/reference-manual/definitions.html
 For SI units, see
 https://en.wikipedia.org/wiki/International_System_of_Units
 ## Base quantities
-| Quantity | Symbol | Unit | Unit name |
-| ---- | ---- | ---- | ---- |
-| time | $t$ | $\mbox{ps}= 10^{-12}\, \mbox{s}$ | picosecond |
-| length | $x$ | $\mbox{nm} = 10^{-9}\,\mbox{m}$ | nanometer |
-| mass | $m$ | $\mbox{u} = 1.66054 \cdot 10^{−27}\,  \mbox{kg} \approx 10^{-3} \frac{\mbox{kg}}{\mbox{mol}}$ | unified atomic mass unit  / Dalton |
-| temperature | $T$ | $\mbox{K}$ | Kelvin |
-| charge | $q$ | e??? | elementary charge ??? |
-| collision frequency | $\xi$ | $\mbox{ps}^{-1} = 10^{12}\, \mbox{s}^{-1}$ |  |
+| Quantity            | Symbol | Unit                                                                                          | Unit name                          |
+| ------------------- | ------ | --------------------------------------------------------------------------------------------- | ---------------------------------- |
+| time                | $t$    | $\mbox{ps}= 10^{-12}\, \mbox{s}$                                                              | picosecond                         |
+| length              | $x$    | $\mbox{nm} = 10^{-9}\,\mbox{m}$                                                               | nanometer                          |
+| mass                | $m$    | $\mbox{u} = 1.66054 \cdot 10^{−27}\,  \mbox{kg} \approx 10^{-3} \frac{\mbox{kg}}{\mbox{mol}}$ | unified atomic mass unit  / Dalton |
+| temperature         | $T$    | $\mbox{K}$                                                                                    | Kelvin                             |
+| charge              | $q$    | e???                                                                                          | elementary charge ???              |
+| collision frequency | $\xi$  | $\mbox{ps}^{-1} = 10^{12}\, \mbox{s}^{-1}$                                                    |                                    |
 
 ## Derived quantities
 The conversion between GROMACS base units and SI base units, assumes that
