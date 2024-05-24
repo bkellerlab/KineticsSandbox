@@ -101,13 +101,13 @@ $$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = k\cdot\left(\frac{2b^2e^{
 
 ## Double well
 
-**Parameters:** $k_1, a, b$
+**Parameters:** $k, a, b$
 **Potential:**
-$$V(x) = k_1 \cdot ((x - a)^2 - b)^2$$
+$$V(x) = k \cdot ((x - a)^2 - b)^2$$
 **Force:**
-$$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = - 4 k_1\cdot ((x-a)^2-b)\cdot(x-a)$$
+$$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = - 4 k\cdot ((x-a)^2-b)\cdot(x-a)$$
 **Hessian:**
-$$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = 12 k_1 \cdot (x-a)^2- 4 k_1 \cdot b $$
+$$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = 12 k \cdot (x-a)^2- 4 k \cdot b $$
 
 
 
