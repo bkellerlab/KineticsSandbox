@@ -138,6 +138,7 @@ $$
 ## Prinz potential
 
 From JH Prinz et.al. The Journal of chemical physics, 134(17):174105, 2011. [https://doi.org/10.1063/1.3565032](https://doi.org/10.1063/1.3565032)
+https://deeptime-ml.github.io/trunk/api/generated/deeptime.data.prinz_potential.html#deeptime.data.prinz_potential
 
 **Parameters:** None. Parameters are hard-coded.
 **Potential:**
