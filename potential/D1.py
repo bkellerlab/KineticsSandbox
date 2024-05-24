@@ -279,8 +279,7 @@ class Linear(D1):
         Parameters:
             - param (list): a list of parameters representing:
             - param[0]: k (float) - force constant of the linear potential
-            - param[1]: c (float) - parameter controlling the offset
-
+            - param[1]: a (float) - parameter that shifts the extremum left and right
 
         Raises:
         - ValueError: If param does not have exactly 2 elements.
@@ -292,7 +291,7 @@ class Linear(D1):
         
         # Assign parameters
         self.k = param[0]
-        self.d = param[1]
+        self.a = param[1]
         
     # the potential energy function 
     def potential(self, x):
@@ -300,7 +299,7 @@ class Linear(D1):
         Calculate the potential energy V(x) for the 1-dimensional linear potential.
     
         The potential energy function is given by:
-        V(x) = k * x + d
+        V(x) = k * (x - a) 
     
         The units of V(x) are kJ/mol, following the convention in GROMACS.
     
@@ -311,7 +310,7 @@ class Linear(D1):
             float: The value of the potential energy function at the given position x.
         """
     
-        return  self.k * x +self.d
+        return  self.k * (x -self.a ) 
           
     # the force, analytical expression t
     def force(self, x):
@@ -373,21 +372,18 @@ class Quadratic(D1):
             - param (list): a list of parameters representing:
             - param[0]: k (float) - force constant of the linear potential
             - param[1]: a (float) - parameter that shifts the extremum left and right
-            - param[2]: d (float) - parameter controlling the offset
-
 
         Raises:
         - ValueError: If param does not have exactly 3 elements.
         """
         
         # Check if param has the correct number of elements
-        if len(param) != 3:
-            raise ValueError("param must have exactly 3 elements.")
+        if len(param) != 2:
+            raise ValueError("param must have exactly 2 elements.")
         
         # Assign parameters
         self.k = param[0]
         self.a = param[1]
-        self.d = param[2]
         
     # the potential energy function 
     def potential(self, x):
@@ -395,7 +391,7 @@ class Quadratic(D1):
         Calculate the potential energy V(x) for the 1-dimensional linear potential.
     
         The potential energy function is given by:
-        V(x) = k * (x-a)**2 + d
+        V(x) = k * (x-a)**2
     
         The units of V(x) are kJ/mol, following the convention in GROMACS.
     
@@ -406,7 +402,7 @@ class Quadratic(D1):
             float: The value of the potential energy function at the given position x.
         """
     
-        return  self.k * (x - self.a)**2  + self.d
+        return  self.k * (x - self.a)**2 
           
     # the force, analytical expression t
     def force(self, x):
