@@ -379,7 +379,7 @@ class Quadratic(D1):
         Calculate the potential energy V(x) for the 1-dimensional quadratic potential.
     
         The potential energy function is given by:
-        V(x) = k * (x-a)**2
+        V(x) = k * 0.5 * (x-a)**2
     
         The units of V(x) are kJ/mol, following the convention in GROMACS.
     
@@ -390,7 +390,7 @@ class Quadratic(D1):
             float: The value of the potential energy function at the given position x.
         """
     
-        return  self.k * (x - self.a)**2 
+        return  self.k * 0.5 * (x - self.a)**2 
           
     # the force, analytical expression t
     def force(self, x):
@@ -400,7 +400,7 @@ class Quadratic(D1):
     
         The force is given by:
         F(x) = - dV(x) / dx 
-              = - 2 * k * (x-a)
+              = - k * (x-a)
     
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
     
@@ -412,7 +412,7 @@ class Quadratic(D1):
     
         """
         
-        F = -2 * self.k * (x - self.a)
+        F = -self.k * (x - self.a)
         return np.array([F])
     
     # the Hessian matrix, analytical expression
@@ -436,7 +436,7 @@ class Quadratic(D1):
           """
           
           # calculate the Hessian as a float      
-          H = np.full_like(x, 2 * self.k)
+          H = np.full_like(x, self.k)
           
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])
@@ -449,7 +449,7 @@ class DoubleWell(D1):
 
         Parameters:
             - param (list): a list of parameters representing:
-            - param[0]: k (float) - force constant
+            - param[0]: k (float) - prefactor that scales the potential
             - param[1]: a (float) - parameter that shifts the extremum left and right
             - param[2]: b (float) - parameter controls the separation of the two wells
 

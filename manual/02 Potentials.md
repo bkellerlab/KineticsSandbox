@@ -36,16 +36,16 @@ $$V(x) = k(x-a)$$
 $$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = k$$
 **Hessian:**
 $$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = 0$$
-## Harmonic potential
+## Quadratic potential
 
 **Parameters:** $k, a$
 **Potential:**
-$$V(x) = k (x-a)^2 $$
+$$V(x) = \frac{k}{2} (x-a)^2 $$
 **Force:**
-$$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = 2k (x-a)$$
+$$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = k (x-a)$$
 
 **Hessian:**
-$$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = 2k$$
+$$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = k$$
 ## Morse potential
 
 **Parameters:** $D_e, a, x_e$
