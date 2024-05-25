@@ -13,7 +13,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 from scipy.optimize import minimize
 
-
 #------------------------------------------------
 # abstract class: one-dimensional potentials
 #------------------------------------------------
