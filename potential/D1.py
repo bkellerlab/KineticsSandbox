@@ -44,6 +44,7 @@ class D1(ABC):
     def hessian_ana(self, x):
         pass
 
+
     #-----------------------------------------------------------
     #   numerical methods that are passed to a child class
     #-----------------------------------------------------------
@@ -162,7 +163,26 @@ class D1(ABC):
         TS = minimize(self.negated_potential, TS_start, method='BFGS').x
         
         # returns position of the transition state as float
-        return TS[0]     
+        return TS[0]   
+    
+    #---------------------------------------------------------------------------------
+    #   functions that automatically switch between analytical and numerical function
+    #---------------------------------------------------------------------------------    
+    # for the force
+    def force(self, x, h):
+        # Automatically switch between analytical and numerical force
+        if hasattr(self, 'force_ana') and callable(getattr(self, 'force_ana', None)):
+            return self.force_ana(x)
+        else:
+            return self.force_num(x, h)
+
+    # for the hessian
+    def hessian(self, x, h):
+        # Automatically switch between analytical and numerical hessian
+        if hasattr(self, 'hessian_ana') and callable(getattr(self, 'hessian_ana', None)):
+            return self.force_ana(x)
+        else:
+            return self.force_num(x, h)
 
 
 #------------------------------------------------
