@@ -11,13 +11,17 @@ Class D1 is the parent class for all one-dimensional potentials. It provides the
 
 The also class provides methods that are inherited by the child classes
 
-- **negated_potential**: expects $x$, calls method potentials, returns $-V(x)$
-- **force_num**: expects $x$ and $h$, calls method potentials, returns $-dV(x)/dx$ calculated via finite difference
-- **hessian_num**: expects $x$ and $h$, calls method potentials, returns  $d^2V(x)/dx^2$ calculated via finite difference
+- **negated_potential**: expects $x$, calls method potential, returns $-V(x)$
+- **force_num**: expects $x$ and $h$, calls method potential, returns $-dV(x)/dx$ calculated via finite difference
+- **hessian_num**: expects $x$ and $h$, calls method potential, returns  $d^2V(x)/dx^2$ calculated via finite difference
 - **min:** expects $x_{\mathrm{start}}$, returns location of the nearest minimum calculated via scipy.optimize
 - **TS:** expects $x_{\mathrm{start}}$ and $x_{\mathrm{end}}$, returns location of the highest energy point in the intervall $[x_{\mathrm{start}}, x_{\mathrm{end}}]$$ (i.e. the transition state), calculated via scipy.optimize. Returns error, if the there is no energy maximum in the interval.
 
-For potentials that do not have minimum or a transition state, **min** and **TS** need to be overwritten so that they return an error.
+The class provides function that automatically switch between analytical and numerical implementation
+- **force:** expects $x$ and $h$, calls force_ana(x) if this is implemented and, force_num(x,h) otherwise. 
+- **hessian:** expects $x$ and $h$, calls hessian_ana(x) if this is implemented and, hessian_num(x,h) otherwise.  
+
+In this way, MD integrators and rate models etc. can be implemented using force(x,h) and hessian(x,h). The program than also runs on potentials for which the analytical force and the analytical Hessian have not been implemented.
 
 ## Constant potential
 **Parameters:** $d$
