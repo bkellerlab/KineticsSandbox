@@ -89,15 +89,6 @@ $$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = -k\cdot\frac{be^{-b(x-a)}}{\lef
 $$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = k\cdot\left(\frac{2b^2e^{-2b(x-a)}}{(1+e^{-b(x-a)})^3}- \frac{b^2e^{-b(x-a)}}{(1+e^{-b(x-a)})^2} \right)$$
 
 
-## Inverted logistic potential
-**Parameters:** $k, a, b$
-**Potential:**
-$$V(x) = k\cdot \frac{1}{1+e^{b(x-a)}}$$
-
-**Force:**
-$$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = -k\cdot\frac{be^{b(x-a)}}{\left(e^{b(x-a)}+1\right)^2}$$
-**Hessian:**
-$$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = k\cdot\left(\frac{2b^2e^{2b(x-a)}}{(1+e^{b(x-a)})^3}- \frac{b^2e^{b(x-a)}}{(1+e^{b(x-a)})^2} \right)$$
 
 ## Double well
 

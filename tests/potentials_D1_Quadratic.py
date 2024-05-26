@@ -55,7 +55,7 @@ print(my_potential.potential(x))
 
 
 # --------------------------------------------------------    
-#  Plot force for various parameter values
+#  Plot potential for various parameter values
 if test_V == True: 
     print("---------------------------------")
     print(" testing the potential   ")
@@ -105,7 +105,7 @@ if test_V == True:
     plt.legend()
 
 # --------------------------------------------------------    
-#  Plot potential for various parameter values
+#  Plot force for various parameter values
 if test_F == True: 
     print("---------------------------------")
     print(" testing the force   ")
@@ -127,9 +127,9 @@ if test_F == True:
         color = plt.cm.viridis( (k + 5) / 10)  # Normalize a to be in [0, 1]
         
         
-        # plot analytical Hessian 
+        # plot analytical force 
         plt.plot(x,  this_potential.force(x)[0,:], color=color, label='k={:.2f}'.format(k))
-        # plot numericaal  Hessian 
+        # plot numericaal  force 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
     
         
@@ -153,9 +153,9 @@ if test_F == True:
         color = plt.cm.viridis( (a + 5) / 10)  # Normalize a to be in [0, 1]
         
         
-        # plot analytical Hessian 
+        # plot analytical force 
         plt.plot(x,  this_potential.force(x)[0,:], color=color, label='a={:.2f}'.format(a))
-        # plot numericaal  Hessian 
+        # plot numericaal  force 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
     
         

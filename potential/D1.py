@@ -493,7 +493,7 @@ class DoubleWell(D1):
     
         The force is given by:
         F(x) = - dV(x) / dx 
-              = - 4 * k * ((x-a) - b) * (x-a)
+              = - 4 * k * ((x-a)^2 - b) * (x-a)
     
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
     
@@ -505,7 +505,7 @@ class DoubleWell(D1):
     
         """
         
-        F = -4 * self.k * ((x - self.a) - self.b) * (x- self.a)
+        F = -4 * self.k * ((x - self.a)**2 - self.b) * (x- self.a)
         return np.array([F])
     
     # the Hessian matrix, analytical expression
@@ -529,7 +529,7 @@ class DoubleWell(D1):
           """
           
           # calculate the Hessian as a float      
-          H = 12 * self.k * (x - self.a)*2 - 4 * self.k * self.b
+          H = 12 * self.k * (x - self.a)**2 - 4 * self.k * self.b
           
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])
