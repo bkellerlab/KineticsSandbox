@@ -139,10 +139,8 @@ https://deeptime-ml.github.io/trunk/api/generated/deeptime.data.prinz_potential.
 **Potential:**
 $$V(x) = 4\left(x^8 + 0.8e^{-80x^2} + 0.2e^{-80(x-0.5)^2} + 0.5 e^{-40(x+0.5)^2}\right)$$
 **Force:**
-$$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = 
-128 e^{-80 (-0.5 + x)^2} (x - 0.5) + 512 e^{-80 x^2} x - 32 x^7 + 160 e^{-40 (x+0.5)^2}(0.5 + x)
+Let's not calculate this, and use the numerical force instead. 
 
-$$
 **Hessian:**
 Let's not calculate this, and use the numerical Hessian instead. 
 
