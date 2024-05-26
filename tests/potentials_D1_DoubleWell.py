@@ -3,7 +3,7 @@
 """
 Created on Sun May 26 07:31:14 2024
 
-This tests the one-dimensional quadratic potential 
+This tests the one-dimensional double-well potential 
 implemented in the potential class
 
 potential.D1(DoubleWell)
@@ -45,6 +45,7 @@ print(" ")
 print("values of the parameters")
 print("k: ",  my_potential.k)
 print("a: ",  my_potential.a)
+print("b: ",  my_potential.b)
 print(" ")
 x = np.array([1, 2, 3, 4])
 
