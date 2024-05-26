@@ -180,9 +180,9 @@ class D1(ABC):
     def hessian(self, x, h):
         # Automatically switch between analytical and numerical hessian
         if hasattr(self, 'hessian_ana') and callable(getattr(self, 'hessian_ana', None)):
-            return self.force_ana(x)
+            return self.hessian_ana(x)
         else:
-            return self.force_num(x, h)
+            return self.hessian_num(x, h)
 
 
 #------------------------------------------------

@@ -20,7 +20,7 @@ from potential import D1
 #from system import system
 
 
-def TST_D1(x_A, x_TS, T, m, potential): 
+def TST_D1(x_A, x_TS, T, m, h, potential): 
     """
     Calculate the rate constant using Eyring Transition State Theory (TST) for a unimolecular reaction.
 
@@ -29,9 +29,11 @@ def TST_D1(x_A, x_TS, T, m, potential):
     - x_TS (float): Position of the transition state (TS).
     - T (float): Temperature in Kelvin.
     - m (float): Mass of the reacting molecule.
+    - h (float): Discretization interval for numerical Hessian
     - potential (object): Object representing the potential energy surface, with methods:
         - potential.potential(x): Calculate the potential energy at position x.
-        - potential.hessian(x): Calculate the Hessian matrix at position x.
+        - potential.hessian(x, h): Calculate the Hessian matrix at position x.
+      potential.hessian(x, h) uses the analytical Hessian if implemtend, and the numerical Hessian otherwise   
 
     Returns:
     - k_AB (float): Rate constant for the reaction from A to B.
@@ -60,7 +62,7 @@ def TST_D1(x_A, x_TS, T, m, potential):
     E_b = potential.potential(x_TS) - potential.potential(x_A)
 
     #get the force consant in the transition state
-    k_A = potential.hessian(x_A)[0,0]
+    k_A = potential.hessian(x_A, h)[0,0]
     
     # calculate the frequency
     nu_A = 1/(2* np.pi) * np.sqrt(k_A/m)
@@ -76,7 +78,7 @@ def TST_D1(x_A, x_TS, T, m, potential):
     return k_AB
 
 
-def TST_ht_D1(x_A, x_TS, T, m, potential): 
+def TST_ht_D1(x_A, x_TS, T, m, h, potential): 
     """
     Calculate the rate constant using the high-temperature approximaton of 
     Eyring Transition State Theory (TST) for a unimolecular reaction.
@@ -86,9 +88,11 @@ def TST_ht_D1(x_A, x_TS, T, m, potential):
     - x_TS (float): Position of the transition state (TS).
     - T (float): Temperature in Kelvin.
     - m (float): Mass of the reacting molecule.
+    - h (float): Discretization interval for numerical Hessian    
     - potential (object): Object representing the potential energy surface, with methods:
         - potential.potential(x): Calculate the potential energy at position x.
         - potential.hessian(x): Calculate the Hessian matrix at position x.
+      potential.hessian(x, h) uses the analytical Hessian if implemtend, and the numerical Hessian otherwise 
 
     Returns:
     - k_AB (float): Rate constant for the reaction from A to B.
@@ -115,7 +119,7 @@ def TST_ht_D1(x_A, x_TS, T, m, potential):
     E_b = potential.potential(x_TS) - potential.potential(x_A)
 
     #get the force consant in the transition state
-    k_A = potential.hessian(x_A)[0,0]
+    k_A = potential.hessian(x_A, h)[0,0]
     
     # calculate the frequency
     nu_A = 1/(2* np.pi) * np.sqrt(k_A/m)
