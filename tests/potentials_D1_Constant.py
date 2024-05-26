@@ -98,7 +98,7 @@ if test_F == True:
     color = plt.cm.viridis(2 / 4)  # Normalize a to be in [0, 1]
      
     # plot analytical force 
-    plt.plot(x, this_potential.force(x)[0,:], color=color, label='d={:.2f}'.format(d))
+    plt.plot(x, this_potential.force_ana(x)[0,:], color=color, label='d={:.2f}'.format(d))
     # plot numericaal  force 
     plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
  
@@ -131,7 +131,7 @@ if test_H == True:
     color = plt.cm.viridis(2 / 4)  # Normalize a to be in [0, 1]
      
     # plot analytical hessian 
-    plt.plot(x, this_potential.hessian(x)[0,0,:], color=color, label='d={:.2f}'.format(d))
+    plt.plot(x, this_potential.hessian_ana(x)[0,0,:], color=color, label='d={:.2f}'.format(d))
     # plot numericaal  heassian 
     plt.plot(x, this_potential.hessian_num(x, h)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
  

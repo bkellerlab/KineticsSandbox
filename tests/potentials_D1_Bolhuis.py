@@ -198,7 +198,7 @@ if test_F == True:
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot analytical force 
-        plt.plot(x, this_potential.force(x)[0,:], color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x, this_potential.force_ana(x)[0,:], color=color, label='alpha={:.2f}'.format(alpha))
         # plot numericaal  force 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
     
@@ -222,7 +222,7 @@ if test_F == True:
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot deviation between analytical and numerical Hessian 
-        plt.plot(x, this_potential.force(x)[0,:] - this_potential.force_num(x, h)[0,:], color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x, this_potential.force_ana(x)[0,:] - this_potential.force_num(x, h)[0,:], color=color, label='alpha={:.2f}'.format(alpha))
     
     plt.ylim(-0.002,0.002)
     plt.xlabel("x")
@@ -253,7 +253,7 @@ if test_H == True:
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot analytical Hessian 
-        plt.plot(x,  this_potential.hessian(x)[0,0,:], color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x,  this_potential.hessian_ana(x)[0,0,:], color=color, label='alpha={:.2f}'.format(alpha))
         # plot numericaal  Hessian 
         plt.plot(x, this_potential.hessian_num(x, h)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
     
@@ -278,7 +278,7 @@ if test_H == True:
         color = plt.cm.viridis(alpha / 4)  # Normalize a to be in [0, 1]
         
         # plot deviation between analytical and numerical Hessian 
-        plt.plot(x, this_potential.hessian(x)[0,0,:] - this_potential.hessian_num(x, h)[0,0,:], color=color, label='alpha={:.2f}'.format(alpha))
+        plt.plot(x, this_potential.hessian_ana(x)[0,0,:] - this_potential.hessian_num(x, h)[0,0,:], color=color, label='alpha={:.2f}'.format(alpha))
     
     plt.ylim(-0.002,0.002)
     plt.xlabel("x")
@@ -301,13 +301,13 @@ if test_TS == True:
     
     print (" ")
     print ("Analytical solution ")
-    print ("transition state:", TS, "force: ",  my_potential.force(TS), "hessian: ", my_potential.hessian(TS)) 
+    print ("transition state:", TS, "force: ",  my_potential.force_ana(TS), "hessian: ", my_potential.hessian_ana(TS)) 
 
     print (" ")
     print ("Numerical solution provided by class")
     x_start = 2.01
     TS_num = my_potential.TS(min_1, min_2)
-    print ("extremum:", TS_num, "force: ",  my_potential.force(TS_num), "hessian: ", my_potential.hessian(TS_num)) 
+    print ("extremum:", TS_num, "force: ",  my_potential.force_ana(TS_num), "hessian: ", my_potential.hessian_ana(TS_num)) 
     
     
     

@@ -36,12 +36,12 @@ class D1(ABC):
     
     # the force, analytical expression
     @abstractmethod
-    def force(self, x):
+    def force_ana(self, x):
         pass
     
     # the Hessian matrix, analytical expression
     @abstractmethod    
-    def hessian(self, x):
+    def hessian_ana(self, x):
         pass
 
     #-----------------------------------------------------------
@@ -209,8 +209,8 @@ class Constant(D1):
     
         return  np.full_like(x, self.d)
           
-    # the force, analytical expression t
-    def force(self, x):
+    # the force, analytical expression 
+    def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional constant potential.
         Since the potential is one-idmensional, the force is a vector with one element.
@@ -233,7 +233,7 @@ class Constant(D1):
         return np.array([F])
     
     # the Hessian matrix, analytical expression
-    def hessian(self, x):
+    def hessian_ana(self, x):
           """
           Calculate the Hessian matrx H(x) analytically for the 1-dimensional constant potential.
           Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
@@ -300,8 +300,8 @@ class Linear(D1):
     
         return  self.k * (x -self.a ) 
           
-    # the force, analytical expression t
-    def force(self, x):
+    # the force, analytical expression 
+    def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional linear potential.
         Since the potential is one-idmensional, the force is a vector with one element.
@@ -324,7 +324,7 @@ class Linear(D1):
         return np.array([F])
     
     # the Hessian matrix, analytical expression
-    def hessian(self, x):
+    def hessian_ana(self, x):
           """
           Calculate the Hessian matrx H(x) analytically for the 1-dimensional linear potential.
           Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
@@ -391,8 +391,8 @@ class Quadratic(D1):
     
         return  self.k * 0.5 * (x - self.a)**2 
           
-    # the force, analytical expression t
-    def force(self, x):
+    # the force, analytical expression 
+    def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional quadratic potential.
         Since the potential is one-idmensional, the force is a vector with one element.
@@ -415,7 +415,7 @@ class Quadratic(D1):
         return np.array([F])
     
     # the Hessian matrix, analytical expression
-    def hessian(self, x):
+    def hessian_ana(self, x):
           """
           Calculate the Hessian matrx H(x) analytically for the 1-dimensional quadratic potential.
           Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
@@ -485,8 +485,8 @@ class DoubleWell(D1):
     
         return  self.k * ((x - self.a)**2 - self.b)**2 
           
-    # the force, analytical expression t
-    def force(self, x):
+    # the force, analytical expression 
+    def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional double-well potential.
         Since the potential is one-idmensional, the force is a vector with one element.
@@ -509,7 +509,7 @@ class DoubleWell(D1):
         return np.array([F])
     
     # the Hessian matrix, analytical expression
-    def hessian(self, x):
+    def hessian_ana(self, x):
           """
           Calculate the Hessian matrx H(x) analytically for the 1-dimensional double-well potential.
           Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
@@ -588,8 +588,8 @@ class Polynomial(D1):
     
         return  self.c1 * (x - self.a) + self.c2 * (x - self.a)**2 + self.c3 * (x - self.a)**3 + self.c4 * (x - self.a)**4 + self.c5 * (x - self.a)**5 + self.c6 * (x - self.a)**6
           
-    # the force, analytical expression t
-    def force(self, x):
+    # the force, analytical expression 
+    def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional polynomial potential.
         Since the potential is one-idmensional, the force is a vector with one element.
@@ -612,7 +612,7 @@ class Polynomial(D1):
         return np.array([F])
     
     # the Hessian matrix, analytical expression
-    def hessian(self, x):
+    def hessian_ana(self, x):
           """
           Calculate the Hessian matrx H(x) analytically for the 1-dimensional polynomial potential.
           Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
@@ -688,8 +688,8 @@ class Bolhuis(D1):
     
         return  self.k1 * ((x - self.a)**2 - self.b)**2 + self.k2 * x + self.alpha * np.exp(-self.c * (x - self.a)**2)
           
-    # the force, analytical expression t
-    def force(self, x):
+    # the force, analytical expression 
+    def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional Bolhuis potential.
         Since the potential is one-idmensional, the force is a vector with one element.
@@ -712,7 +712,7 @@ class Bolhuis(D1):
         return np.array([F])
     
     # the Hessian matrix, analytical expression
-    def hessian(self, x):
+    def hessian_ana(self, x):
           """
           Calculate the Hessian matrx H(x) analytically for the 1-dimensional Bolhuis potential.
           Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.

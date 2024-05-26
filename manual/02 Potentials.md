@@ -6,8 +6,8 @@ Class D1 is the parent class for all one-dimensional potentials. It provides the
 
 - **\_\_init\_\_**:  set the parameters of the potential
 - **potential**: expects $x$, returns $V(x)$, should be implemented as an analytical expression
-- **force:** expects x, returns $-dV(x)/dx$, should be implemented as an analytical expression
-- **hessian**: expects x, returns  $d^2V(x)/dx^2$, should be implemented as an analytical expression
+- **force_ana:** expects x, returns $-\mathrm{d}V(x)/\mathrm{d}x$, should be implemented as an analytical expression
+- **hessian_ana**: expects x, returns  $\mathrm{d}^2V(x)/\mathrm{d}x^2$, should be implemented as an analytical expression
 
 The also class provides methods that are inherited by the child classes
 

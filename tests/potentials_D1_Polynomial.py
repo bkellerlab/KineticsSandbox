@@ -92,6 +92,8 @@ if test_V == True:
     plt.ylabel("V(x)") 
     plt.title("Vary parameter a")
     plt.legend()
+    plt.show()
+    plt.close()
     
     #----------------------
     # vary parameter c1
@@ -112,6 +114,8 @@ if test_V == True:
     plt.ylabel("V(x)") 
     plt.title("Vary parameter c1")
     plt.legend()    
+    plt.show()
+    plt.close()
     
     
     #----------------------
@@ -133,6 +137,8 @@ if test_V == True:
     plt.ylabel("V(x)") 
     plt.title("Vary parameter c2")
     plt.legend()  
+    plt.show()
+    plt.close()
     
     #----------------------
     # vary parameter c3
@@ -153,6 +159,8 @@ if test_V == True:
     plt.ylabel("V(x)") 
     plt.title("Vary parameter c3")
     plt.legend()   
+    plt.show()
+    plt.close()
 
     #----------------------
     # vary parameter c4
@@ -173,6 +181,8 @@ if test_V == True:
     plt.ylabel("V(x)") 
     plt.title("Vary parameter c4")
     plt.legend()   
+    plt.show()
+    plt.close()
 
     #----------------------
     # vary parameter c5
@@ -193,7 +203,8 @@ if test_V == True:
     plt.ylabel("V(x)") 
     plt.title("Vary parameter c5")
     plt.legend()
-
+    plt.show()
+    plt.close()
 
     #----------------------
     # vary parameter c6
@@ -214,6 +225,8 @@ if test_V == True:
     plt.ylabel("V(x)") 
     plt.title("Vary parameter c6")
     plt.legend()
+    plt.show()
+    plt.close()
 
 # --------------------------------------------------------    
 #  Plot force for various parameter values
@@ -234,7 +247,7 @@ if test_F == True:
         color = plt.cm.viridis( (a + 2) / 4)  # Normalize a to be in [0, 1]
         
         # plot analytical force 
-        plt.plot(x,  this_potential.force(x)[0,:], color=color, label='a={:.2f}'.format(a))
+        plt.plot(x,  this_potential.force_ana(x)[0,:], color=color, label='a={:.2f}'.format(a))
         # plot numericaal  force 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
         
@@ -244,6 +257,8 @@ if test_F == True:
     plt.ylabel("F(x)") 
     plt.title("Vary parameter a")
     plt.legend()
+    plt.show()
+    plt.close()
     
     #----------------------
     # vary parameter c1
@@ -258,7 +273,7 @@ if test_F == True:
         color = plt.cm.viridis( (c1 + 3) / 6)  # Normalize a to be in [0, 1]
   
         # plot analytical force 
-        plt.plot(x,  this_potential.force(x)[0,:], color=color, label='c1={:.2f}'.format(c1))
+        plt.plot(x,  this_potential.force_ana(x)[0,:], color=color, label='c1={:.2f}'.format(c1))
         # plot numericaal  force 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
        
@@ -268,7 +283,8 @@ if test_F == True:
     plt.ylabel("F(x)") 
     plt.title("Vary parameter c1")
     plt.legend()    
-    
+    plt.show()
+    plt.close()   
     
     #----------------------
     # vary parameter c2
@@ -283,7 +299,7 @@ if test_F == True:
         color = plt.cm.viridis( (c2 + 2) /12)  # Normalize a to be in [0, 1]
 
         # plot analytical force 
-        plt.plot(x,  this_potential.force(x)[0,:], color=color, label='c2={:.2f}'.format(c2))
+        plt.plot(x,  this_potential.force_ana(x)[0,:], color=color, label='c2={:.2f}'.format(c2))
         # plot numericaal  force 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
         
@@ -293,6 +309,8 @@ if test_F == True:
     plt.ylabel("F(x)") 
     plt.title("Vary parameter c2")
     plt.legend()  
+    plt.show()
+    plt.close()
     
     #----------------------
     # vary parameter c3
@@ -307,7 +325,7 @@ if test_F == True:
         color = plt.cm.viridis( (c3 + 2) /4)  # Normalize a to be in [0, 1]
         
         # plot analytical force 
-        plt.plot(x,  this_potential.force(x)[0,:], color=color, label='c3={:.2f}'.format(c3))
+        plt.plot(x,  this_potential.force_ana(x)[0,:], color=color, label='c3={:.2f}'.format(c3))
         # plot numericaal  force 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
 
@@ -317,7 +335,9 @@ if test_F == True:
     plt.ylabel("F(x)") 
     plt.title("Vary parameter c3")
     plt.legend()   
-
+    plt.show()
+    plt.close()
+    
     #----------------------
     # vary parameter c4
     plt.figure(figsize=(12, 6)) 
@@ -331,7 +351,7 @@ if test_F == True:
         color = plt.cm.viridis( (c4 + 8) /10)  # Normalize a to be in [0, 1]
         
         # plot analytical force 
-        plt.plot(x,  this_potential.force(x)[0,:], color=color, label='c4={:.2f}'.format(c4))
+        plt.plot(x,  this_potential.force_ana(x)[0,:], color=color, label='c4={:.2f}'.format(c4))
         # plot numericaal  force 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
         
@@ -341,7 +361,9 @@ if test_F == True:
     plt.ylabel("F(x)") 
     plt.title("Vary parameter c4")
     plt.legend()   
-
+    plt.show()
+    plt.close()
+    
     #----------------------
     # vary parameter c5
     plt.figure(figsize=(12, 6)) 
@@ -355,7 +377,7 @@ if test_F == True:
         color = plt.cm.viridis( (c5 + 2) /4)  # Normalize a to be in [0, 1]
          
         # plot analytical force 
-        plt.plot(x,  this_potential.force(x)[0,:], color=color, label='c5={:.2f}'.format(c5))
+        plt.plot(x,  this_potential.force_ana(x)[0,:], color=color, label='c5={:.2f}'.format(c5))
         # plot numericaal  force 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
        
@@ -365,7 +387,8 @@ if test_F == True:
     plt.ylabel("F(x)") 
     plt.title("Vary parameter c5")
     plt.legend()
-
+    plt.show()
+    plt.close()
 
     #----------------------
     # vary parameter c6
@@ -380,7 +403,7 @@ if test_F == True:
         color = plt.cm.viridis( (c6 + 0.5) /2.5)  # Normalize a to be in [0, 1]
           
         # plot analytical force 
-        plt.plot(x,  this_potential.force(x)[0,:], color=color, label='c6={:.2f}'.format(c6))
+        plt.plot(x,  this_potential.force_ana(x)[0,:], color=color, label='c6={:.2f}'.format(c6))
         # plot numericaal  force 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
         
@@ -390,6 +413,8 @@ if test_F == True:
     plt.ylabel("F(x)") 
     plt.title("Vary parameter c6")
     plt.legend()      
+    plt.show()
+    plt.close()
     
 # --------------------------------------------------------    
 #  Plot Hessian for various parameter values
@@ -410,7 +435,7 @@ if test_H == True:
         color = plt.cm.viridis( (a + 2) / 4)  # Normalize a to be in [0, 1]
         
         # plot analytical Hessian 
-        plt.plot(x,  this_potential.hessian(x)[0,0,:], color=color, label='a={:.2f}'.format(a))
+        plt.plot(x,  this_potential.hessian_ana(x)[0,0,:], color=color, label='a={:.2f}'.format(a))
         # plot numericaal  Hessian 
         plt.plot(x, this_potential.hessian_num(x, h)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
         
@@ -420,6 +445,8 @@ if test_H == True:
     plt.ylabel("H(x)")  
     plt.title("Vary parameter a")
     plt.legend()
+    plt.show()
+    plt.close()
     
     #----------------------
     # vary parameter c1
@@ -434,7 +461,7 @@ if test_H == True:
         color = plt.cm.viridis( (c1 + 3) / 6)  # Normalize a to be in [0, 1]
   
         # plot analytical Hessian 
-        plt.plot(x,  this_potential.hessian(x)[0,0,:], color=color, label='c1={:.2f}'.format(c1))
+        plt.plot(x,  this_potential.hessian_ana(x)[0,0,:], color=color, label='c1={:.2f}'.format(c1))
         # plot numericaal  Hessian 
         plt.plot(x, this_potential.hessian_num(x, h)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
       
@@ -444,7 +471,8 @@ if test_H == True:
     plt.ylabel("H(x)") 
     plt.title("Vary parameter c1")
     plt.legend()    
-    
+    plt.show()
+    plt.close()   
     
     #----------------------
     # vary parameter c2
@@ -459,7 +487,7 @@ if test_H == True:
         color = plt.cm.viridis( (c2 + 2) /12)  # Normalize a to be in [0, 1]
 
         # plot analytical Hessian 
-        plt.plot(x,  this_potential.hessian(x)[0,0,:], color=color, label='c2={:.2f}'.format(c2))
+        plt.plot(x,  this_potential.hessian_ana(x)[0,0,:], color=color, label='c2={:.2f}'.format(c2))
         # plot numericaal  Hessian 
         plt.plot(x, this_potential.hessian_num(x, h)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
        
@@ -469,6 +497,8 @@ if test_H == True:
     plt.ylabel("H(x)") 
     plt.title("Vary parameter c2")
     plt.legend()  
+    plt.show()
+    plt.close()
     
     #----------------------
     # vary parameter c3
@@ -483,7 +513,7 @@ if test_H == True:
         color = plt.cm.viridis( (c3 + 2) /4)  # Normalize a to be in [0, 1]
         
         # plot analytical Hessian 
-        plt.plot(x,  this_potential.hessian(x)[0,0,:], color=color, label='c3={:.2f}'.format(c3))
+        plt.plot(x,  this_potential.hessian_ana(x)[0,0,:], color=color, label='c3={:.2f}'.format(c3))
         # plot numericaal  Hessian 
         plt.plot(x, this_potential.hessian_num(x, h)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
 
@@ -493,7 +523,9 @@ if test_H == True:
     plt.ylabel("H(x)") 
     plt.title("Vary parameter c3")
     plt.legend()   
-
+    plt.show()
+    plt.close()
+    
     #----------------------
     # vary parameter c4
     plt.figure(figsize=(12, 6)) 
@@ -507,7 +539,7 @@ if test_H == True:
         color = plt.cm.viridis( (c4 + 8) /10)  # Normalize a to be in [0, 1]
         
         # plot analytical Hessian 
-        plt.plot(x,  this_potential.hessian(x)[0,0,:], color=color, label='c4={:.2f}'.format(c4))
+        plt.plot(x,  this_potential.hessian_ana(x)[0,0,:], color=color, label='c4={:.2f}'.format(c4))
         # plot numericaal  Hessian 
         plt.plot(x, this_potential.hessian_num(x, h)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
         
@@ -517,7 +549,9 @@ if test_H == True:
     plt.ylabel("H(x)") 
     plt.title("Vary parameter c4")
     plt.legend()   
-
+    plt.show()
+    plt.close()
+    
     #----------------------
     # vary parameter c5
     plt.figure(figsize=(12, 6)) 
@@ -531,7 +565,7 @@ if test_H == True:
         color = plt.cm.viridis( (c5 + 2) /4)  # Normalize a to be in [0, 1]
          
         # plot analytical Hessian 
-        plt.plot(x,  this_potential.hessian(x)[0,0,:], color=color, label='c5={:.2f}'.format(c5))
+        plt.plot(x,  this_potential.hessian_ana(x)[0,0,:], color=color, label='c5={:.2f}'.format(c5))
         # plot numericaal  Hessian 
         plt.plot(x, this_potential.hessian_num(x, h)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
       
@@ -541,7 +575,8 @@ if test_H == True:
     plt.ylabel("H(x)") 
     plt.title("Vary parameter c5")
     plt.legend()
-
+    plt.show()
+    plt.close()
 
     #----------------------
     # vary parameter c6
@@ -556,7 +591,7 @@ if test_H == True:
         color = plt.cm.viridis( (c6 + 0.5) /2.5)  # Normalize a to be in [0, 1]
           
         # plot analytical Hessian 
-        plt.plot(x,  this_potential.hessian(x)[0,0,:], color=color, label='c6={:.2f}'.format(c6))
+        plt.plot(x,  this_potential.hessian_ana(x)[0,0,:], color=color, label='c6={:.2f}'.format(c6))
         # plot numericaal  Hessian 
         plt.plot(x, this_potential.hessian_num(x, h)[0,0,:], color=color, marker='o', linestyle='None', markersize=3)
        
@@ -566,7 +601,8 @@ if test_H == True:
     plt.ylabel("H(x)") 
     plt.title("Vary parameter c6")
     plt.legend()        
-  
+    plt.show()
+    plt.close()  
     
   
 # Test whether we can find minima and maxima of the potential
@@ -590,7 +626,7 @@ plt.xlabel("x")
 plt.ylabel("V(x)") 
 plt.title("Transition states")
 plt.legend()    
-      
+    
   
 # Numerical solution
 TS1_num = my_potential.TS(-1, 0)
@@ -599,8 +635,8 @@ TS2_num = my_potential.TS(0, 1)
 TS_data = [
     ["x", TS1_num, TS2_num],
     ["Energy", my_potential.potential(TS1_num), my_potential.potential(TS2_num)],
-    ["Force", my_potential.force(TS1_num),my_potential.force(TS2_num)],
-    ["Hessian", my_potential.hessian(TS1_num), my_potential.hessian(TS2_num)],
+    ["Force", my_potential.force_ana(TS1_num),my_potential.force_ana(TS2_num)],
+    ["Hessian", my_potential.hessian_ana(TS1_num), my_potential.hessian_ana(TS2_num)],
 ]  
   
 headers=["", "TS1", "TS2"]
@@ -609,6 +645,7 @@ print(table)
 
 plt.plot(TS1_num, my_potential.potential(TS1_num) , color="red", marker="o")
 plt.plot(TS2_num, my_potential.potential(TS2_num) , color="red", marker="o")
-  
+plt.show()
+plt.close()    
 
     

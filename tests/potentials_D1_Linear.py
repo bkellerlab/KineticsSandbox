@@ -127,7 +127,7 @@ if test_F == True:
         
         
         # plot analytical Hessian 
-        plt.plot(x,  this_potential.force(x)[0,:], color=color, label='k={:.2f}'.format(k))
+        plt.plot(x,  this_potential.force_ana(x)[0,:], color=color, label='k={:.2f}'.format(k))
         # plot numericaal  Hessian 
         plt.plot(x, this_potential.force_num(x, h)[0,:], color=color, marker='o', linestyle='None', markersize=3)
     
@@ -162,7 +162,7 @@ if test_H == True:
 
 
     # plot analytical Hessian 
-    plt.plot(x,  this_potential.hessian(x)[0, 0,:], color=color, label='k=5, a=2')
+    plt.plot(x,  this_potential.hessian_ana(x)[0, 0,:], color=color, label='k=5, a=2')
     # plot numericaal  Hessian 
     plt.plot(x, this_potential.hessian_num(x, h)[0, 0,:], color=color, marker='o', linestyle='None', markersize=3)
   
