@@ -5,19 +5,29 @@ The state space for overdamped Langevin dynamics is only the position space $x\i
 The stochastic differential equation for the time-evolution of the position is
 
 $$
-	\dot{x}(t) = - \frac{1}{\xi m}\frac{\mathrm{d}}{\mathrm{d}x}V(x) + \sqrt{\frac{2RT}{\xi m}} \eta(t)
+	\dot{x}(t) = + \frac{1}{\xi m}F(x) + \sigma \eta(t)
 $$
 
-where $m$ is the mass, $\xi$ is the friction coefficient, $V(x)$ is the potential energy, $R$ is the ideal gas constant, $T$ is the temperature, and $\eta(t)$ is a random process (uncorrelated in time, centered at $\eta=$ with unit variance). 
-
+where $m$ is the mass, $\xi$ is the friction coefficient, $F(x)$ is the force, and $\eta(t)$ is a random process (uncorrelated in time, centred at $\eta=$ with unit variance). The random process is scaled by 
+$$
+	\sigma = \sqrt{\frac{2RT}{\xi m}} = \sqrt{2D}
+$$where $R$ is the ideal gas constant, $T$ is the temperature. The second equality defines the diffusion constant
+$$
+	D = \sqrt{\frac{RT}{\xi m}}
+$$
+The force is related to the potential energy function by 
+$$
+	F(x) = -\frac{\mathrm{d}}{\mathrm{d}x}V(x)
+$$
 #### Euler-Maruyama
 The Euler Maruyama algorithm yields a numerical solution for the SDE of overdamped Langevin dynamics: 
 $$
-	x_{k+1} = x_k + \frac{F(x_k)}{m\xi}\Delta t + \sqrt{\frac{2RT}{\xi m}} \sqrt{\Delta t} \, \eta_k
+	x_{k+1} = x_k + \frac{F(x_k)}{m\xi}\Delta t + \sigma \sqrt{\Delta t} \, \eta_k
 $$
-where $\Delta t$ is the time step, $x_k$ is the position at time $t=k\Delta t$, $x_{k+1}$ is the position at time $t=(k+1)\Delta t$, $\eta_k$ is a Gaussian random number and the force is
+where $\Delta t$ is the time step, $x_k$ is the position at time $t=k\Delta t$, $x_{k+1}$ is the position at time $t=(k+1)\Delta t$, and $\eta_k$ is a Gaussian random number (with mean zero and unit variance).
+Approximate velocities can be generated as
 $$
-	F(x) = -\frac{\mathrm{d}}{\mathrm{d}x}V(x)
+	v_{k+1} = \frac{x_k + x_{k+1}}{\Delta t}
 $$
 
 # Langevin splitting integrators

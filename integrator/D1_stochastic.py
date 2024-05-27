@@ -16,6 +16,43 @@ import scipy.constants as const
 #---------------------------------------------------------------------
 
 
+# Euler-Maruyama integrator
+def EM(system, potential, eta_k = None):
+    """
+    Perform a step according to the Euler-Maruyama integrator for overdamped Langevin dynamics
+
+    Parameters:
+    - system (object): An object representing the physical system undergoing Langevin integration.
+                      It should have attributes 'x' (position), 'v' (velocity), 'xi_m' (mass * friction coefficient), 
+                      'sigma' (standard deviation of the random noise)
+                      'dt' (time step) and 'h' (discretization interval for numerical force).
+    - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+    Returns:
+    None: The function modifies the 'x' and 'v' attributes of the provided system object.
+    """    
+    # if eta_k is not provided, draw eta_k from Gaussian normal distribution
+    if eta_k is None:
+        eta_k = np.random.normal()
+        
+    # store current position
+    x_k = system.x
+     
+    # update position
+    system.x = system.x + (potential.force(system.x, system.h)[0] / system.xi_m ) * system.dt  +  system.sigma * np.sqrt(system.dt) * eta_k
+    
+    # get updated position
+    x_k_plus_1 = system.x
+    
+    # update velocities
+    system.v = (x_k + x_k_plus_1) / system.dt
+    
+    return None  
+
+
 #---------------------------------------------------------------------
 #   B A S I C   L A N G E V I N   I N T E G R A T I O N   S T E P S
 #---------------------------------------------------------------------
