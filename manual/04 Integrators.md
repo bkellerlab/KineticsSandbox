@@ -2,10 +2,12 @@
 # Overdamper Langevin dynamics
 ## One-dimensional potentials
 The state space for overdamped Langevin dynamics is only the position space $x\in \mathbb{R}$.  
-The stochastic differential equation for the time-evolution of the position os 
+The stochastic differential equation for the time-evolution of the position is
+
 $$
 	\dot{x}(t) = - \frac{1}{\xi m}\frac{\mathrm{d}}{\mathrm{d}x}V(x) + \sqrt{\frac{2RT}{\xi m}} \eta(t)
 $$
+
 where $m$ is the mass, $\xi$ is the friction coefficient, $V(x)$ is the potential energy, $R$ is the ideal gas constant, $T$ is the temperature, and $\eta(t)$ is a random process (uncorrelated in time, centered at $\eta=$ with unit variance). 
 
 #### Euler-Maruyama
