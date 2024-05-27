@@ -1,3 +1,23 @@
+
+# Overdamper Langevin dynamics
+## One-dimensional potentials
+The state space for overdamped Langevin dynamics is only the position space $x\in \mathbb{R}$.  
+The stochastic differential equation for the time-evolution of the position os 
+$$
+	\dot{x}(t) = - \frac{1}{\xi m}\frac{\mathrm{d}}{\mathrm{d}x}V(x) + \sqrt{\frac{2RT}{\xi m}} \eta(t)
+$$
+where $m$ is the mass, $\xi$ is the friction coefficient, $V(x)$ is the potential energy, $R$ is the ideal gas constant, $T$ is the temperature, and $\eta(t)$ is a random process (uncorrelated in time, centered at $\eta=$ with unit variance). 
+
+#### Euler-Maruyama
+The Euler Maruyama algorithm yields a numerical solution for the SDE of overdamped Langevin dynamics: 
+$$
+	x_{k+1} = x_k + \frac{F(x_k)}{m\xi}\Delta t + \sqrt{\frac{2RT}{\xi m}} \sqrt{\Delta t} \, \eta_k
+$$
+where $\Delta t$ is the time step, $x_k$ is the position at time $t=k\Delta t$, $x_{k+1}$ is the position at time $t=(k+1)\Delta t$, $\eta_k$ is a Gaussian random number and the force is
+$$
+	F(x) = -\frac{\mathrm{d}}{\mathrm{d}x}V(x)
+$$
+
 # Langevin splitting integrators
 
 ## One-dimensional potentials
@@ -42,7 +62,7 @@ f_v   &= \frac{1}{m}\sqrt{RTm\,(1-e^{-2\xi\Delta t})} = \sqrt{\frac{RT\,(1-e^{-2
 $$
 The force is given as 
 $$
-F(q_k) = -\Delta t\nabla V(q_k) \, .
+F(q_k) = -\nabla V(q_k) \, .
 $$
 $R$ is the ideal gas constant in units $\mathrm{kJ}\,\mathrm{mol}^{-1}\, \mathrm{K}^{-1}$.
 If a step is applied with half a time-step, the corresponding operator is denoted with a prime, i.e. $\mathcal{A}'$,$\mathcal{B}'$, $\mathcal{O}'$. 
