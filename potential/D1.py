@@ -170,19 +170,23 @@ class D1(ABC):
     #---------------------------------------------------------------------------------    
     # for the force
     def force(self, x, h):
-        # Automatically switch between analytical and numerical force
-        if hasattr(self, 'force_ana') and callable(getattr(self, 'force_ana', None)):
-            return self.force_ana(x)
-        else:
-            return self.force_num(x, h)
-
+        # try whether the analytical force is implemted
+        try:
+            F = self.force_ana(x)
+        # if force_ana(x) returns a NotImplementedError, use the numerical force instead    
+        except NotImplementedError:
+            F = self.force_num(x, h)
+        return F
+        
     # for the hessian
     def hessian(self, x, h):
-        # Automatically switch between analytical and numerical hessian
-        if hasattr(self, 'hessian_ana') and callable(getattr(self, 'hessian_ana', None)):
-            return self.hessian_ana(x)
-        else:
-            return self.hessian_num(x, h)
+        # try whether the analytical hessian is implemted
+        try:
+            H = self.hessian_ana(x)
+        # if hessian_ana(x) returns a NotImplementedError, use the numerical hessian instead    
+        except NotImplementedError:
+            H = self.hessian_num(x, h)
+        return H
 
 
 #------------------------------------------------
@@ -782,7 +786,24 @@ class Prinz(D1):
             float: The value of the potential energy function at the given position x.
         """
         
-        return 4 * ( x**8 * np.exp(-80 * x**2) ) + 0.2 * np.exp( -80 * (x - 0.5)**2 ) + 0.5 * np.exp(- 40 * (x + 0.5)**2)
-          
+        return 4 * ( x**8  + 0.8 * np.exp(-80 * x**2)  + 0.2 * np.exp( -80 * (x - 0.5)**2 ) + 0.5 * np.exp(- 40 * (x + 0.5)**2) )
+ 
 
-      
+    # the force, analytical expression 
+    def force_ana(self, x):    
+        """
+        The class method force_ana(x) is not implemented in the class for the Prinz potential. 
+        Use force_num(x,h) instead.
+        """
+
+        raise NotImplementedError("potential.D1(Prinz) does not implement force_ana(self, x)")
+ 
+        
+    # the Hessian matrix, analytical expression
+    def hessian_ana(self, x):
+        """
+        The class method hessian_ana(x) is not implemented in the class for the Prinz potential. 
+        Use hessian_num(x,h) instead.
+        """
+        
+        raise NotImplementedError("potential.D1(Prinz) does not implement hessian_ana(self, x)")
