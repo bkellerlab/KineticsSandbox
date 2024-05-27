@@ -5,6 +5,11 @@ Created on Mon Jan 29 11:04:33 2024
 
 @author: bettina
 """
+#-----------------------------------------
+#   I M P O R T S 
+#-----------------------------------------
+import numpy as np
+import scipy.constants as const
 
 #------------------------------------------------
 # class: one-dimensional potentials
@@ -33,4 +38,13 @@ class D1():
         self.xi = xi
         self.dt = dt
         self.h = h
+        
+        # calculate some combined parameters
+        # mass-weighted friction
+        self.xi_m = self.xi * self.m
+        # diffusion constant
+        # the factor 0.001 converts R into the kJ / (mol * K)
+        self.D = np.sqrt( self.T * const.R * 0.001 / self.xi_m)
+        # sigma = standard deviation of random noise in overdamped Langevin dynamics
+        self.sigma = np.sqrt(2* self.D)
         
