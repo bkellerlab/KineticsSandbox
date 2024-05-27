@@ -37,18 +37,9 @@ def EM(system, potential, eta_k = None):
     # if eta_k is not provided, draw eta_k from Gaussian normal distribution
     if eta_k is None:
         eta_k = np.random.normal()
-        
-    # store current position
-    x_k = system.x
      
     # update position
     system.x = system.x + (potential.force(system.x, system.h)[0] / system.xi_m ) * system.dt  +  system.sigma * np.sqrt(system.dt) * eta_k
-    
-    # get updated position
-    x_k_plus_1 = system.x
-    
-    # update velocities
-    system.v = (x_k + x_k_plus_1) / system.dt
     
     return None  
 

@@ -44,7 +44,7 @@ class D1():
         self.xi_m = self.xi * self.m
         # diffusion constant
         # the factor 0.001 converts R into the kJ / (mol * K)
-        self.D = np.sqrt( self.T * const.R * 0.001 / self.xi_m)
+        self.D = self.T * const.R * 0.001 / self.xi_m
         # sigma = standard deviation of random noise in overdamped Langevin dynamics
         self.sigma = np.sqrt(2* self.D)
         

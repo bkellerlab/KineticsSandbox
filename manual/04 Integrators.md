@@ -1,5 +1,5 @@
 
-# Overdamper Langevin dynamics
+# Overdamped Langevin dynamics
 ## One-dimensional potentials
 The state space for overdamped Langevin dynamics is only the position space $x\in \mathbb{R}$.  
 The stochastic differential equation for the time-evolution of the position is
@@ -13,7 +13,7 @@ $$
 	\sigma = \sqrt{\frac{2RT}{\xi m}} = \sqrt{2D}
 $$where $R$ is the ideal gas constant, $T$ is the temperature. The second equality defines the diffusion constant
 $$
-	D = \sqrt{\frac{RT}{\xi m}}
+	D = \frac{RT}{\xi m}
 $$
 The force is related to the potential energy function by 
 $$
@@ -25,10 +25,8 @@ $$
 	x_{k+1} = x_k + \frac{F(x_k)}{m\xi}\Delta t + \sigma \sqrt{\Delta t} \, \eta_k
 $$
 where $\Delta t$ is the time step, $x_k$ is the position at time $t=k\Delta t$, $x_{k+1}$ is the position at time $t=(k+1)\Delta t$, and $\eta_k$ is a Gaussian random number (with mean zero and unit variance).
-Approximate velocities can be generated as
-$$
-	v_{k+1} = \frac{x_k + x_{k+1}}{\Delta t}
-$$
+
+Velocities are not defined for the overdamped Langevin dynamics and are thus not updated.
 
 # Langevin splitting integrators
 
