@@ -757,4 +757,32 @@ class Bolhuis(D1):
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])      
      
+class Prinz(D1):
+    # intiialize class
+    def __init__(self): 
+        """
+        Initialize the class for the 1-dimensional Prinz potential. 
+        All parameters are hard-coded.
+        """
+        
+    # the potential energy function 
+    def potential(self, x):
+        """
+        Calculate the potential energy V(x) for the 1-dimensional constant potential.
+    
+        The potential energy function is given by:
+        V(x) = 4* ( x^8 + 0.8 * e^(-80x^2) + 0.2 * e^(-80(x-0.5)^2) + 0.5 * e^(-40(x+0.5)^2) )
+    
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+        Returns:
+            float: The value of the potential energy function at the given position x.
+        """
+        
+        return 4 * ( x**8 * np.exp(-80 * x**2) ) + 0.2 * np.exp( -80 * (x - 0.5)**2 ) + 0.5 * np.exp(- 40 * (x + 0.5)**2)
+          
+
       
