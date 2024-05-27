@@ -15,7 +15,18 @@ potential.D1(Quadratic)
 #   I M P O R T S 
 #-----------------------------------------
 import sys
-sys.path.append("..")  
+import os
+
+# Get the absolute path of the parent directory
+parent_dir = os.path.abspath("..")
+
+# Append the parent directory to sys.path if it is not already included
+if parent_dir not in sys.path:
+    sys.path.append(parent_dir)
+
+print("---------------------------------------")
+print("System path:")
+print(sys.path)    
 
 import matplotlib.pyplot as plt
 import numpy as np
