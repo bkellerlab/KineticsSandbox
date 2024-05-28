@@ -51,12 +51,7 @@ Next steps:
     #------------------------------------------
     # package "potentials" 
     #------------------------------------------
-    - D1: DoubleWell
     - D1: GaussianBias
-    - D1: TripleWell
-    - D1: Prinz potential
-    - D1: Linear potential 
-    - D1: Harmonic potential
     - D1: Morse potential
     - D1: Lennard Jones potential
     
