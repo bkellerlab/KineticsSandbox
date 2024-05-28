@@ -12,8 +12,8 @@ Class D1 is the parent class for all one-dimensional potentials. It provides the
 The also class provides methods that are inherited by the child classes
 
 - **negated_potential**: expects $x$, calls method potential, returns $-V(x)$
-- **force_num**: expects $x$ and $h$, calls method potential, returns $-dV(x)/dx$ calculated via finite difference
-- **hessian_num**: expects $x$ and $h$, calls method potential, returns  $d^2V(x)/dx^2$ calculated via finite difference
+- **force_num**: expects $x$ and $h$, calls method potential, returns $-\mathrm{d}V(x)/\mathrm{d}x$ calculated via finite difference
+- **hessian_num**: expects $x$ and $h$, calls method potential, returns  $\mathrm{d}^2V(x)/\mathrm{d}x^2$ calculated via finite difference
 - **min:** expects $x_{\mathrm{start}}$, returns location of the nearest minimum calculated via scipy.optimize
 - **TS:** expects $x_{\mathrm{start}}$ and $x_{\mathrm{end}}$, returns location of the highest energy point in the intervall $[x_{\mathrm{start}}, x_{\mathrm{end}}]$$ (i.e. the transition state), calculated via scipy.optimize. Returns error, if the there is no energy maximum in the interval.
 
