@@ -113,7 +113,344 @@ class D1(ABC):
         
         # cast Hessian as a 1x1 numpy array and return
         return  np.array([[H]]) 
+        # -------------------- playground arthur: start ------------------------------------   
+
+    #---------------------------------------------------------------------
+    #   numerical differentiation methods
+    #---------------------------------------------------------------------
+
+    # Primitive backward difference for the first derivative
+    def primitive_backward_difference_first(self, x, h):
+        """
+        First-order accurate backward difference approximation for the first derivative.
+        f'(x) ≈ [f(x) - f(x - h)] / h
+        """
+        return (self.potential(x) - self.potential(x - h)) / h
+
+    # Primitive backward difference for the second derivative
+    def primitive_backward_difference_second(self, x, h):
+        """
+        First-order accurate backward difference approximation for the second derivative.
+        f''(x) ≈ [f(x) - 2f(x - h) + f(x - 2h)] / h^2
+        """
+        return (self.potential(x) - 2 * self.potential(x - h) + self.potential(x - 2 * h)) / h**2
+
+    # Primitive forward difference for the first derivative
+    def primitive_forward_difference_first(self, x, h):
+        """
+        First-order accurate forward difference approximation for the first derivative.
+        f'(x) ≈ [f(x + h) - f(x)] / h
+        """
+        return (self.potential(x + h) - self.potential(x)) / h
+
+    # Primitive forward difference for the second derivative
+    def primitive_forward_difference_second(self, x, h):
+        """
+        First-order accurate forward difference approximation for the second derivative.
+        f''(x) ≈ [f(x + 2h) - 2f(x + h) + f(x)] / h^2
+        """
+        return (self.potential(x + 2 * h) - 2 * self.potential(x + h) + self.potential(x)) / h**2
     
+    def primitive_central_difference_first(self, x, h):
+        """
+        Second-order accurate central difference approximation for the first derivative.
+
+        Calculate the force F(x) numerically via the central finit difference.
+        Since the potential is one-idmensional, the force is vector with one element.
+        
+        The force is given by:
+            f'(x) = - [ f(x+h/2) - f(x-h/2)] / h
+        
+        The units of F(x) = f'(x) are kJ/(mol * nm), following the convention in GROMACS.  
+        
+        Parameters:
+        - x (float): position
+ 
+        Returns:
+            numpy array: The value of the force at the given position x , returned as vector with 1 element.  
+        """  
+        
+        F = - ( self.potential(x+h/2) - self.potential(x-h/2) ) / h
+        return np.array([F])
+    
+    def primitive_central_difference_second(self, x, h):
+        """
+        Second-order accurate central difference approximation for the second derivative.
+        f''(x) ≈ [f(x+h) - 2f(x) + f(x-h)] / h^2
+
+        Parameters:
+        - x (float): position
+        - h (float): spacing of the finite difference points along x
+
+        Returns:
+        float: The value of the second derivative at the given position x.
+        """
+        
+        # Calculate the potential values
+        V_x_plus_h = self.potential(x + h)
+        V_x = self.potential(x)
+        V_x_minus_h = self.potential(x - h)
+        
+        # Calculate the Hessian as a float
+        H = (V_x_plus_h - 2 * V_x + V_x_minus_h) / h**2
+        
+        return H
+    
+    # Forward difference for the first derivative
+    def forward_difference_first(self, x, h):
+        """
+        Second-order accurate forward difference approximation for the first derivative.
+        f'(x) ≈ [-3f(x) + 4f(x+h) - f(x+2h)] / (2h)
+        Source: https://www.dam.brown.edu/people/alcyew/handouts/numdiff.pdf
+        """
+        return (-3 * self.potential(x) + 4 * self.potential(x + h) - self.potential(x + 2 * h)) / (2 * h)
+
+    # Forward difference for the second derivative
+    def forward_difference_second(self, x, h):
+        """
+        Second-order accurate forward difference approximation for the second derivative.
+        f''(x) ≈ [2f(x) - 5f(x+h) + 4f(x+2h) - f(x+3h)] / h^2
+        Source: https://www.dam.brown.edu/people/alcyew/handouts/numdiff.pdf
+        """
+        return (2 * self.potential(x) - 5 * self.potential(x + h) + 4 * self.potential(x + 2 * h) - self.potential(x + 3 * h)) / h**2
+
+    # Backward difference for the first derivative
+    def backward_difference_first(self, x, h):
+        """
+        Second-order accurate backward difference approximation for the first derivative.
+        f'(x) ≈ [3f(x) - 4f(x-h) + f(x-2h)] / (2h)
+        Source: https://www.dam.brown.edu/people/alcyew/handouts/numdiff.pdf
+        """
+        return (3 * self.potential(x) - 4 * self.potential(x - h) + self.potential(x - 2 * h)) / (2 * h)
+
+    # Backward difference for the second derivative
+    def backward_difference_second(self, x, h):
+        """
+        Second-order accurate backward difference approximation for the second derivative.
+        f''(x) ≈ [2f(x) - 5f(x-h) + 4f(x-2h) - f(x-3h)] / h^2
+        Source: https://www.dam.brown.edu/people/alcyew/handouts/numdiff.pdf
+        """
+        return (2 * self.potential(x) - 5 * self.potential(x - h) + 4 * self.potential(x - 2 * h) - self.potential(x - 3 * h)) / h**2
+
+    # Higher-order central difference for the first derivative
+    def central_difference_first(self, x, h):
+        """
+        Fourth-order accurate central difference approximation for the first derivative.
+        f'(x) ≈ [8(f(x+h) - f(x-h)) - (f(x+2h) - f(x-2h))] / (12h)
+        Source: https://www.dam.brown.edu/people/alcyew/handouts/numdiff.pdf
+        """
+        return (8 * (self.potential(x + h) - self.potential(x - h)) - (self.potential(x + 2 * h) - self.potential(x - 2 * h))) / (12 * h)
+
+    # Higher-order central difference for the second derivative
+    def central_difference_second(self, x, h):
+        """
+        Fourth-order accurate central difference approximation for the second derivative.
+        f''(x) ≈ [-f(x+2h) + 16f(x+h) - 30f(x) + 16f(x-h) - f(x-2h)] / (12h^2)
+        Source: https://www.dam.brown.edu/people/alcyew/handouts/numdiff.pdf
+        """
+        V_x_plus_2h = self.potential(x + 2 * h)
+        V_x_plus_h = self.potential(x + h)
+        V_x = self.potential(x)
+        V_x_minus_h = self.potential(x - h)
+        V_x_minus_2h = self.potential(x - 2 * h)
+        return (-V_x_plus_2h + 16 * V_x_plus_h - 30 * V_x + 16 * V_x_minus_h - V_x_minus_2h) / (12 * h**2)
+
+
+    
+    # force, numerical expression via higher-order finite difference    
+    def force_num(self, x, h, method=("central", 4)):
+        """
+        Calculate the force F(x) numerically via a higher-order central finite difference.
+        Since the potential is one-dimensional, the force is a vector with one element.
+        
+        The force is given by ether:
+
+        1. Fourth-order (4) accurate "central" difference approximation for the first derivative:
+            ...
+            F = self.central_difference_first(x, h)
+
+        2. Second-order (2) accurate "central" difference approximation for the first derivative:
+            ...
+            F = self.primitive_forward_difference_first(x, h)
+
+        3. Second-order (2) accurate "forward" difference approximation for the first derivative:
+            ...
+            F = self.forward_difference_first(x, h)
+
+        4. First-order (1) accurate "forward" difference approximation for the first derivative:
+            ...
+            F = self.promitive_forward_difference_first(x, h)
+
+        5. Second-order (2) accurate "backward" difference approximation for the first derivative:
+            ...
+            F = self.backward_difference_first(x, h)
+        
+        6. First-order (1) accurate "backward" difference approximation for the first derivative:
+            ...
+            F = self.promitive_backward_difference_first(x, h)
+
+        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.  
+        
+        Parameters:
+        - x (float): position
+        - h (float): spacing of the finite difference points along x
+        - method=(type, order_of_accuracy), with:
+
+            type                = "central", "backward" or "forward" as strings
+            order_of_accuracy   = 1, 2 or 4 as intergers
+
+        Returns:
+        numpy array: The value of the force at the given position x, returned as a vector with 1 element.  
+        """  
+        if method[0] == "central":
+            if method[1] == 4: 
+                F = - self.central_difference_first(x, h)
+            elif method[1] == 2: 
+                F = - self.primitive_central_difference_first(x, h)
+            else:
+                print("Input Error: please provide method = ('central', 4) or ('central', 2)")
+        elif method[0] == "backward":
+            if method[1] == 2: 
+                F = - self.backward_difference_first(x, h)
+            elif method[1] == 1: 
+                F = - self.primitive_backward_difference_first(x, h)
+            else:
+                print("Input Error: please provide method = ('backward', 2) or ('backward', 1)")
+        elif method[0] == "forward":
+            if method[1] == 2: 
+                F = - self.forward_difference_first(x, h)
+            elif method[1] == 1: 
+                F = - self.primitive_forward_difference_first(x, h)
+            else:
+                print("Input Error: please provide method = ('forward', 2) or ('forward', 1)")
+        else:
+            print("Input Error: please provide method = ('forward', 2) or ('forward', 1) or ('backward', 2) or ('backward', 1) or ('central', 4) or ('central', 2)")
+                             
+        return np.array([F])
+
+    # Hessian matrix, numerical expression via higher-order finite difference
+    def hessian_num(self, x, h, method=("central", 4)):
+        """
+        Calculate the Hessian matrix H(x) numerically via a central finite difference of n-th order accuracy.
+        Since the potential is one-dimensional, the Hessian matrix has dimensions 1x1.
+        
+        The Hessian is given by ether:
+        
+        1. Fourth-order (4) accurate "central" difference approximation for the second derivative:
+            H(x) = [-V(x + 2h) + 16 * V(x + h) - 30 * V(x) + 16 * V(x - h) - V(x - 2h)] / (12 * h^2)
+            H = self.central_difference_second(x, h)
+
+        2. Second-order (2) accurate "central" difference approximation for the second derivative:
+            ...
+            H = self.primitive_forward_difference_second(x, h)
+
+        3. Second-order (2) accurate "forward" difference approximation for the second derivative:
+            H(x) ≈ [2V(x) - 5V(x+h) + 4V(x+2h) - V(x+3h)] / h^2
+            H = self.forward_difference_second(x, h)
+
+        4. First-order (1) accurate "forward" difference approximation for the second derivative:
+            ...
+            H = self.promitive_forward_difference_second(x, h)
+
+        5. Second-order (2) accurate "backward" difference approximation for the second derivative:
+            H(x) ≈ [2V(x) - 5V(x-h) + 4V(x-2h) - V(x-3h)] / h^2
+            H = self.backward_difference_second(x, h)
+        
+        6. First-order (1) accurate "backward" difference approximation for the second derivative:
+            ...
+            H = self.promitive_backward_difference_second(x, h)
+        
+        
+        The units of H(x) are kJ/(mol * nm^2), following the convention in GROMACS.
+        
+        Parameters:
+        - x (float): position
+        - h (float): spacing of the finite difference points along x
+        - method=(type, order_of_accuracy), with:
+
+            type                = "central" or "backward" or "forward" as strings
+            order_of_accuracy   = 1, 2 or 4 as intergers
+        
+        Returns:
+        numpy array: The 1x1 Hessian matrix at the given position x.
+        """
+        # Calculate the Hessian as a float 
+        if method[0] == "central":
+            if method[1] == 4: 
+                H = self.central_difference_second(x, h)
+            elif method[1] == 2: 
+                H = self.primitive_central_difference_second(x, h)
+            else:
+                print("Input Error: please provide method = ('central', 4) or ('central', 2)")
+        elif method[0] == "backward":
+            if method[1] == 2: 
+                H = self.backward_difference_second(x, h)
+            elif method[1] == 1: 
+                H = self.primitive_backward_difference_second(x, h)
+            else:
+                print("Input Error: please provide method = ('backward', 2) or ('backward', 1)")
+        elif method[0] == "forward":
+            if method[1] == 2: 
+                H = self.forward_difference_second(x, h)
+            elif method[1] == 1: 
+                H = self.primitive_forward_difference_second(x, h)
+            else:
+                print("Input Error: please provide method = ('forward', 2) or ('forward', 1)")
+        else:
+            print("Input Error: please provide method = ('forward', 2) or ('forward', 1) or ('backward', 2) or ('backward', 1) or ('central', 4) or ('central', 2)")
+                             
+
+        # Cast Hessian as a 1x1 numpy array and return
+        return np.array([[H]])
+    
+    # Force calculation using appropriate finite difference method
+    def force_num_s(self, x_points, h):
+        """
+        Calculate the force at each point in x_points using appropriate finite difference methods.
+        
+        Parameters:
+        - x_points (list or numpy array): Positions where the force needs to be calculated.
+        - h (float): Spacing of the finite difference points along x.
+
+        Returns:
+        numpy array: The forces at the given positions x.
+        """
+        forces = []
+        for i, x in enumerate(x_points):
+            if i == 0:
+                F = - self.forward_difference_first(x, h)
+            elif i == len(x_points) - 1:
+                F = - self.backward_difference_first(x, h)
+            else:
+                F = - self.central_difference_first(x, h)
+            forces.append(F)
+        return np.array(forces)
+
+    # Hessian calculation using appropriate finite difference method
+    def hessian_num_s(self, x_points, h):
+        """
+        Calculate the Hessian at each point in x_points using appropriate finite difference methods.
+        
+        Parameters:
+        - x_points (list or numpy array): Positions where the Hessian needs to be calculated.
+        - h (float): Spacing of the finite difference points along x.
+
+        Returns:
+        numpy array: The Hessians at the given positions x.
+        """
+        hessians = []
+        for i, x in enumerate(x_points):
+            if i == 0:
+                H = self.forward_difference_second(x, h)
+            elif i == len(x_points) - 1:
+                H = self.backward_difference_second(x, h)
+            else:
+                H = self.central_difference_second(x, h)
+            hessians.append(H)
+        return np.array(hessians)
+        
+# -------------------- playground arthur: end ------------------------------------  
+
     # nearest minimum
     def min(self, x_start): 
         """
@@ -169,23 +506,25 @@ class D1(ABC):
     #   functions that automatically switch between analytical and numerical function
     #---------------------------------------------------------------------------------    
     # for the force
-    def force(self, x, h):
+    def force(self, x, h, method=("central", 4)):
         # try whether the analytical force is implemted
         try:
             F = self.force_ana(x)
         # if force_ana(x) returns a NotImplementedError, use the numerical force instead    
         except NotImplementedError:
-            F = self.force_num(x, h)
+            print("Analytical force not implemented, switching to numerical force.")
+            F = self.force_num(x, h, method)
         return F
         
     # for the hessian
-    def hessian(self, x, h):
+    def hessian(self, x, h, method=("central", 4)):
         # try whether the analytical hessian is implemted
         try:
             H = self.hessian_ana(x)
         # if hessian_ana(x) returns a NotImplementedError, use the numerical hessian instead    
         except NotImplementedError:
-            H = self.hessian_num(x, h)
+            print("Analytical Hessian not implemented, switching to numerical Hessian.")
+            H = self.hessian_num(x, h, method)
         return H
 
 
@@ -372,7 +711,7 @@ class Linear(D1):
           
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])
-
+    
 class Quadratic(D1):
     # intiialize class
     def __init__(self, param): 
@@ -807,3 +1146,74 @@ class Prinz(D1):
         """
         
         raise NotImplementedError("potential.D1(Prinz) does not implement hessian_ana(self, x)")
+    
+
+    
+class MorsePotential(D1):
+    def __init__(self, param):
+        """
+        Initialize the Morse potential class with the given parameters.
+        
+        Parameters:
+            - param (list): a list of parameters representing:
+                - param[0]: D_e (float) - Well depth of the potential.
+                - param[1]: a (float) - Width parameter of the potential.
+                - param[2]: x_e (float) - Equilibrium bond distance.
+
+        Raises:
+            - ValueError: If param does not have exactly 3 elements.
+        """
+        if len(param) != 3:
+            raise ValueError("param must have exactly 3 elements.")
+        
+        self.D_e = param[0]
+        self.a = param[1]
+        self.x_e = param[2]
+        
+    def potential(self, x):
+        """
+        Calculate the Morse potential V(x).
+        
+        The potential energy function is given by:
+        V(x) = D_e (1 - e^(-a(x - x_e)))^2
+        
+        Parameters:
+            - x (float): position
+
+        Returns:
+            float: The value of the Morse potential at the given position x.
+        """
+        V = self.D_e * (1 - np.exp(-self.a * (x - self.x_e)))**2
+        return V
+    
+    def force_ana(self, x):
+        """
+        Calculate the force F(x) analytically from the Morse potential.
+        
+        The force is given by:
+        F(x) = -dV(x)/dx = -2aD_e (e^(-a(x - x_e)) - e^(-2a(x - x_e)))
+        
+        Parameters:
+            - x (float): position
+        
+        Returns:
+            numpy array: The value of the force at the given position x, returned as a vector with 1 element.
+        """
+        F = -2 * self.a * self.D_e * (np.exp(-self.a * (x - self.x_e)) - np.exp(-2 * self.a * (x - self.x_e)))
+        return np.array([F])
+    
+    def hessian_ana(self, x):
+        """
+        Calculate the Hessian H(x) analytically from the Morse potential.
+        
+        The Hessian is given by:
+        H(x) = d^2V(x)/dx^2 = 2a^2D_e (2e^(-2a(x - x_e)) - e^(-a(x - x_e)))
+        
+        Parameters:
+            - x (float): position
+
+        Returns:
+            numpy array: The 1x1 Hessian matrix at the given position x.
+        """
+        H = 2 * self.a**2 * self.D_e * (2 * np.exp(-2 * self.a * (x - self.x_e)) - np.exp(-self.a * (x - self.x_e)))
+        return np.array([[H]])
