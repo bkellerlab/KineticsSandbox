@@ -44,7 +44,7 @@ print("Potential at x =", x, ":", morse.potential(x))
 print("Force at x =", x, ":", morse.force_ana(x))
 print("Hessian at x =", x, ":", morse.hessian_ana(x))
 
-h = 0.5
+h = 0.2
 
 x_values = np.linspace(0.2, 6, 400)
 
