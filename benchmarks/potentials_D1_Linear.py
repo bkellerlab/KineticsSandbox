@@ -31,13 +31,23 @@ test_V = True
 test_F = True
 test_H = True
 # test_TS = True
-
+test_V = False
+test_F = False
+test_H = False
+# test_TS = True
 
 print("---------------------------------------")
 print(" testing the class initialization   ")
 
 my_param = [5, 2]
 my_potential = D1.Linear(my_param)
+
+
+my_param = [5, 2, 3]
+my_potential = D1.Morse(my_param)
+
+potential_x_1 = my_potential.force_num(x=1, h=0.1, method=("backward", 2))
+print(f"meine erste ableitung für x = 1: {potential_x_1}")
 
 print(" ")
 print("class members: ")

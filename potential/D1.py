@@ -116,7 +116,7 @@ class D1(ABC):
         The units of V(x) are kJ/mol, following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
             float: negated value of the potential energy function at the given position x.
@@ -662,10 +662,10 @@ class Constant(D1):
         The units of V(x) are kJ/mol, following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
-            float: The value of the potential energy function at the given position x.
+            float, numpy array: The value(s) of the potentail energy at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
 
         return np.full_like(x, self.d)
@@ -683,7 +683,7 @@ class Constant(D1):
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
             float, numpy array: The value(s) of the force at the given position(s) x, returned as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
@@ -706,7 +706,7 @@ class Constant(D1):
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
           Returns:
               float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
@@ -754,10 +754,10 @@ class Linear(D1):
         The units of V(x) are kJ/mol, following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
-            float: The value of the potential energy function at the given position x.
+            float, numpy array: The value(s) of the potentail energy at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
 
         return self.k * (x - self.a)
@@ -775,7 +775,7 @@ class Linear(D1):
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
             float, numpy array: The value(s) of the force at the given position(s) x, returned as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
@@ -798,10 +798,10 @@ class Linear(D1):
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
           Returns:
-              float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x..
+              float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
 
         """
 
@@ -846,10 +846,10 @@ class Quadratic(D1):
         The units of V(x) are kJ/mol, following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
-            float: The value of the potential energy function at the given position x.
+            float, numpy array: The value(s) of the potentail energy at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
 
         return self.k * 0.5 * (x - self.a) ** 2
@@ -867,7 +867,7 @@ class Quadratic(D1):
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
             float, numpy array: The value(s) of the force at the given position(s) x, returned as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
@@ -890,10 +890,10 @@ class Quadratic(D1):
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
           Returns:
-              float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x..
+              float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
 
         """
 
@@ -940,10 +940,10 @@ class DoubleWell(D1):
         The units of V(x) are kJ/mol, following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
-            float: The value of the potential energy function at the given position x.
+            float, numpy array: The value(s) of the potentail energy at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
 
         return self.k * ((x - self.a) ** 2 - self.b) ** 2
@@ -961,7 +961,7 @@ class DoubleWell(D1):
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
             float, numpy array: The value(s) of the force at the given position(s) x, returned as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
@@ -984,10 +984,10 @@ class DoubleWell(D1):
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
           Returns:
-              float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x..
+              float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
 
         """
 
@@ -1043,10 +1043,10 @@ class Polynomial(D1):
         The units of V(x) are kJ/mol, following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
-            float: The value of the potential energy function at the given position x.
+            float, numpy array: The value(s) of the potentail energy at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
 
         return (
@@ -1071,7 +1071,7 @@ class Polynomial(D1):
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
             float, numpy array: The value(s) of the force at the given position(s) x, returned as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
@@ -1101,10 +1101,10 @@ class Polynomial(D1):
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
           Returns:
-              float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x..
+              float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
 
         """
 
@@ -1164,10 +1164,10 @@ class Bolhuis(D1):
         The units of V(x) are kJ/mol, following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
-            float: The value of the potential energy function at the given position x.
+            float, numpy array: The value(s) of the potentail energy at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
 
         return (
@@ -1189,7 +1189,7 @@ class Bolhuis(D1):
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
             float, numpy array: The value(s) of the force at the given position(s) x, returned as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
@@ -1220,10 +1220,10 @@ class Bolhuis(D1):
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
           Returns:
-              float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x..
+              float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
 
         """
 
@@ -1261,10 +1261,10 @@ class Prinz(D1):
         The units of V(x) are kJ/mol, following the convention in GROMACS.
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
-            float: The value of the potential energy function at the given position x.
+            float, numpy array: The value(s) of the potentail energy at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
 
         return 4 * (
@@ -1323,15 +1323,15 @@ class Morse(D1):
         Calculate the Morse potential V(x).
 
         The potential energy function is given by:
-         V(x) = D_e (1 - e^{(-a(x - x_e))})^2
+         V(x) = D_e (1 - e^{(-a(x - x_e))})^2 - D_e
 
         Parameters:
-            - x (float): position
+            - x (float, array): position(s)
 
         Returns:
-            float: The value of the Morse potential at the given position x.
+            float, numpy array: The value(s) of the potentail energy at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
-        V = self.D_e * (1 - np.exp(-self.a * (x - self.x_e))) ** 2
+        V = (self.D_e * (1 - np.exp(-self.a * (x - self.x_e))) ** 2 )- self.D_e
         return V
 
     def force_ana(self, x):
@@ -1340,13 +1340,13 @@ class Morse(D1):
 
         The force is given by:
         F(x) = - dV(x) / dx
-             = -2aD_e (exp(-a(x - x_e)) - exp(-2a(x - x_e)))
+             = -2a D_e (e^{-a(x - x_e)} - e^{-2a(x - x_e)})
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
-            numpy array: The value of the force at the given position x, returned as a vector with 1 element.
+            float, numpy array: The value(s) of the Force at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
 
         F = (
@@ -1364,10 +1364,10 @@ class Morse(D1):
 
         The Hessian is given by:
         H(x) = d^2 V(x) / dx^2
-             = 2a^2D_e (2e^(-2a(x - x_e)) - e^(-a(x - x_e)))
+             = 2a^2 D_e (2e^{-2a(x - x_e)} - e^{-a(x - x_e)})
 
         Parameters:
-            - x (float): position
+            - x (float, numpy array): position(s)
 
         Returns:
             float, numpy array: The value(s) of the Hessian at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
