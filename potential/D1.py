@@ -237,11 +237,11 @@ class Constant(D1):
     def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional constant potential.
-        Since the potential is one-idmensional, the force is a vector with one element.
+        Since the potential is one-dimensional, the force is a vector with one element.
     
         The force is given by:
         F(x) = - dV(x) / dx 
-              = 0
+             = 0
     
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
     
@@ -264,7 +264,7 @@ class Constant(D1):
     
           The Hessian is given by:
           H(x) = d^2 V(x) / dx^2 
-                = 0
+               = 0
     
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
     
@@ -328,11 +328,11 @@ class Linear(D1):
     def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional linear potential.
-        Since the potential is one-idmensional, the force is a vector with one element.
+        Since the potential is one-dimensional, the force is a vector with one element.
     
         The force is given by:
         F(x) = - dV(x) / dx 
-              = - k
+             = - k
     
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
     
@@ -355,7 +355,7 @@ class Linear(D1):
     
           The Hessian is given by:
           H(x) = d^2 V(x) / dx^2 
-                = 0
+               = 0
     
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
     
@@ -419,11 +419,11 @@ class Quadratic(D1):
     def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional quadratic potential.
-        Since the potential is one-idmensional, the force is a vector with one element.
+        Since the potential is one-dimensional, the force is a vector with one element.
     
         The force is given by:
         F(x) = - dV(x) / dx 
-              = - k * (x-a)
+             = - k * (x-a)
     
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
     
@@ -446,7 +446,7 @@ class Quadratic(D1):
     
           The Hessian is given by:
           H(x) = d^2 V(x) / dx^2 
-                = 2k
+               = 2k
     
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
     
@@ -513,11 +513,11 @@ class DoubleWell(D1):
     def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional double-well potential.
-        Since the potential is one-idmensional, the force is a vector with one element.
+        Since the potential is one-dimensional, the force is a vector with one element.
     
         The force is given by:
         F(x) = - dV(x) / dx 
-              = - 4 * k * ((x-a)^2 - b) * (x-a)
+             = - 4 * k * ((x-a)^2 - b) * (x-a)
     
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
     
@@ -616,11 +616,11 @@ class Polynomial(D1):
     def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional polynomial potential.
-        Since the potential is one-idmensional, the force is a vector with one element.
+        Since the potential is one-dimensional, the force is a vector with one element.
     
         The force is given by:
         F(x) = - dV(x) / dx 
-              = - c1 - 2*c2*(x-a) - 3*c3*(x-a)**2 - 4*c4*(x-a)**3 - 5*c5*(x-a)**4 - 6*c6*(x-a)**5 
+             = - c1 - 2*c2*(x-a) - 3*c3*(x-a)**2 - 4*c4*(x-a)**3 - 5*c5*(x-a)**4 - 6*c6*(x-a)**5 
     
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
     
@@ -716,11 +716,11 @@ class Bolhuis(D1):
     def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional Bolhuis potential.
-        Since the potential is one-idmensional, the force is a vector with one element.
+        Since the potential is one-dimensional, the force is a vector with one element.
     
         The force is given by:
         F(x) = - dV(x) / dx 
-              = - 2 * k1 * ((x - a)**2 - b) * 2 * (x-a) - k2 + alpha * np.exp(-c * (x - a)**2) * c * 2 * (x - a)
+             = - 2 * k1 * ((x - a)**2 - b) * 2 * (x-a) - k2 + alpha * np.exp(-c * (x - a)**2) * c * 2 * (x - a)
     
         The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
     
@@ -743,7 +743,7 @@ class Bolhuis(D1):
     
           The Hessian is given by:
           H(x) = d^2 V(x) / dx^2 
-                = 12 * k1 (x - a)**2   +   4 * k1 * b   +   2 * alpha * c * [ 4 * c * (x-a)**2 - (x-a)] * exp (-c *(x-2)**2 )
+               = 12 * k1 (x - a)**2   +   4 * k1 * b   +   2 * alpha * c * [ 4 * c * (x-a)**2 - (x-a)] * exp (-c *(x-2)**2 )
     
           The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
     
@@ -807,3 +807,97 @@ class Prinz(D1):
         """
         
         raise NotImplementedError("potential.D1(Prinz) does not implement hessian_ana(self, x)")
+
+class Logistic(D1):
+    # intiialize class
+    def __init__(self, param): 
+        """
+        Initialize the class for the 1-dimensional Logistic potential based on the given parameters.
+
+        Parameters:
+            - param (list): a list of parameters representing:
+            - param[0]: k (float) - prefactor that scales the potential
+            - param[1]: b (float) - logistic growth rate or slope of the curve
+            - param[2]: a (float) - parameter that shifts the saddle point left and right
+
+
+        Raises:
+        - ValueError: If param does not have exactly 3 elements.
+        """
+        
+        # Check if param has the correct number of elements
+        if len(param) != 3:
+            raise ValueError("param must have exactly 3 elements.")
+        
+        # Assign parameters
+        self.k = param[0]
+        self.b = param[1]
+        self.a = param[2]
+        
+    # the potential energy function 
+    def potential(self, x):
+        """
+        Calculate the potential energy V(x) for the 1-dimensional Logistic potential.
+    
+        The potential energy function is given by:
+        V(x) = k * 1 /(1 +  exp(-b * (x - a))
+    
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+        Returns:
+            float: The value of the potential energy function at the given position x.
+        """
+    
+        return self.k * 1 / (1 + np.exp(- (self.b * (x - self.a)))) 
+    
+    # the force, analytical expression 
+    def force_ana(self, x):
+        """
+        Calculate the force F(x) analytically for the 1-dimensional Logistic potential.
+        Since the potential is one-dimensional, the force is a vector with one element.
+    
+        The force is given by:
+        F(x) = - dV(x) / dx 
+             = - k * (b * exp(-b * (x-a))) / (exp(-b * (x - a)) + 1)^2
+    
+        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+    
+        Returns:
+            numpy array: The value of the force at the given position x, returned as vector with 1 element.
+    
+        """
+        
+        F =  - self.k  * (self.b * np.exp(-self.b * (x - self.a))) / (np.exp(- (self.b * (x - self.a))) + 1)**2
+        return np.array([F])
+
+    # the Hessian matrix, analytical expression
+    def hessian_ana(self, x):
+          """
+          Calculate the Hessian matrx H(x) analytically for the 1-dimensional Logistic potential.
+          Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+    
+          The Hessian is given by:
+          H(x) = d^2 V(x) / dx^2 
+               = - kb^2 * ((2 * exp(-2b (x - a))) / (1 + exp(-b * (x - a)))^3 - (exp(-b * (x - a))) / ((1 + exp(-b * (x - a))))^2) )
+
+          The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+          Returns:
+              numpy array: The 1x1 Hessian matrix at the given position x.
+    
+          """
+          
+          # calculate the Hessian as a float      
+          H = self.k * self.b**2 * ( (2 * np.exp(-2 * self.b * (x - self.a))) / (1 + np.exp(-self.b * (x - self.a)))**3 - (np.exp(-self.b * (x - self.a))) / ((1 + np.exp(-self.b * (x - self.a))))**2 )  
+               
+          # cast Hessian as a 1x1 numpy array and return
+          return  np.array([[H]])      
