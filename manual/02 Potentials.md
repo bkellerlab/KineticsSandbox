@@ -75,10 +75,10 @@ $$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = 24\epsilon \left[26\left(
 **Potential:**
 $$V(x) = \frac{k}{\sqrt{2\sigma^2\pi}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right) $$
 **Force:**
-$$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = + \frac{k}{\sqrt{2\sigma^2\pi}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)\cdot(x-\mu)$$
+$$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = + \frac{k}{\sqrt{2\pi}\sigma^3} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)\cdot(x-\mu)$$
 
 **Hessian:**
-$$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = + \frac{k}{\sqrt{2\sigma^2\pi}} \exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)\cdot\left[x^2 -2\mu x+\mu^2- 1\right]$$
+$$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = - \frac{k}{\sqrt{2\pi}\sigma^3} \left(\exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)-\frac{\exp\left(-\frac{(x-\mu)^2}{2\sigma^2}\right)\cdot (x-\mu)^2}{\sigma^2} \right)$$
 
 
 ## Logistic potential
