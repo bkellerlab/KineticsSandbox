@@ -45,7 +45,6 @@ def apply_nested_2d_array(func):
 
     return wrapper
 
-
 def apply_nested_1d_array(func):
     def wrapper(self, x, *args, **kwargs):
         # Ensure x is a numpy array
@@ -76,6 +75,7 @@ def apply_nested_1d_array(func):
 # ------------------------------------------------
 # abstract class: one-dimensional potentials
 # ------------------------------------------------
+
 class D1(ABC):
     # ---------------------------------------------------------------------
     #   class initialization needs to be implemented in a child class
@@ -822,18 +822,20 @@ class Quadratic(D1):
             - param (list): a list of parameters representing:
             - param[0]: k (float) - force constant
             - param[1]: a (float) - parameter that shifts the extremum left and right
+            - param[2]: c (float) - parameter that shifts the extremum up and down
 
         Raises:
         - ValueError: If param does not have exactly 2 elements.
         """
 
         # Check if param has the correct number of elements
-        if len(param) != 2:
-            raise ValueError("param must have exactly 2 elements.")
+        if len(param) != 3:
+            raise ValueError("param must have exactly 3 elements.")
 
         # Assign parameters
         self.k = param[0]
         self.a = param[1]
+        self.c = param[2]
 
     # the potential energy function
     def potential(self, x):
@@ -841,18 +843,18 @@ class Quadratic(D1):
         Calculate the potential energy V(x) for the 1-dimensional quadratic potential.
 
         The potential energy function is given by:
-        V(x) = k * 0.5 * (x-a)**2
+        V(x) = k * 0.5 * (x-a)**2 - c 
 
         The units of V(x) are kJ/mol, following the convention in GROMACS.
 
         Parameters:
-            - x (float, numpy array): position(s)
+            - x (float, numpy array): position(s) in nm
 
         Returns:
             float, numpy array: The value(s) of the potentail energy at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
 
-        return self.k * 0.5 * (x - self.a) ** 2
+        return self.k * 0.5 * (x - self.a) ** 2 - self.c 
 
     # the force, analytical expression
     def force_ana(self, x):
@@ -1304,9 +1306,9 @@ class Morse(D1):
 
         Parameters:
             - param (list): a list of parameters representing:
-                - param[0]: D_e (float) - Well depth of the potential.
-                - param[1]: a (float) - Width parameter of the potential.
-                - param[2]: x_e (float) - Equilibrium bond distance.
+                - param[0]: D_e (float) - Well depth of the potential (kJ/mol).
+                - param[1]: a (float) - Width parameter of the potential (1/nm).
+                - param[2]: x_e (float) - Equilibrium bond distance (nm).
 
         Raises:
             - ValueError: If param does not have exactly 3 elements.
@@ -1323,15 +1325,18 @@ class Morse(D1):
         Calculate the Morse potential V(x).
 
         The potential energy function is given by:
-         V(x) = D_e (1 - e^{(-a(x - x_e))})^2 - D_e
+        V(x) = D_e (1 - e^{(-a(x - x_e))})^2 - D_e
+             = D_e e^{-2a(r - r_0)} - 2D_e e^{-a(r - r_0)} (expanded form)
 
         Parameters:
-            - x (float, array): position(s)
+            - x (float, array): position(s)in units of nm
 
         Returns:
-            float, numpy array: The value(s) of the potentail energy at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
+            float, numpy array: The value(s) of the potentail energy in kJ/mol 
+            at the given position(s) x, returned as as float (if x is scalar) 
+            or numpy array (if x is an array) depending on the input structure of x.
         """
-        V = (self.D_e * (1 - np.exp(-self.a * (x - self.x_e))) ** 2 )- self.D_e
+        V = (self.D_e * (1 - np.exp(-self.a * (x - self.x_e))) ** 2 ) - self.D_e
         return V
 
     def force_ana(self, x):
@@ -1346,7 +1351,7 @@ class Morse(D1):
             - x (float, numpy array): position(s)
 
         Returns:
-            float, numpy array: The value(s) of the Force at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
+            float, numpy array: The value(s) of the Force in at the given position(s) x, returned as as float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
         """
 
         F = (
@@ -1384,3 +1389,78 @@ class Morse(D1):
         )
 
         return H
+    
+
+class LennardJones(D1):
+    
+    def __init__(self, param):
+        """
+        Initialize the Lennard-Jones potential class with the given parameters.
+
+        Parameters:
+            - param (list): a list of parameters representing:
+                - param[0]: epsilon (float) - Depth of the potential well.
+                - param[1]: sigma (float) - Finite distance at which the inter-particle potential is zero.
+
+        Raises:
+            - ValueError: If param does not have exactly 2 elements.
+        """
+        if len(param) != 2:
+            raise ValueError("param must have exactly 2 elements.")
+
+        self.epsilon = param[0]
+        self.sigma = param[1]
+
+    def potential(self, x):
+        r"""
+        Calculate the Lennard-Jones potential V(x).
+
+        The potential energy function is given by:
+        V(x) = 4 * \epsilon * [(\sigma / x)^{12} - (\sigma / x)^6]
+
+        Parameters:
+            - x (float, array): distance(s)
+
+        Returns:
+            float, numpy array: The value(s) of the potential energy at the given distance(s) x, 
+            returned as a float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
+        """
+        V = 4 * self.epsilon * ((self.sigma / x) ** (12) - (self.sigma / x) ** (6))
+        return V
+
+    def force_ana(self, x):
+        r"""
+        Calculate the force F(x) analytically from the Lennard-Jones potential.
+
+        The force is given by:
+        F(x) = - dV(x) / dx
+             = 24 * \epsilon * [2 * (\sigma^{12} / x^{13}) - (\sigma^6 / x^7)]
+
+        Parameters:
+            - x (float, numpy array): distance(s)
+
+        Returns:
+            float, numpy array: The value(s) of the force at the given distance(s) x, 
+            returned as a float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
+        """
+        F = 24 * self.epsilon * ((2 * self.sigma ** 12 / x ** 13) - (self.sigma ** 6 / x ** 7))
+        return F
+
+    def hessian_ana(self, x):
+        r"""
+        Calculate the Hessian H(x) analytically from the Lennard-Jones potential.
+
+        The Hessian is given by:
+        H(x) = d^2 V(x) / dx^2
+             = 24 * \epsilon * [26 * (\sigma^{12} / x^{14}) - 7 * (\sigma^{6} / x^{8})]
+
+        Parameters:
+            - x (float, numpy array): distance(s)
+
+        Returns:
+            float, numpy array: The value(s) of the Hessian at the given distance(s) x, 
+            returned as a float (if x is scalar) or numpy array (if x is an array) depending on the input structure of x.
+        """
+        H = 24 * self.epsilon * ((26 * self.sigma ** 12 / x ** 14) - (7 * self.sigma ** 6 / x ** 8))
+        return H
+    

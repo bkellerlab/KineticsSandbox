@@ -54,7 +54,7 @@ $$H_{11}(x) = \frac{\mathrm{d}^2}{\mathrm{d}x^2}V(x) = k$$
 
 **Parameters:** $D_e, a, x_e$
 **Potential:**
-$$V(x) = D_e \left(1- e^{-a(x-x_e) } \right)^2$$
+$$V(x) = D_e \left(1- e^{-a(x-x_e) } \right)^2 - D_e = D_{e}(e^{-2a(x-x_{e})}-2e^{-a(x-x_{e})}) $$
 **Force:**
 $$F(x) = - \frac{\mathrm{d}}{\mathrm{d}x} V(x) = -2a D_e \left(e^{-a(x-x_e)}- e^{-2a(x-x_e)} \right)$$
 **Hessian:**
