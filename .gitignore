@@ -8,3 +8,5 @@ __pycache__/
 
 # ignore jupyter checkpoints
 cookbooks/.ipynb_checkpoints
+venv/
+.trunk/
