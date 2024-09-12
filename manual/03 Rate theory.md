@@ -61,9 +61,9 @@ In a one-dimensional potential, there is only one vibrational mode $\nu_A$ in th
 $$\prod_{k=1}^{3N-6}  \nu_{A,k} = \nu_A$$
 where $\nu_A$ is defined above.
 ## Units
-- $k$ has units $\frac{\mbox{kJ}}{\mbox{mol}\cdot\mbox{nm}^2}$
-- $m$ has units $10^{-3} \frac{\mbox{kg}}{\mbox{mol}}$
-- $\nu$ has units $\frac{1}{\mbox{ps}}$
+- $k$ has units $\frac{\text{kJ}}{\text{mol}\cdot\text{nm}^2}$
+- $m$ has units $10^{-3} \frac{\text{kg}}{\text{mol}}$
+- $\nu$ has units $\frac{1}{\text{ps}}$
 - $h$ has units $\mathrm{kJ}\,\mathrm{mol}^{−1}\,\mathrm{ps}$
 - $h\nu$ has units $\mathrm{kJ}\,\mathrm{mol}^{−1}$
 - $R$ has units $\mathrm{kJ}\, \mathrm{mol}^{-1}\, \mathrm{K}^{-1}$

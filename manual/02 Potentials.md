@@ -15,7 +15,7 @@ The also class provides methods that are inherited by the child classes
 - **force_num**: expects $x$ and $h$, calls method potential, returns $-\mathrm{d}V(x)/\mathrm{d}x$ calculated via finite difference
 - **hessian_num**: expects $x$ and $h$, calls method potential, returns  $\mathrm{d}^2V(x)/\mathrm{d}x^2$ calculated via finite difference
 - **min:** expects $x_{\mathrm{start}}$, returns location of the nearest minimum calculated via scipy.optimize
-- **TS:** expects $x_{\mathrm{start}}$ and $x_{\mathrm{end}}$, returns location of the highest energy point in the intervall $[x_{\mathrm{start}}, x_{\mathrm{end}}]$$ (i.e. the transition state), calculated via scipy.optimize. Returns error, if the there is no energy maximum in the interval.
+- **TS:** expects $x_{\mathrm{start}}$ and $x_{\mathrm{end}}$, returns location of the highest energy point in the intervall $[x_{\mathrm{start}}, x_{\mathrm{end}}]$ (i.e. the transition state), calculated via scipy.optimize. Returns error, if the there is no energy maximum in the interval.
 
 The class provides function that automatically switch between analytical and numerical implementation
 - **force:** expects $x$ and $h$, calls force_ana(x) if this is implemented and, force_num(x,h) otherwise. 

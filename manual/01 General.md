@@ -10,35 +10,35 @@ For SI units, see
 
 | Quantity            | Symbol | Unit                                                                                          | Unit name                         |
 | ------------------- | ------ | --------------------------------------------------------------------------------------------- | --------------------------------- |
-| time                | $t$    | $\mbox{ps}= 10^{-12}\, \mbox{s}$                                                              | picosecond                        |
-| length              | $x$    | $\mbox{nm} = 10^{-9}\,\mbox{m}$                                                               | nanometer                         |
-| mass                | $m$    | $\mbox{u} = 1.66054 \cdot 10^{−27}\,  \mbox{kg} \approx 10^{-3} \frac{\mbox{kg}}{\mbox{mol}}$ | unified atomic mass unit / Dalton |
-| temperature         | $T$    | $\mbox{K}$                                                                                    | Kelvin                            |
+| time                | $t$    | $\text{ps}= 10^{-12}\, \text{s}$                                                              | picosecond                        |
+| length              | $x$    | $\text{nm} = 10^{-9}\,\text{m}$                                                               | nanometer                         |
+| mass                | $m$    | $\text{u} = 1.66054 \cdot 10^{−27}\,  \text{kg} \approx 10^{-3} \frac{\text{kg}}{\text{mol}}$ | unified atomic mass unit / Dalton |
+| temperature         | $T$    | $\text{K}$                                                                                    | Kelvin                            |
 | charge              | $q$    | e???                                                                                          | elementary charge ???             |
-| collision frequency | $\xi$  | $\mbox{ps}^{-1} = 10^{12}\, \mbox{s}^{-1}$                                                    |                                   |
+| collision frequency | $\xi$  | $\text{ps}^{-1} = 10^{12}\, \text{s}^{-1}$                                                    |                                   |
 
 ## Derived quantities
 
 The conversion between GROMACS base units and SI base units, assumes that
-$$u \cdot N_A = 0.99999999965(30)\cdot 10^{−3} \frac{\mbox{kg}}{\mbox{mol}} \approx 1$$
+$$u \cdot N_A = 0.99999999965(30)\cdot 10^{−3} \frac{\text{kg}}{\text{mol}} \approx 1$$
 where $N_A$ is Avogadro's constant.
 
 | Quantity         | Symbol and definition                            | GROMACS base units                        | SI base units                                                      | Unit                                         |
 | ---------------- | ------------------------------------------------ | ----------------------------------------- | ------------------------------------------------------------------ | -------------------------------------------- |
-| velocity         | $v(t) = \frac{d}{dt}x(t)$                        | $\frac{\mbox{nm}}{\mbox{ps}}$             | $10^{3} \frac{\mbox{m}}{\mbox{s}}$                                 |                                              |
-| acceleration     | $a(t) = \frac{d}{dt}v(t)$                        | $\frac{\mbox{nm}}{\mbox{ps}^2}$           | $10^{15} \frac{\mbox{m}}{\mbox{s}^2}$                              |                                              |
-| linear momentum  | $p(t) = mv(t)$                                   | $\mbox{u}\frac{\mbox{nm}}{\mbox{ps}}$     | $\frac{\mbox{kg}}{\mbox{mol}}\frac{\mbox{m}}{\mbox{s}}$            |                                              |
-| force            | $F(t) = m a(t)$                                  | $\mbox{u}\frac{\mbox{nm}}{\mbox{ps}^2}$   | $10^{12} \frac{\mbox{kg}}{\mbox{mol}}\frac{\mbox{m}}{\mbox{s}^2}$  | $\frac{\mbox{kJ}}{\mbox{mol}\cdot\mbox{nm}}$ |
-| potential energy | $V(t) = F(t)\Delta x$                            | $\mbox{u}\frac{\mbox{nm}^2}{\mbox{ps}^2}$ | $10^{3} \frac{\mbox{kg}}{\mbox{mol}}\frac{\mbox{m}^2}{\mbox{s}^2}$ | $\frac{\mbox{kJ}}{\mbox{mol}}$               |
-| kinetic energy   | $T(t) = \frac{p^2(t)}{2m} = \frac{1}{2}m v^2(t)$ | $\mbox{u}\frac{\mbox{nm}^2}{\mbox{ps}^2}$ | $10^{3} \frac{\mbox{kg}}{\mbox{mol}}\frac{\mbox{m}^2}{\mbox{s}^2}$ | $\frac{\mbox{kJ}}{\mbox{mol}}$               |
+| velocity         | $v(t) = \frac{d}{dt}x(t)$                        | $\frac{\text{nm}}{\text{ps}}$             | $10^{3} \frac{\text{m}}{\text{s}}$                                 |                                              |
+| acceleration     | $a(t) = \frac{d}{dt}v(t)$                        | $\frac{\text{nm}}{\text{ps}^2}$           | $10^{15} \frac{\text{m}}{\text{s}^2}$                              |                                              |
+| linear momentum  | $p(t) = mv(t)$                                   | $\text{u}\frac{\text{nm}}{\text{ps}}$     | $\frac{\text{kg}}{\text{mol}}\frac{\text{m}}{\text{s}}$            |                                              |
+| force            | $F(t) = m a(t)$                                  | $\text{u}\frac{\text{nm}}{\text{ps}^2}$   | $10^{12} \frac{\text{kg}}{\text{mol}}\frac{\text{m}}{\text{s}^2}$  | $\frac{\text{kJ}}{\text{mol}\cdot\text{nm}}$ |
+| potential energy | $V(t) = F(t)\Delta x$                            | $\text{u}\frac{\text{nm}^2}{\text{ps}^2}$ | $10^{3} \frac{\text{kg}}{\text{mol}}\frac{\text{m}^2}{\text{s}^2}$ | $\frac{\text{kJ}}{\text{mol}}$               |
+| kinetic energy   | $T(t) = \frac{p^2(t)}{2m} = \frac{1}{2}m v^2(t)$ | $\text{u}\frac{\text{nm}^2}{\text{ps}^2}$ | $10^{3} \frac{\text{kg}}{\text{mol}}\frac{\text{m}^2}{\text{s}^2}$ | $\frac{\text{kJ}}{\text{mol}}$               |
 
 These units are consistent with units for the derivates of the potential energy function:
 
 | Quantity         | Symbol and definition        | GROMACS base units                        | SI base units                                                      | Unit                                           |
 | ---------------- | ---------------------------- | ----------------------------------------- | ------------------------------------------------------------------ | ---------------------------------------------- |
-| potential energy | $V(x)$                       | $\mbox{u}\frac{\mbox{nm}^2}{\mbox{ps}^2}$ | $10^{3} \frac{\mbox{kg}}{\mbox{mol}}\frac{\mbox{m}^2}{\mbox{s}^2}$ | $\frac{\mbox{kJ}}{\mbox{mol}}$                 |
-| force            | $F(x) = - \frac{d}{dx}V(x)$  | $\mbox{u}\frac{\mbox{nm}}{\mbox{ps}^2}$   | $10^{12}\frac{\mbox{kg}}{\mbox{mol}}\frac{\mbox{m}}{\mbox{s}^2}$   | $\frac{\mbox{kJ}}{\mbox{mol}\cdot\mbox{nm}}$   |
-| hessian          | $h(x)= \frac{d^2}{dx^2}V(x)$ | $\mbox{u}\frac{1}{\mbox{ps}^2}$           | $10^{21}\frac{\mbox{kg}}{\mbox{mol}}\frac{1}{\mbox{s}^2}$          | $\frac{\mbox{kJ}}{\mbox{mol}\cdot\mbox{nm}^2}$ |
+| potential energy | $V(x)$                       | $\text{u}\frac{\text{nm}^2}{\text{ps}^2}$ | $10^{3} \frac{\text{kg}}{\text{mol}}\frac{\text{m}^2}{\text{s}^2}$ | $\frac{\text{kJ}}{\text{mol}}$                 |
+| force            | $F(x) = - \frac{d}{dx}V(x)$  | $\text{u}\frac{\text{nm}}{\text{ps}^2}$   | $10^{12}\frac{\text{kg}}{\text{mol}}\frac{\text{m}}{\text{s}^2}$   | $\frac{\text{kJ}}{\text{mol}\cdot\text{nm}}$   |
+| hessian          | $h(x)= \frac{d^2}{dx^2}V(x)$ | $\text{u}\frac{1}{\text{ps}^2}$           | $10^{21}\frac{\text{kg}}{\text{mol}}\frac{1}{\text{s}^2}$          | $\frac{\text{kJ}}{\text{mol}\cdot\text{nm}^2}$ |
 
 ## Natural constants
 

@@ -8,7 +8,14 @@ __pycache__/
 
 # ignore jupyter checkpoints
 cookbooks/.ipynb_checkpoints
+
+# ignore virtual environment
 .venv/
+
+# ignore trunk and vs code configuration file
 .trunk/
 .env
 .vscode
+
+# ignor folder playground (from arthur)
+playground
