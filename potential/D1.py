@@ -375,6 +375,7 @@ class D1(ABC):
         return f_double_prime
 
     # force, numerical expression via higher-order finite difference
+    @apply_nested_1d_array
     def force_num(self, x, h, method=("central", 4)):
         """
         Calculate the force F(x) numerically via a higher-order central finite difference.
@@ -951,6 +952,7 @@ class DoubleWell(D1):
         return self.k * ((x - self.a) ** 2 - self.b) ** 2
 
     # the force, analytical expression
+    @apply_nested_1d_array
     def force_ana(self, x):
         """
         Calculate the force F(x) analytically for the 1-dimensional double-well potential.
