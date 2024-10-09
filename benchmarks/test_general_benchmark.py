@@ -32,8 +32,8 @@ x_range = (-3.5, 3.5, 500)
 h = 0.01
 
 
-#benchmark_1d_potential(Bolhuis, param_ranges, param_names, x_range, h, save=False)
-#benchmark_1d_potential_subplots(Bolhuis, param_ranges, param_names, x_range, h)
+benchmark_1d_potential(Bolhuis, param_ranges, param_names, x_range, h, save=False)
+benchmark_1d_potential_subplots(Bolhuis, param_ranges, param_names, x_range, h)
 # Set the global font properties
 plt.rcParams["font.family"] = "serif"
 plt.rcParams["font.serif"] = ["Times New Roman"]
