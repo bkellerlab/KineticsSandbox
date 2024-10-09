@@ -71,7 +71,7 @@ def dump(r, t, L, tp):
 
 
 # Plot function to display the particle positions in 3D
-def plot_particles(r, LL):
+def plot_particles(r, L):
     fig = plt.figure()
     ax = fig.add_subplot(111, projection='3d')
     
@@ -79,42 +79,42 @@ def plot_particles(r, LL):
     ax.scatter(r[:, 0], r[:, 1], r[:, 2], c='r', marker='o')
     
     # Set plot limits to the box size
-    ax.set_xlim([0, LL])
-    ax.set_ylim([0, LL])
-    ax.set_zlim([0, LL])
+    ax.set_xlim([0, L[0]])
+    ax.set_ylim([0, L[1]])
+    ax.set_zlim([0, L[2]])
 
-    #ax.set_xlim([LL/3, LL * 2/3])
-    #ax.set_ylim([LL/3, LL * 2/3])
-    #ax.set_zlim([LL/3, LL * 2/3])
-    
-    ax.set_xlabel('X')
-    ax.set_ylabel('Y')
-    ax.set_zlabel('Z')
+    ax.set_xlabel('X [nm]')
+    ax.set_ylabel('Y [nm]')
+    ax.set_zlabel('Z [nm]')
     
     plt.show()
 
-
-    import numpy as np
-
-
-def force(r, i, potential, cutoff=None):
+def force(r, i, potential, L, cutoff=None, BC=0):
     """
-    Compute the Lennard-Jones forces acting on particle i using a vectorized approach.
-    
+    Compute the Lennard-Jones forces acting on particle i using periodic boundary conditions.
+
     Parameters:
-    r            -- positions array (n, D) where n is the number of particles and D is the number of dimensions
-    i            -- index of the particle for which the force is calculated
-    potential    -- Potential object (an instance of in example LennardJones)
-    cutoff       -- cutoff distance beyond which interactions are ignored (optional)
-    
+    r         -- positions array (n, D)
+    i         -- index of the particle for which the force is calculated
+    potential -- Potential object (e.g., an instance of LennardJones)
+    L         -- box dimensions array (D,)
+    cutoff    -- cutoff distance beyond which interactions are ignored (optional)
+
     Returns:
     F_i -- force vector acting on particle i due to all other particles
     """
-    # Calculate distance vectors between particle i and all other particles
-    drv = r - r[i]  # Vector of differences
-    drv = np.delete(drv, i, axis=0)  # Remove self-interaction
+    n, D = r.shape
 
-    # Compute Euclidean distances
+    # Calculate displacement vectors between particle i and all other particles
+    drv = r - r[i]  # (n, D)
+    drv = np.delete(drv, i, axis=0)  # Remove self-interaction (n-1, D)
+
+
+    if BC == 0:
+        # Apply minimum image convention
+        drv = drv - L * np.round(drv / L)
+
+    # Compute distances
     dr = np.linalg.norm(drv, axis=1)
 
     # Apply cutoff if provided
@@ -127,17 +127,25 @@ def force(r, i, potential, cutoff=None):
     small_cutoff = 1e-12
     dr = np.clip(dr, small_cutoff, None)
 
-    # Calculate the force using the Lennard-Jones potential for the distance array
-    F_magnitude = potential.force_ana(dr)  # Vectorized force calculation
+    # Calculate the force magnitude using the Lennard-Jones potential
+    F_magnitude = potential.force_ana(dr)  # (m,)
 
-    # Normalize the distance vectors and multiply by the force magnitudes
-    unit_vectors = drv / dr[:, np.newaxis]  # Create unit vectors
-    F_i = np.sum(F_magnitude[:, np.newaxis] * unit_vectors, axis=0)  # Sum of force vectors
+    # Normalize the displacement vectors
+    unit_vectors = drv / dr[:, np.newaxis]  # (m, D)
+
+    # Compute the force vectors
+    F_vectors = F_magnitude[:, np.newaxis] * unit_vectors  # (m, D)
+
+    # Sum the forces to get the total force on particle i
+    F_i = np.sum(F_vectors, axis=0)  # (D,)
 
     return F_i
 
 
-def updatev(r, v, dt, potential, m, cutoff=None):
+
+
+
+def updatev(r, v, dt, potential, m, L, cutoff=None, BC=0):
     """
     Update velocities using the specified potential with a cutoff.
 
@@ -160,7 +168,7 @@ def updatev(r, v, dt, potential, m, cutoff=None):
 
     # Compute forces for each particle
     for i in range(n):
-        F[i] = force(r, i, potential, cutoff)  # Call force to compute force on particle i
+        F[i] = force(r, i, potential, L, cutoff, BC)  # Call force to compute force on particle i
 
     # Reshape mass array to allow broadcasting
     m = m[:, np.newaxis]  # Shape becomes (n, 1) to align with (n, D)
@@ -172,8 +180,6 @@ def updatev(r, v, dt, potential, m, cutoff=None):
     newv = v + a * dt
 
     return newv, a
-
-
 
 
 # Update subroutine
@@ -209,110 +215,119 @@ def update(r, v, dt, n, D, L, BC=0):
     return newr, newv
 
 
-
-def rescaleT(v, T_target, m, kb=1.0):
+def rescaleT(v, T_target, m, R=8.314462618):  # R in J/(mol·K)
     """
-    Rescale velocities to achieve the target temperature.
-    
+    Rescale velocities to achieve target temperature.
+
     Parameters:
-    v        -- velocities array (n, D), where n is the number of particles and D is the number of dimensions
-    T_target -- the target temperature
-    m        -- mass of particles (array of shape (n,))
-    kb       -- Boltzmann constant (default is 1 for reduced units)
-    
+    v        -- velocities array (n, D) in nm/ps
+    T_target -- the target temperature (in Kelvin)
+    m        -- mass of particles in g/mol (array of shape (n,))
+    R        -- Universal gas constant in J/(mol·K)
+
     Returns:
-    vnew -- rescaled velocities to achieve the target temperature
+    v_new -- rescaled velocities to achieve the target temperature
     """
-    # Ensure m is an array of masses for all particles
-    m = np.asarray(m)
-    
-    # Compute the total kinetic energy of the system
-    # Kinetic energy for each particle is 1/2 m_i v_i^2, and we sum it over all particles
-    KE = 0.5 * np.sum(m[:, np.newaxis] * v**2)  # Total kinetic energy: sum(1/2 m v^2)
-    
+    # Convert R to kJ/(mol·K)
+    R_kJ = R / 1000  # R_kJ is in kJ/(mol·K)
+
+    # Compute the number of particles
+    n = v.shape[0]
+
+    # Compute the kinetic energy in kJ/mol
+    KE = 0.5 * np.sum(m[:, np.newaxis] * v**2)  # Units: (g/mol)*(nm/ps)^2
+
+    # Since (kJ/g) = (nm/ps)^2, and mass is in g/mol, KE is in kJ/mol
+
     # Compute the current temperature
-    T_now = (2.0 / (3 * len(v) * kb)) * KE  # T = (2/3Nk_B) * KE
-    
+    T_now = (2 * KE) / (3 * n * R_kJ)
+
     # Rescaling factor
-    lam = np.sqrt(T_target / T_now)
-    
-    # Update velocities: we rescale the velocity of each particle
-    v_new = lam * v
-    
-    return v_new
+    lambda_factor = np.sqrt(T_target / T_now)
+
+    # Rescale velocities
+    v_new = v * lambda_factor
+
+    return v_new, T_now
+
+
+def calculate_number_of_particles(temperature_K, pressure_Pa, box_length_nm):
+    """
+    Calculate the number of particles N to include in a simulation box using the ideal gas law.
+
+    Parameters:
+    - temperature_K (float): Temperature in Kelvin (K).
+    - pressure_Pa (float): Pressure in Pascals (Pa).
+    - box_length_nm (float or list/tuple): Length of the simulation box in nanometers (nm). 
+      If the box is cubic, provide a single float. For a rectangular box, provide a list or tuple of three floats.
+
+    Returns:
+    - N (int): Number of particles to include in the simulation box.
+    """
+
+    # Constants
+    R = 8.31446261815324  # Ideal gas constant in J/(mol·K)
+    N_A = 6.02214076e23   # Avogadro's number in particles/mol
+
+    # Convert box length(s) from nm to m
+    if isinstance(box_length_nm, (list, tuple, np.ndarray)):
+        # For non-cubic boxes
+        box_lengths_m = np.array(box_length_nm) * 1e-9  # Convert each dimension to meters
+        volume_m3 = np.prod(box_lengths_m)
+    else:
+        # For cubic boxes
+        box_length_m = box_length_nm * 1e-9  # Convert to meters
+        volume_m3 = box_length_m ** 3
+
+    # Calculate the number of moles using the ideal gas law: n = pV / (RT)
+    n_moles = (pressure_Pa * volume_m3) / (R * temperature_K)
+
+    # Calculate the number of particles: N = n * N_A
+    N_particles = n_moles * N_A
+
+    # Round to the nearest whole number, since we can't have a fraction of a particle
+    N = int(round(N_particles))
+
+    return N
 
 
 
-# Old Code Snippets:
-# ------------------
-
-#def LJpot(r, i, sig, eps):
+## old 
+#def force(r, i, potential, cutoff=None):
 #    """
-#    Calculate the Lennard-Jones potential for particle i with all other particles.
-#
-#    Parameters:
-#    r    -- positions array (n, D) where n is the number of particles and D is the number of dimensions
-#    i    -- index of the particle for which the potential is calculated
-#    sig  -- sigma parameter for the Lennard-Jones potential (distance at which the potential is zero)
-#    eps  -- epsilon parameter for the Lennard-Jones potential (depth of the potential well)
-#
-#    Returns:
-#    LJP -- Lennard-Jones potential for particle i
-#    """
-#    drv = r - r[i]  # Calculate distances between particle i and all others in each dimension
-#    drv = np.delete(drv, i, axis=0)  # Remove the interaction with itself (no self-LJ interactions)
-#
-#    # Compute absolute distances (Euclidean norm)
-#    dr = np.linalg.norm(drv, axis=1)
-#
-#    # Apply the Lennard-Jones formula
-#    r6 = (sig / dr)**6
-#    r12 = r6**2
-#    LJP = 4.0 * eps * np.sum(r12 - r6)  # Sum contributions from all other particles
-#
-#    return LJP
-
-#def dLJp(r, i, sig, eps, cutoff=None):
-#    """
-#    Calculate the force due to the Lennard-Jones potential on particle i.
+#    Compute the Lennard-Jones forces acting on particle i #using a vectorized approach.
 #    
 #    Parameters:
-#    r       -- positions array (n, D) where n is the number of particles and D is the number of dimensions
-#    i       -- index of the particle for which the force is calculated
-#    sig     -- sigma parameter for the Lennard-Jones potential
-#    eps     -- epsilon parameter for the Lennard-Jones potential
-#    cutoff  -- cutoff distance beyond which interactions are ignored (optional)
+#    r            -- positions array (n, D) where n is the #number of particles and D is the number of dimensions
+#    i            -- index of the particle for which the force #is calculated
+#    potential    -- Potential object (an instance of in #example LennardJones)
+#    cutoff       -- cutoff distance beyond which interactions #are ignored (optional)
 #    
 #    Returns:
-#    dLJP -- force vector on particle i due to all other particles
+#    F_i -- force vector acting on particle i due to all other #particles
 #    """
-#    drv = r - r[i]  # Calculate distance vectors between particle i and all others
+#    # Calculate distance vectors between particle i and all #other particles
+#    drv = r - r[i]  # Vector of differences
 #    drv = np.delete(drv, i, axis=0)  # Remove self-interaction
 #
-#    # Compute absolute distances (Euclidean norm)
+#    # Compute Euclidean distances
 #    dr = np.linalg.norm(drv, axis=1)
-#    
+#
 #    # Apply cutoff if provided
 #    if cutoff is not None:
-#        mask = dr < cutoff  # Only consider distances within the cutoff
+#        mask = dr < cutoff  # Mask out distances greater than #the cutoff
 #        drv = drv[mask]
 #        dr = dr[mask]
-#    
-#    # Avoid division by zero (or very small distances)
+#
+#    # Avoid division by zero or very small distances
 #    small_cutoff = 1e-12
 #    dr = np.clip(dr, small_cutoff, None)
 #
-#    # Calculate r^(-8) and r^(-14) terms for the Lennard-Jones force
-#    r8 = (sig / dr)**8
-#    r14 = 2.0 * (sig / dr)**14
+#    # Calculate the force using the Lennard-Jones potential #for the distance array
+#    F_magnitude = potential.force_ana(dr)  # Vectorized force #calculation
 #
-#    # Force magnitude calculation
-#    r814 = r14 - r8
-#    
-#    # Multiply distance vectors by the force magnitudes
-#    r814v = drv * r814[:, np.newaxis]  # Broadcasting for element-wise multiplication
+#    # Normalize the distance vectors and multiply by the #force magnitudes
+#    unit_vectors = drv / dr[:, np.newaxis]  # Create unit #vectors
+#    F_i = np.sum(F_magnitude[:, np.newaxis] * unit_vectors, #axis=0)  # Sum of force vectors
 #
-#    # Sum all forces acting on particle i
-#    dLJP = 24.0 * eps * np.sum(r814v, axis=0)
-#    
-#    return dLJP
+#    return F_i

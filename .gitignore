@@ -16,6 +16,14 @@ cookbooks/.ipynb_checkpoints
 .trunk/
 .env
 .vscode
+.trunk
 
-# ignor folder playground (from arthur)
-playground
+*out
+*logs
+*actions
+*notifications
+*tools
+plugins
+user_trunk.yaml
+user.yaml
+tmp
