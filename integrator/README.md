@@ -65,39 +65,27 @@ $$
 
 This scheme provides good energy conservation and is time-reversible.
 
+## Velocity Verlet Integrator
+
+The Velocity Verlet algorithm is a symplectic integrator that provides excellent energy conservation. It updates positions and velocities using:
+
+$$
+\begin{align}
+x_{k+1} &= x_k + v_k\Delta t + \frac{F(x_k)}{m}(\Delta t)^2 \\
+v_{k+1} &= v_k + \frac{F(x_k) + F(x_{k+1})}{2m}\Delta t
+\end{align}
+$$
+
+Unlike the standard Verlet algorithm, Velocity Verlet explicitly computes velocities at each step, making it more convenient for analysis and visualization. It's particularly well-suited for molecular dynamics simulations due to its stability and energy conservation properties.
+
 ## Usage
 
-All integrators follow the same interface:
+You can find the usage examples in the `cookbooks/D1_integrator.ipynb` file.
 
-```python
-positions, velocities = integrator(system, potential, n_steps)
+Also, you can run the test script to see the performance of the integrators:
+
+```bash
+python test.py
 ```
-
-where:
-- `system`: System object with attributes for mass, position, velocity, and timestep
-- `potential`: Potential energy object with a force method
-- `n_steps`: Number of integration steps to perform
-
-The integrators return arrays containing the position and velocity trajectories.
-
-Example usage:
-
-```python
-import numpy as np
-from system import system
-from potential import D1
-from integrator import D1_integrator
-
-# Initialize system
-sys = system.D1(m=100.0, x=0.0, v=0.0, T=300.0, xi=1.0, dt=0.001, h=0.001)
-
-# Initialize potential (e.g., harmonic)
-pot = D1.Quadratic([1.0, 0.0])  # k=1.0, x0=0.0
-
-# Run simulation
-n_steps = 1000
-positions, velocities = D1_integrator.verlet(sys, pot, n_steps)
-```
-
-
+You can find the results in the [WandB project](https://wandb.ai/asarigun/integrator-comparison).
 
