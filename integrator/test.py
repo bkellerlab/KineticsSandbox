@@ -234,12 +234,29 @@ def run_wandb_sweep():
     energy_drift = np.abs(total_energy[-1] - total_energy[0])
     mean_energy = np.mean(total_energy)
     energy_fluctuation = np.std(total_energy) / mean_energy if mean_energy != 0 else np.inf
+
+    # Test time reversal symmetry
+    # Reverse velocities and run simulation backwards
+    sys_rev = system.D1(m=m, x=positions[-1], v=-velocities[-1], T=T, xi=xi, dt=dt, h=h)
+
+    # Create time array (in ps)
+    time = np.arange(0, n_steps + 1) * dt
     
-    # Log metrics to wandb
-    for i in range(0, n_steps+1):  # Log all points instead of just 100
+    if config.integrator == "euler":
+        pos_rev, vel_rev = test_euler(sys_rev, pot, n_steps)
+    elif config.integrator == "verlet":
+        pos_rev, vel_rev = test_verlet(sys_rev, pot, n_steps)
+    elif config.integrator == "leapfrog":
+        pos_rev, vel_rev = test_leapfrog(sys_rev, pot, n_steps)
+    elif config.integrator == "velocity_verlet":
+        pos_rev, vel_rev = test_velocity_verlet(sys_rev, pot, n_steps)
+    
+    # Log metrics to wandb using time instead of step index
+    for i in range(0, n_steps+1):
         wandb.log({
-            "step": i,
+            "time": time[i],  # Use time instead of step number
             "position": positions[i],
+            "TR position": positions[i]-pos_rev[n_steps-i],
             "velocity": velocities[min(i, len(velocities)-1)],
             "kinetic_energy": kinetic_energy[i],
             "potential_energy": potential_energy[i],
@@ -267,9 +284,6 @@ def run_wandb_sweep():
     except ImportError:
         print("psutil not installed. Install with 'pip install psutil' for CPU/memory monitoring.")
     
-    # Create time array (in ps)
-    time = np.arange(0, n_steps + 1) * dt
-
     # Create generic potential energy surface plot (independent of trajectory)
     if config.potential_type == "quadratic":
         x_range = np.linspace(-5.0, 5.0, 1000)  # Fixed range for better visualization
@@ -295,19 +309,6 @@ def run_wandb_sweep():
     phase_space_data = [[positions[i], momentum[i]] for i in range(0, n_steps+1)]
     phase_space_table = wandb.Table(data=phase_space_data, columns=["position (nm)", "momentum (amu·nm/ps)"])
     
-    # Test time reversal symmetry
-    # Reverse velocities and run simulation backwards
-    sys_rev = system.D1(m=m, x=positions[-1], v=-velocities[-1], T=T, xi=xi, dt=dt, h=h)
-    
-    if config.integrator == "euler":
-        pos_rev, vel_rev = test_euler(sys_rev, pot, n_steps)
-    elif config.integrator == "verlet":
-        pos_rev, vel_rev = test_verlet(sys_rev, pot, n_steps)
-    elif config.integrator == "leapfrog":
-        pos_rev, vel_rev = test_leapfrog(sys_rev, pot, n_steps)
-    elif config.integrator == "velocity_verlet":
-        pos_rev, vel_rev = test_velocity_verlet(sys_rev, pot, n_steps)
-    
     # Calculate time reversal error
     time_reversal_error = np.mean(np.abs(positions - pos_rev[::-1]))
     wandb.log({"time_reversal_error": time_reversal_error})
@@ -332,23 +333,35 @@ def run_wandb_sweep():
         "trajectory_plot": wandb.plot.line(
             table, "time", "position",
             title=f"Position vs Time (ps) ({config.integrator})"),
-        "energy_plot": wandb.plot.line(
-            table, "time", ["kinetic_energy", "potential_energy", "total_energy"], 
-            title=f"Energy Components vs Time (ps) ({config.integrator})"),
+        "TR_trajectory_plot": wandb.plot.line(
+            table, "time", "TR position",
+            title=f"TR Position vs Time (ps) ({config.integrator})"),
+        "velocity_plot": wandb.plot.line(
+            table, "time", "velocity",
+            title=f"Velocity vs Time (ps) ({config.integrator})"),
+        "kinetic_energy_plot": wandb.plot.line(
+            table, "time", "kinetic_energy", 
+            title=f"Kinetic Energy vs Time (ps) ({config.integrator})"),
+        "potential_energy_plot": wandb.plot.line(
+            table, "time", "potential_energy", 
+            title=f"Potential Energy vs Time (ps) ({config.integrator})"),
+        "total_energy_plot": wandb.plot.line(
+            table, "time", "total_energy", 
+            title=f"Total Energy vs Time (ps) ({config.integrator})"),
         "phase_space_plot": wandb.plot.scatter(
             phase_space_table, 
             x="position (nm)", 
             y="momentum (amu·nm/ps)", 
             title=f"Phase Space: Momentum vs Position ({config.integrator})"),
-        "time_reversal_plot": wandb.plot.line(
-            wandb.Table(
-                columns=["time", "forward", "reversed"],
-                data=[[t, positions[i], pos_rev[-(i+1)]] for i, t in enumerate(time)]
-            ),
-            "time",
-            ["forward", "reversed"],
-            title=f"Time Reversal Test ({config.integrator})"
-        )
+        #"time_reversal_plot": wandb.plot.line(
+        #    wandb.Table(
+        #        columns=["time", "forward", "reversed"],
+        #        data=[[t, positions[i], pos_rev[-(i+1)]] for i, t in enumerate(time)]
+        #    ),
+        #    "time",
+        #    ["forward", "reversed"],
+        #    title=f"Time Reversal Test ({config.integrator})"
+        #)
     })
 
 
@@ -363,13 +376,13 @@ def define_sweep_config():
         },
         'parameters': {
             'integrator': {
-                'values': ['euler', 'verlet', 'leapfrog', 'velocity_verlet']
+                'values': ['euler', 'leapfrog', 'verlet', 'velocity_verlet']
             },
             'mass': {
                 'values': [1.0]  # Mass in atomic mass units (amu)
             },
             'initial_position': {
-                'values': [0.0, 1.0]  # Initial position in nm
+                'values': [1.0]  # Initial position in nm
             },
             'initial_velocity': {
                 'values': [50.0]  # This won't be used as we're using thermal velocity
@@ -390,7 +403,7 @@ def define_sweep_config():
                 'values': [10000]  # Increased number of steps for better statistics
             },
             'potential_type': {
-                'values': ['quadratic'] #['constant', 'linear', 'quadratic', 'double_well', 'polynomial', 'bolhuis', 'logistic', 'gaussian']
+                'values': ['linear', 'quadratic', 'double_well', 'polynomial'] #['constant', 'linear', 'quadratic', 'double_well', 'polynomial', 'bolhuis', 'logistic', 'gaussian']
             },
             'd': {
                 'values': [1.0]  # Constant parameter d
