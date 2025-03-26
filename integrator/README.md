@@ -71,7 +71,7 @@ The Velocity Verlet algorithm is a symplectic integrator that provides excellent
 
 $$
 \begin{align}
-x_{k+1} &= x_k + v_k\Delta t + \frac{F(x_k)}{m}(\Delta t)^2 \\
+x_{k+1} &= x_k + v_k\Delta t + \frac{F(x_k)}{2m}(\Delta t)^2 \\
 v_{k+1} &= v_k + \frac{F(x_k) + F(x_{k+1})}{2m}\Delta t
 \end{align}
 $$
