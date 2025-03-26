@@ -148,13 +148,13 @@ def velocity_verlet_step(system, potential):
     force01 = potential.force(system.x, system.h)[0]
     
     # Update position using current velocity and force
-    new_x = system.x + system.v * system.dt + (force01/system.m) * system.dt * system.dt
+    new_x = system.x + system.v * system.dt + 0.5 * force01/system.m * system.dt**2
     
     # Calculate force at new position (force02)
     force02 = potential.force(new_x, system.h)[0]
     
     # Update velocity using average force
-    new_v = system.v + ((force01 + force02)/(2 * system.m)) * system.dt
+    new_v = system.v + 0.5 * (force01 + force02)/system.m * system.dt
     
     # Update system state
     system.x = new_x
