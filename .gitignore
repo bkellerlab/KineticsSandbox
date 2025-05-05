@@ -11,3 +11,4 @@ __pycache__/
 cookbooks/.ipynb_checkpoints
 wandb/
 venv/
+bin/

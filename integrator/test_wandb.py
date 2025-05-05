@@ -1,3 +1,28 @@
+"""
+This module implements integration testing and performance analysis using Weights & Biases (wandb).
+
+Weights & Biases (wandb) is a machine learning platform that helps track experiments, 
+visualize results, and compare different configurations. In this context, it's used to:
+1. Compare different numerical integrators (Euler, Verlet, Leapfrog, Velocity Verlet)
+2. Analyze their performance across various potential energy functions
+3. Track and visualize energy conservation, time reversal symmetry, and phase space trajectories
+4. Log system performance metrics (CPU usage, memory consumption)
+
+To use this module:
+1. Install wandb: pip install wandb
+2. Sign up at https://wandb.ai/ and get your API key
+3. Run wandb login and enter your API key
+4. Execute this script to start the parameter sweep
+
+The sweep will test different combinations of:
+- Integration methods
+- Time steps
+- Potential energy functions
+- System parameters
+
+Results are automatically uploaded to your wandb dashboard for visualization and analysis.
+"""
+
 import sys
 sys.path.append("..")
 
@@ -6,25 +31,32 @@ import wandb
 from system import system
 from potential import D1
 from integrator import D1_integrator
-
-# Non-zero initial position with smaller mass and larger timestep
-np.random.seed(42)
-
-# System parameters
-m = 100.0
-x = 0.0
-v = 0.0 
-T = 300.0
-xi = 1.0
-dt = 0.001
-h = 0.001
-n_steps = 1000
-
-sys = system.D1(m=m, x=x, v=v, T=T, xi=xi, dt=dt, h=h)
-pot = D1.Quadratic([1.0, 0.0])
+import psutil
 
 
 def test_euler(sys, pot, n_steps):
+    """Test the Euler integration method for molecular dynamics simulation.
+    
+    The Euler method is the simplest numerical integration method. It updates positions
+    and velocities using first-order approximations:
+    x(t + dt) = x(t) + v(t) * dt
+    v(t + dt) = v(t) + a(t) * dt
+    
+    Args:
+        sys: System object containing:
+            - m (float): Mass of the particle
+            - x (float): Current position
+            - v (float): Current velocity
+            - dt (float): Time step size
+            - h (float): Step size for force calculation
+        pot: Potential energy object defining the force field and energy landscape
+        n_steps (int): Number of integration steps to perform
+        
+    Returns:
+        tuple: Two numpy arrays containing:
+            - positions: Array of shape (n_steps + 1,) with particle positions at each time step
+            - velocities: Array of shape (n_steps + 1,) with particle velocities at each time step
+    """
 
     positions = np.zeros(n_steps + 1)
     velocities = np.zeros(n_steps + 1)
@@ -44,6 +76,30 @@ def test_euler(sys, pot, n_steps):
 
 
 def test_verlet(sys, pot, n_steps):
+    """Test the Verlet integration method for molecular dynamics simulation.
+    
+    The Verlet method is a second-order symplectic integrator that provides better
+    energy conservation than Euler. It updates positions using:
+    x(t + dt) = 2x(t) - x(t - dt) + a(t) * dt^2
+    
+    Note: Velocities are calculated using finite differences of positions.
+    
+    Args:
+        sys: System object containing:
+            - m (float): Mass of the particle
+            - x (float): Current position
+            - v (float): Current velocity
+            - dt (float): Time step size
+            - h (float): Step size for force calculation
+        pot: Potential energy object defining the force field and energy landscape
+        n_steps (int): Number of integration steps to perform
+        
+    Returns:
+        tuple: Two numpy arrays containing:
+            - positions: Array of shape (n_steps + 1,) with particle positions at each time step
+            - velocities: Array of shape (n_steps,) with particle velocities at each time step
+                Note: One less velocity than position due to finite difference calculation
+    """
 
     positions = np.zeros(n_steps + 1)
     velocities = np.zeros(n_steps)  # One less velocity than positions
@@ -66,6 +122,32 @@ def test_verlet(sys, pot, n_steps):
 
 
 def test_leapfrog(sys, pot, n_steps):
+    """Test the Leapfrog integration method for molecular dynamics simulation.
+    
+    The Leapfrog method is a second-order symplectic integrator that evaluates
+    velocities at half-steps and positions at full steps:
+    v(t + dt/2) = v(t - dt/2) + a(t) * dt
+    x(t + dt) = x(t) + v(t + dt/2) * dt
+    
+    This method provides excellent energy conservation and is time-reversible.
+    
+    Args:
+        sys: System object containing:
+            - m (float): Mass of the particle
+            - x (float): Current position
+            - v (float): Current velocity
+            - v_half (float): Velocity at half time step
+            - dt (float): Time step size
+            - h (float): Step size for force calculation
+        pot: Potential energy object defining the force field and energy landscape
+        n_steps (int): Number of integration steps to perform
+        
+    Returns:
+        tuple: Two numpy arrays containing:
+            - positions: Array of shape (n_steps + 1,) with particle positions at each time step
+            - velocities: Array of shape (n_steps + 1,) with particle velocities at each time step
+            Note: Velocities are interpolated to full steps for output
+    """
 
     positions = np.zeros(n_steps + 1)
     velocities = np.zeros(n_steps + 1)
@@ -110,6 +192,31 @@ def test_leapfrog(sys, pot, n_steps):
     
     
 def test_velocity_verlet(sys, pot, n_steps):
+    """Test the Velocity Verlet integration method for molecular dynamics simulation.
+    
+    The Velocity Verlet method is a second-order symplectic integrator that explicitly
+    evolves both positions and velocities:
+    x(t + dt) = x(t) + v(t)*dt + (1/2)a(t)*dt^2
+    v(t + dt) = v(t) + (1/2)[a(t) + a(t + dt)]*dt
+    
+    This method provides excellent energy conservation and is time-reversible while
+    maintaining explicit velocity calculations.
+    
+    Args:
+        sys: System object containing:
+            - m (float): Mass of the particle
+            - x (float): Current position
+            - v (float): Current velocity
+            - dt (float): Time step size
+            - h (float): Step size for force calculation
+        pot: Potential energy object defining the force field and energy landscape
+        n_steps (int): Number of integration steps to perform
+        
+    Returns:
+        tuple: Two numpy arrays containing:
+            - positions: Array of shape (n_steps + 1,) with particle positions at each time step
+            - velocities: Array of shape (n_steps + 1,) with particle velocities at each time step
+    """
 
     positions = np.zeros(n_steps + 1)
     velocities = np.zeros(n_steps + 1)
@@ -130,7 +237,31 @@ def test_velocity_verlet(sys, pot, n_steps):
 
 
 def calculate_energies(positions, velocities, mass, potential):
-    """Calculate kinetic, potential, and total energy for the trajectory"""
+    """Calculate kinetic, potential, and total energy for the molecular dynamics trajectory.
+    
+    This function computes the energy components at each time step to analyze
+    energy conservation and system behavior:
+    - Kinetic Energy: K = (1/2)mv^2
+    - Potential Energy: V(x) depends on the potential type
+    - Total Energy: E = K + V
+    
+    Args:
+        positions (numpy.ndarray): Array of position values for each time step
+        velocities (numpy.ndarray): Array of velocity values for each time step
+        mass (float): Mass of the particle in atomic mass units (amu)
+        potential: Potential energy object with methods:
+            - potential(x): Returns potential energy at position x
+            Supported types: Quadratic, DoubleWell, and others defined in D1
+        
+    Returns:
+        tuple: Three numpy arrays containing:
+            - kinetic_energy: (1/2)mv^2 at each time step
+            - potential_energy: V(x) at each time step
+            - total_energy: Sum of kinetic and potential energy at each time step
+            
+    Note:
+        Energy values are returned in units of kJ/mol
+    """
     n_steps = len(positions) - 1
     
     # Initialize energy arrays
@@ -163,6 +294,36 @@ def calculate_energies(positions, velocities, mass, potential):
 
 
 def run_wandb_sweep():
+    """Run a comprehensive Weights & Biases sweep to analyze integrator performance.
+    
+    This function performs the following steps:
+    1. Initializes a new wandb run with configuration from the sweep
+    2. Sets up a molecular dynamics system with specified parameters:
+       - Mass, position, velocity
+       - Temperature and friction coefficient
+       - Time step and force calculation step
+    3. Configures the potential energy function (various types available)
+    4. Runs the selected integrator for the specified number of steps
+    5. Analyzes and logs multiple metrics to wandb:
+       - Energy conservation (drift and fluctuations)
+       - Time reversal symmetry
+       - Phase space trajectories
+       - Execution time and system performance
+    6. Creates visualizations including:
+       - Potential energy surface
+       - Position and velocity trajectories
+       - Energy evolution over time
+       - Phase space plots
+    
+    The results are automatically uploaded to your wandb dashboard where you can:
+    - Compare different integrators
+    - Analyze energy conservation properties
+    - Evaluate computational efficiency
+    - Visualize system dynamics
+    
+    Note:
+        Requires wandb account and login. See module docstring for setup instructions.
+    """
     # Initialize wandb first
     wandb.init()
     
@@ -274,7 +435,6 @@ def run_wandb_sweep():
     
     # For more detailed system monitoring, you can use psutil
     try:
-        import psutil
         # Log CPU and memory usage
         wandb.log({
             "cpu_percent": psutil.cpu_percent(),
@@ -353,20 +513,48 @@ def run_wandb_sweep():
             x="position (nm)", 
             y="momentum (amu·nm/ps)", 
             title=f"Phase Space: Momentum vs Position ({config.integrator})"),
-        #"time_reversal_plot": wandb.plot.line(
-        #    wandb.Table(
-        #        columns=["time", "forward", "reversed"],
-        #        data=[[t, positions[i], pos_rev[-(i+1)]] for i, t in enumerate(time)]
-        #    ),
-        #    "time",
-        #    ["forward", "reversed"],
-        #    title=f"Time Reversal Test ({config.integrator})"
-        #)
     })
 
 
 def define_sweep_config():
-    """Define the sweep configuration"""
+    """Define the configuration space for the Weights & Biases parameter sweep.
+    
+    This function sets up a grid search over different combinations of:
+    1. Integration methods:
+       - Euler (first-order)
+       - Verlet (second-order)
+       - Leapfrog (second-order, symplectic)
+       - Velocity Verlet (second-order, symplectic)
+       
+    2. System parameters:
+       - Mass (amu)
+       - Initial position (nm)
+       - Initial velocity (nm/ps)
+       - Temperature (K)
+       - Friction coefficient (ps^-1)
+       
+    3. Integration parameters:
+       - Time step (ps)
+       - Force calculation step (nm)
+       - Number of steps
+       
+    4. Potential energy functions:
+       - Linear: V(x) = kx + x0
+       - Quadratic: V(x) = (1/2)k(x - x0)^2
+       - Double Well: V(x) = a(x^2 - b)^2
+       - Polynomial: V(x) = sum(ci * x^i)
+       And their associated parameters
+    
+    Returns:
+        dict: Complete sweep configuration including:
+            - method: Search strategy (grid, random, or Bayesian)
+            - metric: Objective to optimize
+            - parameters: Dictionary of parameter spaces to explore
+            
+    Note:
+        The sweep will test all combinations of parameters in a grid search,
+        so choose parameter ranges carefully to manage computational cost.
+    """
     sweep_config = {
         'method': 'grid',  # or 'random', 'bayes'
         'name': 'integrator-comparison-sweep',
