@@ -85,7 +85,7 @@ You can find the usage examples in the `cookbooks/D1_integrator.ipynb` file.
 Also, you can run the test script to see the performance of the integrators:
 
 ```bash
-python test.py
+python test_D1_integrators.py
 ```
 You can find the results in the [WandB project](https://wandb.ai/asarigun/integrator-comparison).
 

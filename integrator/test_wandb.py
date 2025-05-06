@@ -23,8 +23,8 @@ The sweep will test different combinations of:
 Results are automatically uploaded to your wandb dashboard for visualization and analysis.
 """
 
-import sys
-sys.path.append("..")
+import _sys
+_sys.path.append("..")
 
 import numpy as np
 import wandb
