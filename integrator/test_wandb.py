@@ -23,8 +23,8 @@ The sweep will test different combinations of:
 Results are automatically uploaded to your wandb dashboard for visualization and analysis.
 """
 
-import _sys
-_sys.path.append("..")
+import sys
+sys.path.append("..")
 
 import numpy as np
 import wandb
@@ -356,12 +356,32 @@ def run_wandb_sweep():
         pot = D1.Quadratic([config.k, config.x0])
     elif config.potential_type == "double_well":
         pot = D1.DoubleWell([config.k, config.a, config.b])
+        # Debug: Calculate well positions and initial conditions
+        well_separation = np.sqrt(config.b)
+        well_left = config.a - well_separation
+        well_right = config.a + well_separation
+        barrier_height = pot.potential(config.a)
+        initial_potential = pot.potential(x)
+        initial_force = pot.force(x, h)[0]
+        
+        print(f"Debug - Double-well potential:")
+        print(f"  Parameters: k={config.k}, a={config.a}, b={config.b}")
+        print(f"  Well positions: left={well_left:.3f}, right={well_right:.3f}")
+        print(f"  Barrier height: {barrier_height:.3f} kJ/mol")
+        print(f"  Initial position: {x:.3f}")
+        print(f"  Initial velocity: {v:.3f}")
+        print(f"  Initial potential energy: {initial_potential:.3f} kJ/mol")
+        print(f"  Initial force: {initial_force:.3f} kJ/(mol·nm)")
+        
+        # Check if starting position is reasonable
+        if abs(initial_potential) > 100:  # Arbitrary threshold
+            print(f"  WARNING: High initial potential energy!")
+        if abs(initial_force) > 1000:  # Arbitrary threshold
+            print(f"  WARNING: Very large initial force!")
     elif config.potential_type == "polynomial":
         pot = D1.Polynomial([config.a, config.c1, config.c2, config.c3, config.c4, config.c5, config.c6])
     elif config.potential_type == "bolhuis":
         pot = D1.Bolhuis([config.a, config.b, config.c, config.k1, config.k2, config.alpha])
-    #elif config.potential_type == "prinz":
-    #    pot = D1.Prinz()
     elif config.potential_type == "logistic":
         pot = D1.Logistic([config.logistic_k, config.logistic_a, config.logistic_b])
     elif config.potential_type == "gaussian":
@@ -570,10 +590,13 @@ def define_sweep_config():
                 'values': [1.0]  # Mass in atomic mass units (amu)
             },
             'initial_position': {
-                'values': [1.0]  # Initial position in nm
+                # For double-well with a=0, b=1: wells at ±1, so start near wells or at center
+                # 'values': [1.0]  # Initial position in nm
+                'values': [-1.0, -0.5, 0.0, 0.5, 1.0]  
             },
             'initial_velocity': {
-                'values': [50.0]  # This won't be used as we're using thermal velocity
+                #'values': [50.0]  # This won't be used as we're using thermal velocity
+                'values': [0.1, 1.0, 5.0]  # Reduced velocities for stability
             },
             'temperature': {
                 'values': [300.0]  # Temperature in Kelvin
@@ -582,7 +605,8 @@ def define_sweep_config():
                 'values': [1.0]  # Friction coefficient in ps^-1
             },
             'time_step': {
-                'values': [0.001, 0.01, 0.1]  # Time step in ps
+                #'values': [0.001, 0.01, 0.1]  # Time step in ps
+                'values': [0.001, 0.005, 0.01]  # Smaller time steps for stability
             },
             'force_step': {
                 'values': [0.001]  # Force calculation step in nm
@@ -591,7 +615,7 @@ def define_sweep_config():
                 'values': [10000]  # Increased number of steps for better statistics
             },
             'potential_type': {
-                'values': ['linear', 'quadratic', 'double_well', 'polynomial'] #['constant', 'linear', 'quadratic', 'double_well', 'polynomial', 'bolhuis', 'logistic', 'gaussian']
+                'values': ['double_well'] #['linear', 'quadratic', 'double_well', 'polynomial'] #['constant', 'linear', 'quadratic', 'double_well', 'polynomial', 'bolhuis', 'logistic', 'gaussian']
             },
             'd': {
                 'values': [1.0]  # Constant parameter d
@@ -600,16 +624,19 @@ def define_sweep_config():
                 'values': [10.0]  # Spring constant in kJ/(mol·nm)
             },
             'k': {
-                'values': [10.0]  # Spring constant in kJ/(mol·nm²)
+                # 'values': [10.0]  # Spring constant in kJ/(mol·nm²)
+                'values': [1.0, 5.0]  # Reduced spring constant for double-well
             },
             'x0': {
                 'values': [0.0]  # Equilibrium position in nm
             },
             'a': {
-                'values': [10.0]  # Double well parameter a in nm
+                # 'values': [10.0]  # Double well parameter a in nm
+                'values': [0.0]  # Center of double-well (shift parameter)
             },
             'b': {
-                'values': [1.0]  # Double well parameter b in nm
+                # 'values': [1.0]  # Double well parameter b in nm
+                'values': [1.0, 4.0]  # Well separation parameter (wells at ±√b)
             },
             'c1': {
                 'values': [1.0]  # Polynomial parameter c1 in kJ/(mol·nm)

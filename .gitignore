@@ -12,3 +12,5 @@ cookbooks/.ipynb_checkpoints
 wandb/
 venv/
 bin/
+D1_plots/
+Dn_plots/
