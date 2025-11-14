@@ -87,6 +87,7 @@ def B_step(system, potential, bias = None, half_step = False):
                          It should have a 'force' method that calculates the force at a given position.
     - bias (object or None, optional): An object representing the bias potential added to the of the system.
                          It should have a 'force' method that calculates the force at a given position.
+    - Girsanov_reweighting (bool, optional): TODO
     - half_step (bool, optional): If True, perform a half-step integration. Default is False, performing
                                   a full-step integration. A half-step is often used in the velocity
                                   Verlet algorithm for symplectic integration.
@@ -102,16 +103,16 @@ def B_step(system, potential, bias = None, half_step = False):
     else:
         dt = system.dt
     if bias is not None:
-        force = potential.force_num( system.x, 0.001 )[0] + bias( system.x)[0] # TODO use num or ana?
+        system.bias_force = bias(system.x)[0] 
+        force = potential.force(system.x)[0] + system.bias_force 
     else:
-        force = potential.force_num( system.x, 0.001 )[0] 
+        force = potential.force(system.x)[0] 
     system.v = system.v + (1 / system.m) * dt * force
     
     return None
 
 # O_step
-def O_step(system, half_step = False, eta_k = None):
-    
+def O_step(system, step_index=0, half_step = False, eta_k = None):
     """
     Perform the O-step in a Langevin integrator.
 
@@ -140,7 +141,7 @@ def O_step(system, half_step = False, eta_k = None):
     # if eta_k is not provided, draw eta_k from Gaussian normal distribution
     if eta_k is None:
         eta_k = np.random.normal()
-        system.eta_k = eta_k
+        system.eta[step_index] = eta_k
 
     d = np.exp(- system.xi * dt)
     f_v = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-2 * system.xi * dt)) ) 
@@ -149,16 +150,13 @@ def O_step(system, half_step = False, eta_k = None):
 
     return None
 
-#--------------------------------------------------------------
-#   L A N G E V I N   S P L I T T I N G   A L G O R I T H M S 
-#   with reweighting for known bias (force field modification)
-# NOTE bias for integration and bias_force for reweighting factors 
-# are seperate to enable Girsanov reweighting for bias and pertubation
-# TODO include correct sign into the bias (U_pertubation vs -U_bias)
-#--------------------------------------------------------------
+#----------------------------------------------------------------------------
+#    L A N G E V I N   S P L I T T I N G   A L G O R I T H M S 
+# with option for biased simulation and Girsanov reweighting 
+#----------------------------------------------------------------------------
 
 # ABO integrator
-def ABO(system, potential, bias=None, eta_k = None, path_reweighting = False):
+def ABO(system, potential, bias=None, eta_k = None, Girsanov_reweighting=False):
     """
     Perform a full Langevin integration step consisting of A-step, B-step, and O-step.
 
@@ -178,22 +176,17 @@ def ABO(system, potential, bias=None, eta_k = None, path_reweighting = False):
     """    
     
     A_step(system)
-    if path_reweighting:
-        R = const.R * 0.001
-        # get random number differences according to Tab. 1
-        # in J. Phys. Chem. B 2024, 128, 6014−6027
-        d = np.exp(- system.xi * system.dt)
-        f = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-2 * system.xi * system.dt)) )
-        DeltaEta = d / f * system.dt * system.bias_force(system.x)[0]
-    B_step(system, potential, bias)
+    B_step(system, potential, bias) 
     O_step(system, eta_k = eta_k)
 
-    if path_reweighting:
-        system.logM = system.eta_k * DeltaEta + 0.5 * DeltaEta * DeltaEta
+    if Girsanov_reweighting:
+        system.delta_eta = system.d / system.f * system.dt * system.bias_force
+        system.logM = system.eta[0] * system.delta_eta + 0.5 * system.delta_eta * system.delta_eta
+    
     return None   
 
 # ABOBA integrator
-def ABOBA(system, potential, bias=None, eta_k = None, path_reweighting=False):
+def ABOBA(system, potential, bias=None, eta_k = None, Girsanov_reweighting=False):
     """
     Perform a full Langevin integration step for the ABOBA algorithm
 
@@ -213,24 +206,20 @@ def ABOBA(system, potential, bias=None, eta_k = None, path_reweighting=False):
     """    
     
     A_step(system, half_step= True)
-    if path_reweighting:
-        R = const.R * 0.001
-        # get random number differences according to Tab. 1
-        # in J. Phys. Chem. B 2024, 128, 6014−6027
-        d = np.exp(- system.xi * system.dt)
-        f = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-2 * system.xi * system.dt)) )
-        DeltaEta = (d + 1) / f * system.dt / 2 * system.bias_force(system.x)[0]
-    B_step(system, potential, bias, half_step = True) 
+    bias_force=system.bias_force
+    B_step(system, potential, bias=bias, half_step = True) 
     O_step(system, eta_k = eta_k)    
-    B_step(system, potential, bias, half_step = True) 
+    B_step(system, potential, bias=bias, half_step = True) 
     A_step(system, half_step = True)
     
-    if path_reweighting:
-        system.logM = system.eta_k * DeltaEta + 0.5 * DeltaEta * DeltaEta
+    if Girsanov_reweighting:
+        system.delta_eta[0] = (system.d + 1) / system.f * system.dt / 2 * bias_force
+        system.logM = system.eta[0] * system.delta_eta[0] + 0.5 * system.delta_eta[0] * system.delta_eta[0]
+    
     return None   
 
 # AOBOA integrator
-def AOBOA(system, potential, bias=None, eta_k = None, path_reweighting=False):
+def AOBOA(system, potential, bias=None, eta_k = None, Girsanov_reweighting=False):
     """
     Perform a full Langevin integration step for the AOBOA algorithm
 
@@ -249,29 +238,20 @@ def AOBOA(system, potential, bias=None, eta_k = None, path_reweighting=False):
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
 
-    # TODO find a way to write both etas
     A_step(system, half_step = True)
-    if path_reweighting:
-        R = const.R * 0.001
-        # get random number differences according to Tab. 1
-        # in J. Phys. Chem. B 2024, 128, 6014−6027
-        d = np.exp(- system.xi * system.dt / 2)
-        f = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-system.xi * system.dt)) )
-        DeltaEta = d / f * system.dt * system.bias_force(system.x)[0]
-    O_step(system, half_step = True, eta_k = eta_k)  
-    if path_reweighting:
-        d = np.exp(- system.xi * system.dt / 2)
-        eta = d * system.eta_k
+    bias_force = system.bias_force
+    O_step(system, half_step = True, eta_k = eta_k, step_index=0) 
     B_step(system, potential, bias) 
-    O_step(system, half_step = True, eta_k = eta_k) 
-    if path_reweighting:
-        system.eta_k = eta + system.eta_k 
+    O_step(system, half_step = True, eta_k = eta_k, step_index=1) 
     A_step(system, half_step = True)
     
-    if path_reweighting:
-        system.logM = system.eta_k * DeltaEta / (d * d + 1) + 0.5 * DeltaEta * DeltaEta / ( d * d +1) # NOTE check
+    if Girsanov_reweighting:
+        eta_combined = system.d_prime * system.eta[0] + system.eta[1]
+        system.delta_eta[0] = system.d_prime / system.f_prime * system.dt * bias_force
+        system.logM = eta_combined * system.delta_eta[0] / (system.d_prime * system.d_prime + 1) + 0.5 * system.delta_eta[0] * system.delta_eta[0] / (system.d_prime * system.d_prime + 1) # NOTE check
+    
     return None      
-        
+
 # BAOAB integrator
 def BAOAB(system, potential, bias=None, eta_k = None):
     """
@@ -301,7 +281,7 @@ def BAOAB(system, potential, bias=None, eta_k = None):
     return None   
 
 # BOAOB integrator
-def BOAOB(system, potential, bias=None, eta_k = None, path_reweighting=False):
+def BOAOB(system, potential, bias=None, eta_k = None, Girsanov_reweighting=False):
     """
     Perform a full Langevin integration step for the BOAOB algorithm
 
@@ -320,35 +300,24 @@ def BOAOB(system, potential, bias=None, eta_k = None, path_reweighting=False):
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
     
-    if path_reweighting:
-        R = const.R * 0.001
-        # random number differences Tab. 1 in J. Phys. Chem. B 2024, 128, 6014−6027
-        d = np.exp(- system.xi * system.dt / 2)
-        f = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-system.xi * system.dt)) )
-        DeltaEta1 = d / f * system.dt / 2 * system.bias_force(system.x)[0]
-    B_step(system, potential, bias, half_step = True) 
-    if path_reweighting:
-        Eta1 = np.random.normal()
-        system.eta_k = Eta1
-        O_step(system, half_step = True, eta_k = Eta1)   
-    else:
-        O_step(system, half_step = True, eta_k = eta_k)
+    bias_force = system.bias_force
+    B_step(system, potential, bias=bias, half_step = True) 
+    O_step(system, half_step = True, eta_k = eta_k, step_index=0)
     A_step(system)
-    if path_reweighting:
-        DeltaEta2 = 1 / f * system.dt / 2 * system.bias_force(system.x)[0]
-        Eta2 = np.random.normal()
-        system.eta_l = Eta2  
-        O_step(system, half_step = True, eta_k = Eta2)  
-    else:
-        O_step(system, half_step = True, eta_k = eta_k) 
-    B_step(system, potential, bias, half_step = True)     
+    O_step(system, half_step = True, eta_k = eta_k, step_index=1) 
+    B_step(system, potential, bias=bias, half_step = True)     
     
-    if path_reweighting:
-        system.logM = (Eta1 * DeltaEta1 + 0.5 * (DeltaEta1 * DeltaEta1)) + (Eta2 * DeltaEta2 + 0.5 * (DeltaEta2 * DeltaEta2)) # TODO check
+    if Girsanov_reweighting:
+        system.delta_eta[0] = system.d_prime / system.f_prime * system.dt / 2 * bias_force
+        system.delta_eta[1] = 1 / system.f_prime * system.dt / 2 * system.bias_force
+        logM_1 = system.eta[0] * system.delta_eta[0] + 0.5 * system.delta_eta[0] * system.delta_eta[0]
+        logM_2 = system.eta[1] * system.delta_eta[1] + 0.5 * system.delta_eta[1] * system.delta_eta[1]
+        system.logM = logM_1 + logM_2 
+    
     return None  
 
 # OBABO integrator
-def OBABO(system, potential, bias=None, eta_k = None, path_reweighting=False):
+def OBABO(system, potential, bias=None, eta_k = None, Girsanov_reweighting=False):
     """
     Perform a full Langevin integration step for the OBABO algorithm
 
@@ -366,30 +335,21 @@ def OBABO(system, potential, bias=None, eta_k = None, path_reweighting=False):
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
-    
-    if path_reweighting:
-        R = const.R * 0.001
-        # random number differences Tab. 1 in J. Phys. Chem. B 2024, 128, 6014−6027
-        d = np.exp(- system.xi * system.dt / 2)
-        f = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-system.xi * system.dt)) )
-        DeltaEta1 = 1 / f * system.dt / 2 * system.bias_force(system.x)[0]
-        Eta1 = np.random.normal()  
-        system.eta_k = Eta1
-    O_step(system, half_step = True, eta_k = eta_k)   
+
+    bias_force = system.bias_force
+    O_step(system, half_step = True, eta_k = eta_k, step_index=0)   
     B_step(system, potential, bias, half_step = True) 
     A_step(system)
-    if path_reweighting:
-        DeltaEta2 = d / f * system.dt / 2 * system.bias_force(system.x)[0]   
     B_step(system, potential, bias, half_step = True)
-    if path_reweighting:   
-        Eta2 = np.random.normal()
-        system.eta_l = Eta2
-        O_step(system, half_step = True, eta_k = Eta2)
-    else:  
-        O_step(system, half_step = True, eta_k = eta_k)   
+    O_step(system, half_step = True, eta_k = eta_k, step_index=1)   
     
-    if path_reweighting:
-        system.logM = (Eta1 * DeltaEta1 + 0.5 * (DeltaEta1 * DeltaEta1)) + (Eta2 * DeltaEta2 + 0.5 * (DeltaEta2 * DeltaEta2)) # TODO check
+    if Girsanov_reweighting:
+        system.delta_eta[0] = 1 / system.f_prime * system.dt / 2 * bias_force
+        system.delta_eta[1] = system.d_prime / system.f_prime * system.dt / 2 * system.bias_force
+        logM_1 = system.eta[0] * system.delta_eta[0] + 0.5 * system.delta_eta[0] * system.delta_eta[0]
+        logM_2 = system.eta[1] * system.delta_eta[1] + 0.5 * system.delta_eta[1] * system.delta_eta[1]
+        system.logM = logM_1 + logM_2 
+    
     return None  
 
 # OABAO integrator
@@ -446,8 +406,3 @@ def BAOA(system, potential, bias=None, eta_k = None):
     A_step(system, half_step = True)   
     
     return None 
-
-
-#----------------------------------------------------------------------------
-#   B I A S E D   L A N G E V I N   S P L I T T I N G   A L G O R I T H M S 
-#----------------------------------------------------------------------------
