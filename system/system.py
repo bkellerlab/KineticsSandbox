@@ -24,8 +24,8 @@ class D1:
         xi: float,
         dt: float,
         h: float,
-        eta: np.ndarray | None = None,
-        delta_eta: np.ndarray | None = None,
+        eta: np.ndarray = np.array([None, None]),
+        delta_eta: np.ndarray = np.array([None, None]),
         bias_force: float | None = None,
         logM: float | None = None
     ):
@@ -73,7 +73,9 @@ class D1:
         # sigma = standard deviation of random noise in overdamped Langevin dynamics
         self.sigma = np.sqrt(2* self.D)
 
-        # update parameters for Grisanov reweighting 
+        # update parameters for Grisanov reweighting for overdamped Langevin dynamics
+        self.pre_factor =  np.sqrt(self.dt / (2 * self.T * R * self.xi_m) )
+        # update parameters for Grisanov reweighting for Langevin dynamics
         self.d = np.exp(- self.xi * self.dt)
         self.f = np.sqrt(R * self.T *  (1 / self.m)  * (1 - np.exp(-2 * self.xi * self.dt)))
         self.d_prime = np.exp(- self.xi * self.dt / 2)
