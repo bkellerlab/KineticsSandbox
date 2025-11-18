@@ -901,3 +901,97 @@ class Logistic(D1):
                
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])      
+
+class Gaussian(D1):
+    # intiialize class
+    def __init__(self, param): 
+        """
+        Initialize the class for the 1-dimensional Logistic potential based on the given parameters.
+
+        Parameters:
+            - param (list): a list of parameters representing:
+            - param[0]: k (float) - prefactor that scales the potential
+            - param[1]: mu (float) - parameter that shifts the extremum left and right (mean)
+            - param[2]: sigma (float) - parameter that determines the broadening of the Gaussian (variance)
+
+
+        Raises:
+        - ValueError: If param does not have exactly 3 elements.
+        """
+        
+        # Check if param has the correct number of elements
+        if len(param) != 3:
+            raise ValueError("param must have exactly 3 elements.")
+        
+        # Assign parameters
+        self.k = param[0]
+        self.mu = param[1]
+        self.sigma = param[2]
+        
+    # the potential energy function 
+    def potential(self, x):
+        """
+        Calculate the potential energy V(x) for the 1-dimensional Logistic potential.
+    
+        The potential energy function is given by:
+        V(x) = k / (sqrt(2 sigma^2 pi)) * exp(-(x - mu)^2 / (2 sigma^2))
+    
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+        Returns:
+            float: The value of the potential energy function at the given position x.
+        """
+    
+        return self.k / (self.sigma * np.sqrt(2 * np.pi)) * np.exp(-(x - self.mu)**2 / (2 * self.sigma**2))
+    
+    # the force, analytical expression 
+    def force_ana(self, x):
+        """
+        Calculate the force F(x) analytically for the 1-dimensional Logistic potential.
+        Since the potential is one-dimensional, the force is a vector with one element.
+    
+        The force is given by:
+        F(x) = - dV(x) / dx 
+             = k / (sqrt(2 pi) sigma^3) * exp(-(x - mu)^2 / (2 sigma ^2)) * (x - mu)
+    
+        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+    
+        Returns:
+            numpy array: The value of the force at the given position x, returned as vector with 1 element.
+    
+        """
+        
+        F =  self.k / (self.sigma**3 * np.sqrt(2 * np.pi)) * np.exp(-(x - self.mu)**2 / (2 * self.sigma**2)) * (x - self.mu)
+        return np.array([F])
+
+    # the Hessian matrix, analytical expression
+    def hessian_ana(self, x):
+          """
+          Calculate the Hessian matrx H(x) analytically for the 1-dimensional Logistic potential.
+          Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+    
+          The Hessian is given by:
+          H(x) = d^2 V(x) / dx^2 
+               = k / (sqrt(2 pi) sigma^3) * ( exp(-(x - mu)^2 / (2 sigma ^2)) - (exp(-(x - mu)^2 / (2 sigma ^2)) * (x - mu)^2 / (sigma^2))
+
+          The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+          Returns:
+              numpy array: The 1x1 Hessian matrix at the given position x.
+    
+          """
+          
+          # calculate the Hessian as a float      
+          H = - self.k / (self.sigma**3 * np.sqrt(2 * np.pi)) * ( np.exp(-(x - self.mu)**2 / (2 * self.sigma**2)) - ((x - self.mu)**2  * np.exp(-(x - self.mu)**2 / (2 * self.sigma**2)) / self.sigma**2) )
+ 
+          # cast Hessian as a 1x1 numpy array and return
+          return  np.array([[H]])      
