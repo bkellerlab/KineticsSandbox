@@ -17,7 +17,7 @@ import scipy.constants as const
 
 
 # Euler-Maruyama integrator
-def EM(system, potential, eta_k = None):
+def EM(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
     """
     Perform a step according to the Euler-Maruyama integrator for overdamped Langevin dynamics
 
@@ -28,8 +28,11 @@ def EM(system, potential, eta_k = None):
                       'dt' (time step) and 'h' (discretization interval for numerical force).
     - potential (object): An object representing the potential energy landscape of the system.
                          It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential added to the of the system.
+                         It should have a 'force' method that calculates the force at a given position.
     - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
                         in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+    - girsanov_reweighting (bool): If True Girsanov path reweighting factors are evaluated on-the-fly.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object.
@@ -37,9 +40,20 @@ def EM(system, potential, eta_k = None):
     # if eta_k is not provided, draw eta_k from Gaussian normal distribution
     if eta_k is None:
         eta_k = np.random.normal()
+        system.eta_k = eta_k
      
     # update position
-    system.x = system.x + (potential.force(system.x, system.h)[0] / system.xi_m ) * system.dt  +  system.sigma * np.sqrt(system.dt) * eta_k
+    if bias is not None:
+        system.bias_force = bias.force(system.x, system.h)[0] 
+        force = potential.force(system.x, system.h)[0] + system.bias_force 
+    else:
+        force = potential.force(system.x, system.h)[0] 
+
+    system.x = system.x + (force / system.xi_m ) * system.dt  +  system.sigma * np.sqrt(system.dt) * eta_k
+    
+    if girsanov_reweighting:
+        system.delta_eta = system.pre_factor * system.bias_force
+        system.logM = system.eta[0] * system.delta_eta + 0.5 * system.delta_eta * system.delta_eta
     
     return None  
 
@@ -75,7 +89,7 @@ def A_step(system, half_step = False):
     return None
 
 # B step
-def B_step(system, potential, half_step = False):
+def B_step(system, potential, bias = None, half_step = False):
     """
     Perform a Langevin integration B-step for a given system.
 
@@ -83,6 +97,8 @@ def B_step(system, potential, half_step = False):
     - system (object): An object representing the physical system undergoing Langevin integration.
                       It should have attributes 'v' (velocity), 'm' (mass), and 'x' (position).
     - potential (object): An object representing the potential energy landscape of the system.
+                         It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential added to the of the system.
                          It should have a 'force' method that calculates the force at a given position.
     - half_step (bool, optional): If True, perform a half-step integration. Default is False, performing
                                   a full-step integration. A half-step is often used in the velocity
@@ -98,14 +114,17 @@ def B_step(system, potential, half_step = False):
         dt = 0.5 * system.dt
     else:
         dt = system.dt
-    
-    system.v = system.v + (1 / system.m) * dt * potential.force_num( system.x, 0.001 )[0]
+    if bias is not None:
+        system.bias_force = bias.force(system.x, system.h)[0] 
+        force = potential.force(system.x, system.h)[0] + system.bias_force 
+    else:
+        force = potential.force(system.x, system.h)[0] 
+    system.v = system.v + (1 / system.m) * dt * force
     
     return None
 
 # O_step
-def O_step(system, half_step = False, eta_k = None):
-    
+def O_step(system, step_index=0, half_step = False, eta_k = None):
     """
     Perform the O-step in a Langevin integrator.
 
@@ -134,19 +153,22 @@ def O_step(system, half_step = False, eta_k = None):
     # if eta_k is not provided, draw eta_k from Gaussian normal distribution
     if eta_k is None:
         eta_k = np.random.normal()
+        system.eta[step_index] = eta_k
 
     d = np.exp(- system.xi * dt)
-    f_v = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-2 * system.xi * dt)) )
+    f_v = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-2 * system.xi * dt)) ) 
 
     system.v = d * system.v +  f_v * eta_k
+
     return None
 
-#--------------------------------------------------------------
-#   L A N G E V I N   S P L I T T I N G   A L G O R I T H M S 
-#--------------------------------------------------------------
+#----------------------------------------------------------------------------
+#    L A N G E V I N   S P L I T T I N G   A L G O R I T H M S 
+# with option for biased simulation and Girsanov reweighting 
+#----------------------------------------------------------------------------
 
 # ABO integrator
-def ABO(system, potential, eta_k = None):
+def ABO(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
     """
     Perform a full Langevin integration step consisting of A-step, B-step, and O-step.
 
@@ -156,21 +178,28 @@ def ABO(system, potential, eta_k = None):
                       (friction coefficient), 'T' (temperature), and 'dt' (time step).
     - potential (object): An object representing the potential energy landscape of the system.
                          It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential added to the system.
+                         It should have a 'force' method that calculates the force at a given position.
     - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
                         in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+    - girsanov_reweighting (bool): If True Girsanov path reweighting factors are evaluated on-the-fly.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
     
     A_step(system)
-    B_step(system, potential)
+    B_step(system, potential, bias) 
     O_step(system, eta_k = eta_k)
-     
+
+    if girsanov_reweighting:
+        system.delta_eta = system.d / system.f * system.dt * system.bias_force
+        system.logM = system.eta[0] * system.delta_eta + 0.5 * system.delta_eta * system.delta_eta
+    
     return None   
 
 # ABOBA integrator
-def ABOBA(system, potential, eta_k = None):
+def ABOBA(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
     """
     Perform a full Langevin integration step for the ABOBA algorithm
 
@@ -180,23 +209,30 @@ def ABOBA(system, potential, eta_k = None):
                       (friction coefficient), 'T' (temperature), and 'dt' (time step).
     - potential (object): An object representing the potential energy landscape of the system.
                          It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential added to the system.
+                         It should have a 'force' method that calculates the force at a given position.
     - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
                         in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+    - girsanov_reweighting (bool): If True Girsanov path reweighting factors are evaluated on-the-fly.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
     
     A_step(system, half_step= True)
-    B_step(system, potential, half_step = True) 
+    B_step(system, potential, bias=bias, half_step = True) 
     O_step(system, eta_k = eta_k)    
-    B_step(system, potential, half_step = True) 
+    B_step(system, potential, bias=bias, half_step = True) 
     A_step(system, half_step = True)
+    
+    if girsanov_reweighting:
+        system.delta_eta[0] = (system.d + 1) / system.f * system.dt / 2 * system.bias_force
+        system.logM = system.eta[0] * system.delta_eta[0] + 0.5 * system.delta_eta[0] * system.delta_eta[0]
     
     return None   
 
-# ABOBA integrator
-def AOBOA(system, potential, eta_k = None):
+# AOBOA integrator
+def AOBOA(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
     """
     Perform a full Langevin integration step for the AOBOA algorithm
 
@@ -206,23 +242,31 @@ def AOBOA(system, potential, eta_k = None):
                       (friction coefficient), 'T' (temperature), and 'dt' (time step).
     - potential (object): An object representing the potential energy landscape of the system.
                          It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential added to the system.
+                         It should have a 'force' method that calculates the force at a given position.
     - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
                         in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+    - girsanov_reweighting (bool): If True Girsanov path reweighting factors are evaluated on-the-fly.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
-    
+
     A_step(system, half_step = True)
-    O_step(system, half_step = True, eta_k = eta_k)    
-    B_step(system, potential) 
-    O_step(system, half_step = True, eta_k = eta_k) 
+    O_step(system, half_step = True, eta_k = eta_k, step_index=0) 
+    B_step(system, potential, bias) 
+    O_step(system, half_step = True, eta_k = eta_k, step_index=1) 
     A_step(system, half_step = True)
     
-    return None   
-        
+    if girsanov_reweighting:
+        eta_combined = system.d_prime * system.eta[0] + system.eta[1]
+        system.delta_eta[0] = system.d_prime / system.f_prime * system.dt * system.bias_force
+        system.logM = eta_combined * system.delta_eta[0] / (system.d_prime * system.d_prime + 1) + 0.5 * system.delta_eta[0] * system.delta_eta[0] / (system.d_prime * system.d_prime + 1)
+    
+    return None      
+
 # BAOAB integrator
-def BAOAB(system, potential, eta_k = None):
+def BAOAB(system, potential, bias=None, eta_k = None):
     """
     Perform a full Langevin integration step for the BAOAB algorithm
 
@@ -232,6 +276,8 @@ def BAOAB(system, potential, eta_k = None):
                       (friction coefficient), 'T' (temperature), and 'dt' (time step).
     - potential (object): An object representing the potential energy landscape of the system.
                          It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential added to the system.
+                         It should have a 'force' method that calculates the force at a given position.
     - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
                         in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
 
@@ -239,16 +285,16 @@ def BAOAB(system, potential, eta_k = None):
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
     
-    B_step(system, potential, half_step = True) 
+    B_step(system, potential, bias, half_step = True) 
     A_step(system, half_step = True)
     O_step(system, eta_k = eta_k)    
     A_step(system, half_step = True)
-    B_step(system, potential, half_step = True) 
+    B_step(system, potential, bias, half_step = True) 
     
     return None   
 
 # BOAOB integrator
-def BOAOB(system, potential, eta_k = None):
+def BOAOB(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
     """
     Perform a full Langevin integration step for the BOAOB algorithm
 
@@ -258,23 +304,34 @@ def BOAOB(system, potential, eta_k = None):
                       (friction coefficient), 'T' (temperature), and 'dt' (time step).
     - potential (object): An object representing the potential energy landscape of the system.
                          It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential added to the system.
+                         It should have a 'force' method that calculates the force at a given position.
     - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
                         in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+    - girsanov_reweighting (bool): If True Girsanov path reweighting factors are evaluated on-the-fly.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
     
-    B_step(system, potential, half_step = True) 
-    O_step(system, half_step = True, eta_k = eta_k)   
-    A_step(system)   
-    O_step(system, half_step = True, eta_k = eta_k)   
-    B_step(system, potential, half_step = True)     
+    bias_force_k = system.bias_force
+    B_step(system, potential, bias=bias, half_step = True) 
+    O_step(system, half_step = True, eta_k = eta_k, step_index=0)
+    A_step(system)
+    O_step(system, half_step = True, eta_k = eta_k, step_index=1) 
+    B_step(system, potential, bias=bias, half_step = True)     
     
-    return None 
+    if girsanov_reweighting:
+        system.delta_eta[0] = system.d_prime / system.f_prime * system.dt / 2 * bias_force_k
+        system.delta_eta[1] = 1 / system.f_prime * system.dt / 2 * system.bias_force
+        logM_1 = system.eta[0] * system.delta_eta[0] + 0.5 * system.delta_eta[0] * system.delta_eta[0]
+        logM_2 = system.eta[1] * system.delta_eta[1] + 0.5 * system.delta_eta[1] * system.delta_eta[1]
+        system.logM = logM_1 + logM_2 
+    
+    return None  
 
 # OBABO integrator
-def OBABO(system, potential, eta_k = None):
+def OBABO(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
     """
     Perform a full Langevin integration step for the OBABO algorithm
 
@@ -284,23 +341,34 @@ def OBABO(system, potential, eta_k = None):
                       (friction coefficient), 'T' (temperature), and 'dt' (time step).
     - potential (object): An object representing the potential energy landscape of the system.
                          It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential added to the system.
+                         It should have a 'force' method that calculates the force at a given position.
     - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
                         in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+    - girsanov_reweighting (bool): If True Girsanov path reweighting factors are evaluated on-the-fly.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
+
+    bias_force_k = system.bias_force
+    O_step(system, half_step = True, eta_k = eta_k, step_index=0)   
+    B_step(system, potential, bias, half_step = True) 
+    A_step(system)
+    B_step(system, potential, bias, half_step = True)
+    O_step(system, half_step = True, eta_k = eta_k, step_index=1)   
     
-    O_step(system, half_step = True, eta_k = eta_k)   
-    B_step(system, potential, half_step = True) 
-    A_step(system)   
-    B_step(system, potential, half_step = True)     
-    O_step(system, half_step = True, eta_k = eta_k)   
+    if girsanov_reweighting:
+        system.delta_eta[0] = 1 / system.f_prime * system.dt / 2 * bias_force_k
+        system.delta_eta[1] = system.d_prime / system.f_prime * system.dt / 2 * system.bias_force
+        logM_1 = system.eta[0] * system.delta_eta[0] + 0.5 * system.delta_eta[0] * system.delta_eta[0]
+        logM_2 = system.eta[1] * system.delta_eta[1] + 0.5 * system.delta_eta[1] * system.delta_eta[1]
+        system.logM = logM_1 + logM_2 
     
-    return None 
+    return None  
 
 # OABAO integrator
-def OABAO(system, potential, eta_k = None):
+def OABAO(system, potential, bias=None, eta_k = None):
     """
     Perform a full Langevin integration step for the OABAO algorithm
 
@@ -310,6 +378,8 @@ def OABAO(system, potential, eta_k = None):
                       (friction coefficient), 'T' (temperature), and 'dt' (time step).
     - potential (object): An object representing the potential energy landscape of the system.
                          It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential added to the system.
+                         It should have a 'force' method that calculates the force at a given position.
     - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
                         in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
 
@@ -319,14 +389,14 @@ def OABAO(system, potential, eta_k = None):
     
     O_step(system, half_step = True, eta_k = eta_k)   
     A_step(system, half_step = True)   
-    B_step(system, potential, half_step = True) 
+    B_step(system, potential, bias, half_step = True) 
     A_step(system, half_step = True)   
     O_step(system, half_step = True, eta_k = eta_k)   
     
     return None 
 
 # BAOA integrator
-def BAOA(system, potential, eta_k = None):
+def BAOA(system, potential, bias=None, eta_k = None):
     """
     Perform a full Langevin integration step for the BAOA algorithm
 
@@ -336,6 +406,8 @@ def BAOA(system, potential, eta_k = None):
                       (friction coefficient), 'T' (temperature), and 'dt' (time step).
     - potential (object): An object representing the potential energy landscape of the system.
                          It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential added to the system.
+                         It should have a 'force' method that calculates the force at a given position.
     - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
                         in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
 
@@ -343,14 +415,9 @@ def BAOA(system, potential, eta_k = None):
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
     
-    B_step(system, potential) 
+    B_step(system, potential, bias) 
     A_step(system, half_step = True)   
     O_step(system, eta_k = eta_k)   
     A_step(system, half_step = True)   
     
     return None 
-
-
-#----------------------------------------------------------------------------
-#   B I A S E D   L A N G E V I N   S P L I T T I N G   A L G O R I T H M S 
-#----------------------------------------------------------------------------
