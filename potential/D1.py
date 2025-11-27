@@ -188,6 +188,68 @@ class D1(ABC):
             H = self.hessian_num(x, h)
         return H
 
+#---------------------------------------------------------------------
+# Wrapper for biased simulation and Girsanov reweighting
+#---------------------------------------------------------------------
+
+class BiasedPotential:
+    """ 
+    Generate a biased potential by adding a potential_class and a bias_class.
+
+    Parameters:
+        - potential_class (class, like D1): define the potential, e.g. D1.DoubleWell potential
+        - bias_class (class, like D1): define the potential, e.g. D1.Gaussian potential
+    """
+    def __init__(self, potential_class, bias_class):
+        self._potential_class = potential_class
+        self._bias_class = bias_class
+
+    # total potential
+    def potential(self, x):
+        return self._potential_class.potential(x) + self._bias_class.potential(x)
+
+    # total force
+    def force(self, x, h):
+        F_p = self._potential_class.force(x, h)
+        F_b = self._bias_class.force(x, h)
+        return F_p + F_b
+        
+    # total hessian
+    def hessian(self, x, h):
+        H_p = self._potential_class.hessian(x, h)
+        H_b = self._bias_class.hessian_num(x, h)
+        return H_p + H_b
+
+class PertubationPotential:
+    """
+    Generate a pertubation potential following the sign definition 'V_t = V_s + U'. 
+    Where the pertubation potential is defined as difference between 
+    target and simulation potential 'U = V_t -'.
+
+    Parameters:
+        - target_potential (class, like D1): define the target potential, e.g. D1.Polynomial potential
+        - simulation_potential (class, like D1): define the simulation potential, e.g. D1.DoubleWell potential
+    """
+    def __init__(self, target_potential, simulation_potential):
+        self._target_potential = target_potential
+        self._simulation_potential = simulation_potential
+
+
+    # pertubation potential
+    def potential(self, x):
+        return self._target_potential.potential(x) - self._simulation_potential.potential(x)
+
+    # pertubation potential
+    def force(self, x, h):
+        F_t = self._target_potential.force(x, h)
+        F_s = self._simulation_potential.force(x, h)
+        return F_t - F_s
+        
+    # total hessian
+    def hessian(self, x, h):
+        H_t = self._target_potential.hessian(x, h)
+        H_s = self._simulation_potential.hessian(x, h)
+        return H_t - H_s
 
 #------------------------------------------------
 # child class: one-dimensional potentials
@@ -901,3 +963,181 @@ class Logistic(D1):
                
           # cast Hessian as a 1x1 numpy array and return
           return  np.array([[H]])      
+
+class Gaussian(D1):
+    # intiialize class
+    def __init__(self, param): 
+        """
+        Initialize the class for the 1-dimensional Logistic potential based on the given parameters.
+
+        Parameters:
+            - param (list): a list of parameters representing:
+            - param[0]: k (float) - prefactor that scales the potential
+            - param[1]: mu (float) - parameter that shifts the extremum left and right (mean)
+            - param[2]: sigma (float) - parameter that determines the broadening of the Gaussian (variance)
+
+
+        Raises:
+        - ValueError: If param does not have exactly 3 elements.
+        """
+        
+        # Check if param has the correct number of elements
+        if len(param) != 3:
+            raise ValueError("param must have exactly 3 elements.")
+        
+        # Assign parameters
+        self.k = param[0]
+        self.mu = param[1]
+        self.sigma = param[2]
+        
+    # the potential energy function 
+    def potential(self, x):
+        """
+        Calculate the potential energy V(x) for the 1-dimensional Logistic potential.
+    
+        The potential energy function is given by:
+        V(x) = k / (sqrt(2 sigma^2 pi)) * exp(-(x - mu)^2 / (2 sigma^2))
+    
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+        Returns:
+            float: The value of the potential energy function at the given position x.
+        """
+    
+        return self.k / (self.sigma * np.sqrt(2 * np.pi)) * np.exp(-(x - self.mu)**2 / (2 * self.sigma**2))
+    
+    # the force, analytical expression 
+    def force_ana(self, x):
+        """
+        Calculate the force F(x) analytically for the 1-dimensional Logistic potential.
+        Since the potential is one-dimensional, the force is a vector with one element.
+    
+        The force is given by:
+        F(x) = - dV(x) / dx 
+             = k / (sqrt(2 pi) sigma^3) * exp(-(x - mu)^2 / (2 sigma ^2)) * (x - mu)
+    
+        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+    
+        Returns:
+            numpy array: The value of the force at the given position x, returned as vector with 1 element.
+    
+        """
+        
+        F =  self.k / (self.sigma**3 * np.sqrt(2 * np.pi)) * np.exp(-(x - self.mu)**2 / (2 * self.sigma**2)) * (x - self.mu)
+        return np.array([F])
+
+    # the Hessian matrix, analytical expression
+    def hessian_ana(self, x):
+          """
+          Calculate the Hessian matrx H(x) analytically for the 1-dimensional Logistic potential.
+          Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+    
+          The Hessian is given by:
+          H(x) = d^2 V(x) / dx^2 
+               = k / (sqrt(2 pi) sigma^3) * ( exp(-(x - mu)^2 / (2 sigma ^2)) - (exp(-(x - mu)^2 / (2 sigma ^2)) * (x - mu)^2 / (sigma^2))
+
+          The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+          Returns:
+              numpy array: The 1x1 Hessian matrix at the given position x.
+    
+          """
+          
+          # calculate the Hessian as a float      
+          H = - self.k / (self.sigma**3 * np.sqrt(2 * np.pi)) * ( np.exp(-(x - self.mu)**2 / (2 * self.sigma**2)) - ((x - self.mu)**2  * np.exp(-(x - self.mu)**2 / (2 * self.sigma**2)) / self.sigma**2) )
+ 
+          # cast Hessian as a 1x1 numpy array and return
+          return  np.array([[H]]) 
+    
+
+class GeneralGaussian(D1): 
+    def __init__(self, param): 
+        """Bias potential for eg. Bolhuis potential. Like class Gaussian a 
+        Gaussian-shaped function, but it is not normalized.  
+
+        Parameters:
+            a (float) - parameter controlling the center of the peak 'a=\mu'.
+            c (float) - parameter controlling the width of perturbation, 'c=1/(2 \sigma^2).
+            alpha (float) - strength of the perturbation, controlling the amplitude, '\alpha = k/ (\sqrt{2\pi\sigma^2})'.
+        Raises:
+        - ValueError: If param does not have exactly e elements.
+        """
+        
+        # Check if param has the correct number of elements
+        if len(param) != 3:
+            raise ValueError("param must have exactly 6 elements.")
+        
+        # Assign parameters
+        self.a = param[0]
+        self.c = param[1]
+        self.alpha = param[2]
+        
+    # the potential energy function 
+    def potential(self, x):
+        """
+        The potential energy function is given by:
+        V(x) = alpha * np.exp(-c * (x - a)**2)
+    
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+        Returns:
+            float: The value of the potential energy function at the given position x.
+        """
+    
+        return self.alpha * np.exp(-self.c * (x - self.a)**2)
+          
+    # the force, analytical expression 
+    def force_ana(self, x):
+        """
+        The force is given by:
+        F(x) = - dV(x) / dx 
+             = alpha * np.exp(-c * (x - a)**2) * c * 2 * (x - a)
+    
+        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+    
+        Returns:
+            numpy array: The value of the force at the given position x, returned as vector with 1 element.
+        """
+        
+        F = self.alpha * np.exp(-self.c * (x - self.a)**2) * self.c * 2 * (x - self.a)
+        return np.array([F])
+    
+    def hessian_ana(self, x): # TODO check if correct
+        """
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional Bolhuis potential.
+        Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+    
+        The Hessian is given by:
+          H(x) = d^2 V(x) / dx^2 
+               =  2 * alpha * c * [ 4 * c * (x-a)**2 - (x-a)] * exp (-c *(x-a)**2 )
+    
+        The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+        Returns:
+            numpy array: The 1x1 Hessian matrix at the given position x.
+    
+        """
+          
+        # calculate the Hessian as a float      
+        H = 2 * self.alpha * self.c * ( 2 * self.c * (x-self.a)**2 - 1 ) * np.exp(-self.c *(x - self.a)**2 )
+          
+        # cast Hessian as a 1x1 numpy array and return
+        return  np.array([[H]])
