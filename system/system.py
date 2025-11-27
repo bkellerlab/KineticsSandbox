@@ -79,7 +79,7 @@ class D1:
         self.d = np.exp(- self.xi * self.dt)
         self.f = np.sqrt(R * self.T * self.m  * (1 - np.exp(-2 * self.xi * self.dt)))
         self.d_prime = np.exp(- self.xi * self.dt / 2)
-        self.f_prime = np.sqrt(R * self.T *  self.m  * (1 - np.exp(-self.xi * self.dt)))
+        self.f_prime = np.sqrt(R * self.T * self.m  * (1 - np.exp(-self.xi * self.dt)))
 
 #------------------------------------------------
 # class: N-dimensional systems
