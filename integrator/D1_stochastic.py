@@ -52,8 +52,8 @@ def EM(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
     system.x = system.x + (force / system.xi_m ) * system.dt  +  system.sigma * np.sqrt(system.dt) * eta_k
     
     if girsanov_reweighting:
-        system.delta_eta = system.pre_factor * system.bias_force
-        system.logM = system.eta[0] * system.delta_eta + 0.5 * system.delta_eta * system.delta_eta
+        system.delta_eta[0] = system.pre_factor * system.bias_force
+        system.logM = system.eta[0] * system.delta_eta[0] + 0.5 * system.delta_eta[0] * system.delta_eta[0]
     
     return None  
 
@@ -98,8 +98,9 @@ def B_step(system, potential, bias = None, half_step = False):
                       It should have attributes 'v' (velocity), 'm' (mass), and 'x' (position).
     - potential (object): An object representing the potential energy landscape of the system.
                          It should have a 'force' method that calculates the force at a given position.
-    - bias (object or None, optional): An object representing the bias potential added to the of the system.
-                         It should have a 'force' method that calculates the force at a given position.
+    - bias (object or None, optional): An object representing the bias potential or pertubation potential
+                                       added to the of the system. It should have a 'force' method that 
+                                       calculates the force at a given position.
     - half_step (bool, optional): If True, perform a half-step integration. Default is False, performing
                                   a full-step integration. A half-step is often used in the velocity
                                   Verlet algorithm for symplectic integration.
@@ -116,12 +117,10 @@ def B_step(system, potential, bias = None, half_step = False):
         dt = system.dt
     if bias is not None:
         system.bias_force = bias.force(system.x, system.h)[0] 
-        force = potential.force(system.x, system.h)[0] + system.bias_force 
-    else:
-        force = potential.force(system.x, system.h)[0] 
-    system.v = system.v + (1 / system.m) * dt * force
+ 
+    system.v = system.v + (1 / system.m) * dt * potential.force(system.x, system.h)[0] 
     
-    return None
+    return None 
 
 # O_step
 def O_step(system, step_index=0, half_step = False, eta_k = None):
@@ -154,11 +153,13 @@ def O_step(system, step_index=0, half_step = False, eta_k = None):
     if eta_k is None:
         eta_k = np.random.normal()
         system.eta[step_index] = eta_k
+    else:
+        system.eta = eta_k # TODO HOW DO WE DEFINE SHAPE FOR INPUT?
 
     d = np.exp(- system.xi * dt)
     f_v = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-2 * system.xi * dt)) ) 
 
-    system.v = d * system.v +  f_v * eta_k
+    system.v = d * system.v +  f_v * system.eta[step_index]
 
     return None
 
@@ -193,8 +194,8 @@ def ABO(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
     O_step(system, eta_k = eta_k)
 
     if girsanov_reweighting:
-        system.delta_eta = system.d / system.f * system.dt * system.bias_force
-        system.logM = system.eta[0] * system.delta_eta + 0.5 * system.delta_eta * system.delta_eta
+        system.delta_eta[0] = system.d / system.f * system.dt * system.bias_force
+        system.logM = system.eta[0] * system.delta_eta[0] + 0.5 * system.delta_eta[0] * system.delta_eta[0]
     
     return None   
 
