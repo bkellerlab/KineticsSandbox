@@ -45,11 +45,8 @@ def EM(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
     # update position
     if bias is not None:
         system.bias_force = bias.force(system.x, system.h)[0] 
-        force = potential.force(system.x, system.h)[0] + system.bias_force 
-    else:
-        force = potential.force(system.x, system.h)[0] 
 
-    system.x = system.x + (force / system.xi_m ) * system.dt  +  system.sigma * np.sqrt(system.dt) * eta_k
+    system.x = system.x + (potential.force(system.x, system.h)[0]  / system.xi_m ) * system.dt  +  system.sigma * np.sqrt(system.dt) * eta_k
     
     if girsanov_reweighting:
         system.delta_eta[0] = system.pre_factor * system.bias_force
@@ -111,6 +108,7 @@ def B_step(system, potential, bias = None, half_step = False):
     """
     
     # set time step, depending on whether a half- or full step is performed
+    system.x_bias_force = system.x
     if half_step == True:
         dt = 0.5 * system.dt
     else:
