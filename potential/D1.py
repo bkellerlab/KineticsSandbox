@@ -9,6 +9,7 @@ Created on Sat Jan 20 07:05:58 2024
 #-----------------------------------------
 #   I M P O R T S 
 #-----------------------------------------
+from __future__ import annotations
 from abc import ABC, abstractmethod
 import numpy as np
 from scipy.optimize import minimize
@@ -30,20 +31,37 @@ class D1(ABC):
     #   analytical functions that need to be implemented in a child class
     #---------------------------------------------------------------------
     # the potential energy function 
-    @abstractmethod
+    #@abstractmethod
     def potential(self, x):
-        pass
+        raise NotImplementedError
     
+    # NOTE we now 
     # the force, analytical expression
-    @abstractmethod
+    #@abstractmethod
     def force_ana(self, x):
-        pass
+        raise NotImplementedError
     
     # the Hessian matrix, analytical expression
-    @abstractmethod    
+    #@abstractmethod    
     def hessian_ana(self, x):
-        pass
+        raise NotImplementedError
 
+    # adding two potentials returns a SumPotential wrapper
+    def __add__(self, child_class: D1) -> D1:
+        """
+        Docstring for __add__
+        
+        Note:
+            Overload the operator + with the wrapper class to add two potentials.
+            Not only two potentials, but a whole range of potentials can be added together. 
+        
+        :param self: a list of parameters to define potential
+        :param child_class: one-dimensional potentials
+        :type child_class: D1
+        :return: the sum of one-dimensional potentials
+        :rtype: D1
+        """
+        return SumPotential(self, child_class)
 
     #-----------------------------------------------------------
     #   numerical methods that are passed to a child class
@@ -192,64 +210,44 @@ class D1(ABC):
 # Wrapper for biased simulation and Girsanov reweighting
 #---------------------------------------------------------------------
 
-class BiasedPotential:
+class SumPotential(D1):
     """ 
-    Generate a biased potential by adding a potential_class and a bias_class.
+    Generate a one-dimensional potential by adding two input potentials i and j.
 
     Parameters:
-        - potential_class (class, like D1): define the potential, e.g. D1.DoubleWell potential
-        - bias_class (class, like D1): define the potential, e.g. D1.Gaussian potential
+        - potential_i (class, like D1): define the potential, e.g. D1.DoubleWell potential
+        - potential_j (class, like D1): define the potential, e.g. D1.Gaussian potential
     """
-    def __init__(self, potential_class, bias_class):
-        self._potential_class = potential_class
-        self._bias_class = bias_class
+    def __init__(self, potential_i, potential_j):
+        self._potential_i = potential_i
+        self._potential_j = potential_j
 
     # total potential
     def potential(self, x):
-        return self._potential_class.potential(x) + self._bias_class.potential(x)
+        return self._potential_i.potential(x) + self._potential_j.potential(x)
 
-    # total force
+#    def force_ana(self, x, h):
+#        F_i = self._potential_i.force_ana(x)
+#        F_j = self._potential_j.force_ana(x)
+#        return F_i + F_j
+        
+    # total hessian
+#    def hessian_ana(self, x, h):
+#        H_i = self._potential_i.hessian_ana(x)
+#        H_j = self._potential_j.hessian_ana(x)
+#        return H_i + H_j
+    
+    # total force 
     def force(self, x, h):
-        F_p = self._potential_class.force(x, h)
-        F_b = self._bias_class.force(x, h)
-        return F_p + F_b
+        F_i = self._potential_i.force(x, h)
+        F_j = self._potential_j.force(x, h)
+        return F_i + F_j
         
     # total hessian
     def hessian(self, x, h):
-        H_p = self._potential_class.hessian(x, h)
-        H_b = self._bias_class.hessian_num(x, h)
-        return H_p + H_b
-
-class PertubationPotential:
-    """
-    Generate a pertubation potential following the sign definition 'V_t = V_s + U'. 
-    Where the pertubation potential is defined as difference between 
-    target and simulation potential 'U = V_t -'.
-
-    Parameters:
-        - target_potential (class, like D1): define the target potential, e.g. D1.Polynomial potential
-        - simulation_potential (class, like D1): define the simulation potential, e.g. D1.DoubleWell potential
-    """
-    def __init__(self, target_potential, simulation_potential):
-        self._target_potential = target_potential
-        self._simulation_potential = simulation_potential
-
-
-    # pertubation potential
-    def potential(self, x):
-        return self._target_potential.potential(x) - self._simulation_potential.potential(x)
-
-    # pertubation potential
-    def force(self, x, h):
-        F_t = self._target_potential.force(x, h)
-        F_s = self._simulation_potential.force(x, h)
-        return F_t - F_s
-        
-    # total hessian
-    def hessian(self, x, h):
-        H_t = self._target_potential.hessian(x, h)
-        H_s = self._simulation_potential.hessian(x, h)
-        return H_t - H_s
+        H_i = self._potential_i.hessian(x, h)
+        H_j = self._potential_j.hessian(x, h)
+        return H_i + H_j
 
 #------------------------------------------------
 # child class: one-dimensional potentials
