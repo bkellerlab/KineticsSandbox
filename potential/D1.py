@@ -31,20 +31,32 @@ class D1(ABC):
     #   analytical functions that need to be implemented in a child class
     #---------------------------------------------------------------------
     # the potential energy function 
-    #@abstractmethod
+    @abstractmethod
     def potential(self, x):
-        raise NotImplementedError
+        pass
     
-    # NOTE we now 
-    # the force, analytical expression
-    #@abstractmethod
-    def force_ana(self, x):
-        raise NotImplementedError
-    
-    # the Hessian matrix, analytical expression
-    #@abstractmethod    
-    def hessian_ana(self, x):
-        raise NotImplementedError
+    #---------------------------------------------------------------------------------
+    #   functions that automatically switch between analytical and numerical function
+    #---------------------------------------------------------------------------------   
+    # for the force
+    def force(self, x, h=None):
+        # try whether the analytical force is implemted
+        try:
+            F = self.force_ana(x)
+        # if force_ana(x) returns a NotImplementedError, use the numerical force instead    
+        except NotImplementedError:
+            F = self.force_num(x, h)
+        return F
+        
+    # for the hessian
+    def hessian(self, x, h=None):
+        # try whether the analytical hessian is implemted
+        try:
+            H = self.hessian_ana(x)
+        # if hessian_ana(x) returns a NotImplementedError, use the numerical hessian instead    
+        except NotImplementedError:
+            H = self.hessian_num(x, h)
+        return H
 
     # adding two potentials returns a SumPotential wrapper
     def __add__(self, child_class: D1) -> D1:
@@ -63,6 +75,15 @@ class D1(ABC):
         """
         return SumPotential(self, child_class)
 
+    #-----------------------------------------------------------
+    #   analytical expression that are given in a child class
+    #-----------------------------------------------------------
+    def force_ana(self, x):
+        raise NotImplementedError
+    
+    def hessian_ana(self, x):
+        raise NotImplementedError
+    
     #-----------------------------------------------------------
     #   numerical methods that are passed to a child class
     #-----------------------------------------------------------
@@ -183,29 +204,6 @@ class D1(ABC):
         # returns position of the transition state as float
         return TS[0]   
     
-    #---------------------------------------------------------------------------------
-    #   functions that automatically switch between analytical and numerical function
-    #---------------------------------------------------------------------------------    
-    # for the force
-    def force(self, x, h):
-        # try whether the analytical force is implemted
-        try:
-            F = self.force_ana(x)
-        # if force_ana(x) returns a NotImplementedError, use the numerical force instead    
-        except NotImplementedError:
-            F = self.force_num(x, h)
-        return F
-        
-    # for the hessian
-    def hessian(self, x, h):
-        # try whether the analytical hessian is implemted
-        try:
-            H = self.hessian_ana(x)
-        # if hessian_ana(x) returns a NotImplementedError, use the numerical hessian instead    
-        except NotImplementedError:
-            H = self.hessian_num(x, h)
-        return H
-
 #---------------------------------------------------------------------
 # Wrapper for biased simulation and Girsanov reweighting
 #---------------------------------------------------------------------
@@ -225,17 +223,6 @@ class SumPotential(D1):
     # total potential
     def potential(self, x):
         return self._potential_i.potential(x) + self._potential_j.potential(x)
-
-#    def force_ana(self, x, h):
-#        F_i = self._potential_i.force_ana(x)
-#        F_j = self._potential_j.force_ana(x)
-#        return F_i + F_j
-        
-    # total hessian
-#    def hessian_ana(self, x, h):
-#        H_i = self._potential_i.hessian_ana(x)
-#        H_j = self._potential_j.hessian_ana(x)
-#        return H_i + H_j
     
     # total force 
     def force(self, x, h):
