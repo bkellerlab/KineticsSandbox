@@ -77,11 +77,9 @@ class D1:
         self.pre_factor =  np.sqrt(self.dt / (2 * self.T * R * self.xi_m) )
         # update parameters for Grisanov reweighting for Langevin dynamics
         self.d = np.exp(- self.xi * self.dt)
-        self.f = np.sqrt(R * self.T *  (1 / self.m)  * (1 - np.exp(-2 * self.xi * self.dt)))
+        self.f = np.sqrt(R * self.T * self.m  * (1 - np.exp(-2 * self.xi * self.dt)))
         self.d_prime = np.exp(- self.xi * self.dt / 2)
-        self.f_prime = np.sqrt(R * self.T *  (1 / self.m)  * (1 - np.exp(-self.xi * self.dt)))
-        
- 
+        self.f_prime = np.sqrt(R * self.T * self.m  * (1 - np.exp(-self.xi * self.dt)))
 
 #------------------------------------------------
 # class: N-dimensional systems

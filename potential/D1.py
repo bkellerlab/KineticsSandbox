@@ -9,6 +9,7 @@ Created on Sat Jan 20 07:05:58 2024
 #-----------------------------------------
 #   I M P O R T S 
 #-----------------------------------------
+from __future__ import annotations
 from abc import ABC, abstractmethod
 import numpy as np
 from scipy.optimize import minimize
@@ -34,17 +35,55 @@ class D1(ABC):
     def potential(self, x):
         pass
     
-    # the force, analytical expression
-    @abstractmethod
+    #---------------------------------------------------------------------------------
+    #   functions that automatically switch between analytical and numerical function
+    #---------------------------------------------------------------------------------   
+    # for the force
+    def force(self, x, h=None):
+        # try whether the analytical force is implemted
+        try:
+            F = self.force_ana(x)
+        # if force_ana(x) returns a NotImplementedError, use the numerical force instead    
+        except NotImplementedError:
+            F = self.force_num(x, h)
+        return F
+        
+    # for the hessian
+    def hessian(self, x, h=None):
+        # try whether the analytical hessian is implemted
+        try:
+            H = self.hessian_ana(x)
+        # if hessian_ana(x) returns a NotImplementedError, use the numerical hessian instead    
+        except NotImplementedError:
+            H = self.hessian_num(x, h)
+        return H
+
+    # adding two potentials returns a SumPotential wrapper
+    def __add__(self, child_class: D1) -> D1:
+        """
+        Docstring for __add__
+        
+        Note:
+            Overload the operator + with the wrapper class to add two potentials.
+            Not only two potentials, but a whole range of potentials can be added together. 
+        
+        :param self: a list of parameters to define potential
+        :param child_class: one-dimensional potentials
+        :type child_class: D1
+        :return: the sum of one-dimensional potentials
+        :rtype: D1
+        """
+        return SumPotential(self, child_class)
+
+    #-----------------------------------------------------------
+    #   analytical expression that are given in a child class
+    #-----------------------------------------------------------
     def force_ana(self, x):
-        pass
+        raise NotImplementedError
     
-    # the Hessian matrix, analytical expression
-    @abstractmethod    
     def hessian_ana(self, x):
-        pass
-
-
+        raise NotImplementedError
+    
     #-----------------------------------------------------------
     #   numerical methods that are passed to a child class
     #-----------------------------------------------------------
@@ -165,29 +204,37 @@ class D1(ABC):
         # returns position of the transition state as float
         return TS[0]   
     
-    #---------------------------------------------------------------------------------
-    #   functions that automatically switch between analytical and numerical function
-    #---------------------------------------------------------------------------------    
-    # for the force
-    def force(self, x, h):
-        # try whether the analytical force is implemted
-        try:
-            F = self.force_ana(x)
-        # if force_ana(x) returns a NotImplementedError, use the numerical force instead    
-        except NotImplementedError:
-            F = self.force_num(x, h)
-        return F
-        
-    # for the hessian
-    def hessian(self, x, h):
-        # try whether the analytical hessian is implemted
-        try:
-            H = self.hessian_ana(x)
-        # if hessian_ana(x) returns a NotImplementedError, use the numerical hessian instead    
-        except NotImplementedError:
-            H = self.hessian_num(x, h)
-        return H
+#---------------------------------------------------------------------
+# Wrapper for biased simulation and Girsanov reweighting
+#---------------------------------------------------------------------
 
+class SumPotential(D1):
+    """ 
+    Generate a one-dimensional potential by adding two input potentials i and j.
+
+    Parameters:
+        - potential_i (class, like D1): define the potential, e.g. D1.DoubleWell potential
+        - potential_j (class, like D1): define the potential, e.g. D1.Gaussian potential
+    """
+    def __init__(self, potential_i, potential_j):
+        self._potential_i = potential_i
+        self._potential_j = potential_j
+
+    # total potential
+    def potential(self, x):
+        return self._potential_i.potential(x) + self._potential_j.potential(x)
+    
+    # total force 
+    def force(self, x, h):
+        F_i = self._potential_i.force(x, h)
+        F_j = self._potential_j.force(x, h)
+        return F_i + F_j
+        
+    # total hessian
+    def hessian(self, x, h):
+        H_i = self._potential_i.hessian(x, h)
+        H_j = self._potential_j.hessian(x, h)
+        return H_i + H_j
 
 #------------------------------------------------
 # child class: one-dimensional potentials
@@ -994,4 +1041,88 @@ class Gaussian(D1):
           H = - self.k / (self.sigma**3 * np.sqrt(2 * np.pi)) * ( np.exp(-(x - self.mu)**2 / (2 * self.sigma**2)) - ((x - self.mu)**2  * np.exp(-(x - self.mu)**2 / (2 * self.sigma**2)) / self.sigma**2) )
  
           # cast Hessian as a 1x1 numpy array and return
-          return  np.array([[H]])      
+          return  np.array([[H]]) 
+    
+
+class GeneralGaussian(D1): 
+    def __init__(self, param): 
+        """Bias potential for eg. Bolhuis potential. Like class Gaussian a 
+        Gaussian-shaped function, but it is not normalized.  
+
+        Parameters:
+            a (float) - parameter controlling the center of the peak 'a=\mu'.
+            c (float) - parameter controlling the width of perturbation, 'c=1/(2 \sigma^2).
+            alpha (float) - strength of the perturbation, controlling the amplitude, '\alpha = k/ (\sqrt{2\pi\sigma^2})'.
+        Raises:
+        - ValueError: If param does not have exactly e elements.
+        """
+        
+        # Check if param has the correct number of elements
+        if len(param) != 3:
+            raise ValueError("param must have exactly 6 elements.")
+        
+        # Assign parameters
+        self.a = param[0]
+        self.c = param[1]
+        self.alpha = param[2]
+        
+    # the potential energy function 
+    def potential(self, x):
+        """
+        The potential energy function is given by:
+        V(x) = alpha * np.exp(-c * (x - a)**2)
+    
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+        Returns:
+            float: The value of the potential energy function at the given position x.
+        """
+    
+        return self.alpha * np.exp(-self.c * (x - self.a)**2)
+          
+    # the force, analytical expression 
+    def force_ana(self, x):
+        """
+        The force is given by:
+        F(x) = - dV(x) / dx 
+             = alpha * np.exp(-c * (x - a)**2) * c * 2 * (x - a)
+    
+        The units of F(x) are kJ/(mol * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+    
+        Returns:
+            numpy array: The value of the force at the given position x, returned as vector with 1 element.
+        """
+        
+        F = self.alpha * np.exp(-self.c * (x - self.a)**2) * self.c * 2 * (x - self.a)
+        return np.array([F])
+    
+    def hessian_ana(self, x): # TODO check if correct
+        """
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional Bolhuis potential.
+        Since the potential is one dimensional, the Hessian matrix has dimensions 1x1.
+    
+        The Hessian is given by:
+          H(x) = d^2 V(x) / dx^2 
+               =  2 * alpha * c * [ 4 * c * (x-a)**2 - (x-a)] * exp (-c *(x-a)**2 )
+    
+        The units of H(x) are kJ/(mol * nm * nm), following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): position
+
+        Returns:
+            numpy array: The 1x1 Hessian matrix at the given position x.
+    
+        """
+          
+        # calculate the Hessian as a float      
+        H = 2 * self.alpha * self.c * ( 2 * self.c * (x-self.a)**2 - 1 ) * np.exp(-self.c *(x - self.a)**2 )
+          
+        # cast Hessian as a 1x1 numpy array and return
+        return  np.array([[H]])
