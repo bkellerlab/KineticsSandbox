@@ -1046,7 +1046,7 @@ class Gaussian(D1):
 
 class GeneralGaussian(D1): 
     def __init__(self, param): 
-        """Bias potential for eg. Bolhuis potential. Like class Gaussian a 
+        r"""Bias potential for eg. Bolhuis potential. Like class Gaussian a 
         Gaussian-shaped function, but it is not normalized.  
 
         Parameters:
