@@ -129,6 +129,9 @@ def O_step(system, step_index=0, half_step = False, eta_k = None):
          - system (object): An object representing the physical system undergoing Langevin integration.
                    It should have attributes 'v' (velocity), 'm' (mass), 'xi' (friction coefficient),
                    'T' (temperature), 'dt' (time step).
+         - step_index (integer): The system class can store multiple random numbers, if the O-step is called 
+                    mutliple times per integration step. This is the index of the O-step call and corresponding 
+                    random number. Only needs to be specfied if the random numbers are recorded          
          - half_step (bool, optional): If True, perform a half-step integration. Default is False, performing
                    a full-step integration. 
          - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
@@ -160,6 +163,57 @@ def O_step(system, step_index=0, half_step = False, eta_k = None):
     system.v = d * system.v +  f_v * system.eta[step_index]
 
     return None
+
+# P_step
+def P_step(system, potential, bias = None, step_index=0, half_step = False, eta_k = None):
+    """
+    Perform the P-step in a Langevin integrator.
+
+     Parameters:
+        - system (object): An object representing the physical system undergoing Langevin integration.
+                   It should have attributes 'v' (velocity), 'm' (mass), 'xi' (friction coefficient),
+                   'T' (temperature), 'dt' (time step).
+        - potential (object): An object representing the potential energy landscape of the system.
+                    It should have a 'force' method that calculates the force at a given position.
+        - bias (object or None, optional): An object representing the bias potential or pertubation potential
+                    added to the of the system. It should have a 'force' method that 
+                    calculates the force at a given position.                   
+        - step_index (integer): The system class can store multiple random numbers, if the O-step is called 
+                    mutliple times per integration step. This is the index of the O-step call and corresponding 
+                    random number. Only needs to be specfied if the random numbers are recorded                             
+        - half_step (bool, optional): If True, perform a half-step integration. Default is False, performing
+                    a full-step integration. 
+        - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
+                    in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+
+     Returns:
+     None: The function modifies the 'v' (velocity) attribute of the provided system object in place.
+     """
+
+    # get natural constants in the appropriate units    
+    R = const.R * 0.001
+    
+    # set time step, depending on whether a half- or full step is performed
+    if half_step == True:
+        dt = 0.5 * system.dt
+    else:
+        dt = system.dt
+
+    # if eta_k is not provided, draw eta_k from Gaussian normal distribution
+    if eta_k is None:
+        eta_k = np.random.normal()
+        system.eta[step_index] = eta_k
+    else:
+        system.eta = eta_k # TODO HOW DO WE DEFINE SHAPE FOR INPUT?
+
+    d = np.exp(- system.xi * dt)
+    f_v = np.sqrt( R * system.T *  (1 / system.m)  * (1 - np.exp(-2 * system.xi * dt)) ) 
+    c = (1-d) / (system.xi * dt)
+
+    system.v =  c * (1 / system.m) * dt * potential.force(system.x, system.h)[0] + d * system.v +  f_v * system.eta[step_index]
+
+    return None
+
 
 #----------------------------------------------------------------------------
 #    L A N G E V I N   S P L I T T I N G   A L G O R I T H M S 
