@@ -47,7 +47,7 @@ def TST_D1(x_A, x_TS, T, m, h, potential):
 
     The rate constant (k_AB) is then computed using the Eyring TST
     
-    k_AB = R*T / h *  (q_TS / q_A) * np.exp(- E_b / (R * T)) 
+    k_AB = R*T / h_Planck *  (q_TS / q_A) * np.exp(- E_b / (R * T)) 
 
     The unit of k_AB is 1/ps
 
@@ -55,7 +55,7 @@ def TST_D1(x_A, x_TS, T, m, h, potential):
     """
     
     # get natural constants in the right units    
-    h = const.h * const.Avogadro * 0.001 *  1e12
+    h_Planck = const.h * const.Avogadro * 0.001 *  1e12
     R = const.R * 0.001
     
     # get the energy barrier
@@ -71,9 +71,9 @@ def TST_D1(x_A, x_TS, T, m, h, potential):
     q_TS = 1
     
     # calculate the partition function of A
-    q_A = np.exp(- h * nu_A / (2 * R * T)) /  (1 - np.exp(- h * nu_A / ( R * T)) )
+    q_A = np.exp(- h_Planck * nu_A / (2 * R * T)) /  (1 - np.exp(- h_Planck * nu_A / ( R * T)) )
     
-    k_AB = R * T / h * (q_TS / q_A) * np.exp(- E_b / (R * T))    
+    k_AB = R * T / h_Planck * (q_TS / q_A) * np.exp(- E_b / (R * T))    
     
     return k_AB
 
