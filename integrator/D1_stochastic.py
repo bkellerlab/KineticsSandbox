@@ -312,7 +312,7 @@ def BOAOB(system, potential, bias=None, eta_k = None, girsanov_reweighting=False
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
-    
+ 
     bias_force_k = system.bias_force
     B_step(system, potential, bias=bias, half_step = True) 
     O_step(system, half_step = True, eta_k = eta_k, step_index=0)
