@@ -308,6 +308,7 @@ class PairPotentialSum(Dn):
     def potential(
         self,
         x: np.ndarray,
+        **kwargs,
     ) -> float:
         """
         Calculate the sum of pair potential energies V_i(q) for each declared
@@ -419,8 +420,8 @@ class BiasedPairPotentialSum(Dn):
 
     def __init__(
         self,
-        pair_potential: Dn.Dn,
-        bias_potential: Dn.Dn,
+        pair_potential: Dn,
+        bias_potential: Dn,
     ):
         """
         Initialize the class for the Cartesian 3n-dimensional potential based
@@ -504,7 +505,7 @@ class BiasedPairPotentialSum(Dn):
         self,
         x: np.ndarray,
         verbose: bool = False
-    ) -> float | List[float]:
+    ) -> float | dict[str, float]:
         """
         Calculate the sum of pair potential energies V_i(q) for each declared
         atom pair.
@@ -515,7 +516,9 @@ class BiasedPairPotentialSum(Dn):
             - x (ndarray): (n_dim*n_atoms)-dimensional position vector
             - verbose (bool, optional):
                 If False, only return sum of potential and bias. If True,
-                return also the sum but also the bias, separately.
+                return a dictionary with values for the
+                unbiased potential ('original'), bias potential ('bias') and
+                the effective potential ('effective').
 
         Returns:
             float: 
@@ -537,7 +540,11 @@ class BiasedPairPotentialSum(Dn):
 
         # Return just the potential sum or additionally the bias potential
         if verbose:
-            return pair_energy + bias_energy, bias_energy
+            return {
+                'original': pair_energy,
+                'bias': bias_energy,
+                'effective': pair_energy + bias_energy
+            }
         else:
             return pair_energy + bias_energy
 

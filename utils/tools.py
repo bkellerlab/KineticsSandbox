@@ -1,20 +1,9 @@
-import os
 import sys
-import ase
+import itertools
 import numpy as np
-import scipy as sp
-import matplotlib.pyplot as plt
-import marimo as mo
 
-from marimol import view_structure
-from ase.visualize import view
-
-sys.path.insert(0, '..')
-
-from kineticssandbox.system import system
-from kineticssandbox.potential import D1, Dn
-from kineticssandbox.integrator import Dn_integrator, Dn_stochastic
-
+sys.path.insert(0, '../')
+from potential import D1, Dn
 
 def fibonacci_lattice_on_sphere(
     num_atoms: int,
@@ -51,6 +40,93 @@ def fibonacci_lattice_on_sphere(
         positions.append([radius*x, radius*y, radius*z])
 
     return positions
+
+
+def get_platonic_solid(
+    solid_name: str,
+    radius: float,
+) -> list[float]:
+    """
+    Returns edge vertices of a Platonic solid inscribed in a sphere of a given
+    radius.
+    source: AI
+    """
+
+    # Prepare name for recognition
+    name = solid_name.lower().strip()
+    
+    # Golden ratio
+    phi = (1 + np.sqrt(5)) / 2
+
+    # Get vertices for different Platonic solids
+    if name == 'tetrahedron':
+
+        verts = np.array(
+            [[1, 1, 1], [1, -1, -1], [-1, 1, -1], [-1, -1, 1]],
+            dtype=float
+        )
+
+    elif (
+        name == 'cube'
+        or name == 'hexahedron'
+    ):
+
+        verts = np.array(
+            list(itertools.product([-1, 1], repeat=3)),
+            dtype=float
+        )
+
+    elif name == 'octahedron':
+
+        verts = np.array(
+            [
+                [1, 0, 0], [-1, 0, 0], [0, 1, 0],
+                [0, -1, 0], [0, 0, 1], [0, 0, -1]
+            ],
+            dtype=float,
+        )
+
+    elif name == 'icosahedron':
+
+        verts = []
+        for s1, s2 in itertools.product([-1, 1], repeat=2):
+            verts.append([0, s1 * 1, s2 * phi])
+            verts.append([s1 * 1, s2 * phi, 0])
+            verts.append([s2 * phi, 0, s1 * 1])
+        verts = np.array(verts, dtype=float)
+
+    elif name == 'dodecahedron':
+
+        verts = list(itertools.product([-1, 1], repeat=3))
+        inv_phi = 1 / phi
+
+        for s1, s2 in itertools.product([-1, 1], repeat=2):
+            verts.append([0, s1 * inv_phi, s2 * phi])
+            verts.append([s1 * inv_phi, s2 * phi, 0])
+            verts.append([s2 * phi, 0, s1 * inv_phi])
+        verts = np.array(verts, dtype=float)
+
+    else:
+
+        raise ValueError(f'Unknown Platonic solid: {solid_name}')
+
+    # First, sort vertices by largest z-value (for display reasons)
+    dist_isort = np.argsort(verts[:, 2])[::-1]
+    verts = verts[dist_isort]
+
+    # Second, sort vertices by distances to the first one
+    dist_verts = np.linalg.norm(
+        verts - verts[0].reshape(1, -1),
+        axis=1
+    )
+    dist_isort = np.argsort(dist_verts)
+    verts = verts[dist_isort]
+
+    # Normalize vertices to unit sphere and scale by circumradius R
+    norms = np.linalg.norm(verts, axis=1, keepdims=True)
+    vertices = (verts / norms) * radius
+
+    return vertices
 
 
 def get_cluster_2d(
@@ -95,11 +171,22 @@ def get_cluster_3d(
     cluster_radii: list[float],
     cluster_num_atoms: list[int],
     cluster_species: list[str],
-) -> ase.Atoms:
+) -> [np.ndarray[float], list[str]]:
     """
     Create a cluster by equally distribute particles on circles of different 
     circumferences.
     """
+
+    # In case the atom number matches the edges for one of the Platonic solids,
+    # get the radius scaled vertices positions of the Platonic solids.
+    # Else, get the positions of a Fibonacci lattice on a sphere
+    num_vertices_platonic_solids = {
+        4:  'tetrahedron',
+        6:  'octahedron',
+        8:  'cube',
+        12: 'icosahedron',
+        20: 'dodecahedron',
+    }
 
     # Get (x,y,z)-coordinates for the distributed particles
     atom_positions = []
@@ -109,33 +196,38 @@ def get_cluster_3d(
     ):
 
         # Get particles on a sphere
-        atom_positions += list(
-            fibonacci_lattice_on_sphere(
-                num_atoms,
-                radius
+        if num_atoms in num_vertices_platonic_solids:
+            
+            atom_positions += list(
+                get_platonic_solid(
+                    num_vertices_platonic_solids[num_atoms],
+                    radius
+                )
             )
-        )
+            
+        else:
+
+            atom_positions += list(
+                fibonacci_lattice_on_sphere(
+                    num_atoms,
+                    radius
+                )
+            )
 
         # Add species
         atom_species += list(species)
 
-    # Create as an ASE Atoms object (convert coordinates from GROMACS nm to 
-    # ASE Angstrom)
-    cluster_ase = ase.Atoms(
-        atom_species,
-        positions=10.*np.array(atom_positions)
-    )
-
-    return cluster_ase
+    return np.array(atom_positions), atom_species
 
 
 def show_cluster(
     positions: np.ndarray[float],
-    species: list[str]
-) -> dict[str, np.ndarry[float] | list[str]]:
+    species: list[str],
+    frame: int | None = None,
+    bonds: dict[str, list[int]] | None = None,
+) -> dict[str, np.ndarray[float] | list[str]]:
 
-    # Create as an ASE Atoms object (convert coordinates from GROMACS nm to 
-    # ASE Angstrom)
+    # Convert positions to 3D
     if positions.shape[1] == 2:
         positions_3d = np.zeros([positions.shape[0], 3], dtype=float)
         positions_3d[:, :2] = positions
@@ -146,9 +238,21 @@ def show_cluster(
             "Positons input must have dimension of (Natoms, 2) or (Natoms, 3)!"
         )
 
+    # If requested, compute bond lengths per frame
+    if bonds is not None:
+        bonds_info = {
+            'frame': frame + 1,
+        }
+        for bond, (ii, jj) in bonds.items():
+            distance = np.linalg.norm(positions_3d[ii] - positions_3d[jj])
+            bonds_info[bond] = np.round(distance, decimals=3)
+    else:
+        bonds_info = {}
+
     return {
         'positions': (10.*positions_3d).tolist(),
         'species': list(species),
+        'extra_data': bonds_info,
     }
 
 
@@ -212,7 +316,7 @@ def get_potential(
     return potential_3d
 
 
-def get_bias_potential(
+def get_biased_potential(
     ndims: int,
     natoms: int,
     species: list[str],
@@ -334,7 +438,11 @@ def scan_distance(
 
     # Scan over distances
     if verbose:
-        energies_scan = np.zeros([distances.shape[0], 2], dtype=float)
+        energies_scan = {
+            'original': np.zeros([distances.shape[0]], dtype=float),
+            'bias': np.zeros([distances.shape[0]], dtype=float),
+            'effective': np.zeros([distances.shape[0]], dtype=float),
+        }
     else:
         energies_scan = np.zeros_like(distances)
     for ii, distance in enumerate(distances):
@@ -344,19 +452,25 @@ def scan_distance(
         positions_scan[atom_j] = positions_scan[atom_i] + distance*vector
 
         # Compute energy
-        energies_scan[ii] = potential.potential(
+        energy = potential.potential(
             positions_scan.flatten(),
-            verbose=verbose
+            verbose=verbose,
         )
+        if verbose:
+            energies_scan['original'][ii] = energy['original']
+            energies_scan['bias'][ii] = energy['bias']
+            energies_scan['effective'][ii] = energy['effective']
+        else:
+            energies_scan[ii] = energy
 
-    return np.array(energies_scan, dtype=float)
+    return energies_scan
 
 
 def get_thermalized_velocities_nd(
     temperature_K: float,
     masses: list[float],
     scale_exactly: bool = True,
-    verbose: bool = True,
+    verbose: bool = False,
 ) -> np.ndarray[float]:
 
     # Mass list with masses in kg for each degree of freedom
