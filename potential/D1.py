@@ -1126,3 +1126,268 @@ class GeneralGaussian(D1):
           
         # cast Hessian as a 1x1 numpy array and return
         return  np.array([[H]])
+
+
+class LJ1(D1):
+    
+    # intiialize class
+    def __init__(
+        self,
+        param: list[float],
+    ): 
+        """
+        Initialize the class for the 1-dimensional Lennard-Jones potential
+        based on the given parameter epsilon and sigma.
+
+        Parameters:
+            - param (list): a list of parameters representing:
+            - param[0] => epsilon (float) - Potential depth
+            - param[1] => sigma (float)   - Potential minimum at sigma*2**1/6
+
+        Raises:
+        - ValueError: If param does not have exactly 2 elements.
+        """
+
+        # Check if param has the correct number of elements
+        if len(param) != 2:
+            raise ValueError("param must have exactly 2 elements.")
+
+        # Assign parameters
+        self.epsilon = param[0]
+        self.sigma = param[1]
+
+        # Pre-compute potencies of sigma
+        self.sigma6 = self.sigma**6
+        self.sigma12 = self.sigma6**2
+
+        return
+
+    # the potential energy function 
+    def potential(self, x):
+        """
+        Calculate the potential energy V(x) for the 1-dimensional Lennard-Jones
+        potential.
+    
+        The potential energy function is given by:
+        V(x) = 4*epsilon * ( (sigma/x)**12 - (sigma/x)**6 )
+    
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): distance
+
+        Returns:
+            float:
+                The value of the potential energy function at the given
+                distance x.
+        """
+
+        # Compute potencies of the distance
+        x6 = x**6
+        x12 = x6**2
+
+        return 4.0*self.epsilon*(self.sigma12/x12 - self.sigma6/x6)
+          
+    # the force, analytical expression 
+    def force_ana(self, x):
+        """
+        Calculate the force F(x) analytically for the 1-dimensional
+        Lennard-Jones potential.
+        Since the potential is one-dimensional, the force is a vector with one
+        element.
+    
+        The force is given by:
+        F(x) = - dV(x) / dx 
+             = - 24*epsilon * ( sigma**6/x**7 - 2 * sigma**12/x**13 )
+    
+        The units of F(x) are kJ/(mol * nm), following the convention in
+        GROMACS.
+    
+        Parameters:
+            - x (float): distance
+    
+        Returns:
+            numpy array: 
+                The value of the force at the given position x, returned as
+                vector with 1 element.
+        """
+
+        # Compute potencies of the distance
+        x6 = x**6
+        x12 = x6**2
+
+        F = -24.0*self.epsilon*(self.sigma6/(x*x6) - 2.0*self.sigma12/(x*x12))
+        return np.array([F])
+    
+    # the Hessian matrix, analytical expression
+    def hessian_ana(self, x):
+        """
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional
+        Lennard-Jones potential.
+        Since the potential is one dimensional, the Hessian matrix has
+        dimensions 1x1.
+        
+        The units of H(x) are kJ/(mol * nm * nm), following the convention in
+        GROMACS.
+        
+        Parameters:
+            - x (float): distance
+        
+        Returns:
+            numpy array:
+                The 1x1 Hessian matrix at the given position x.
+        
+        """
+
+        # Compute potencies of the distance
+        x2 = x**2
+        x6 = x2**3
+        x12 = x6**2
+      
+        # calculate the Hessian as a float
+        H = -24.0*self.epsilon*(
+            26.0*self.sigma12/(x2*x12) - 7.0*self.sigma6/(x2*x6)
+        )
+        H = np.full_like(x, H)
+        
+        # cast Hessian as a 1x1 numpy array and return
+        return  np.array([[H]])
+
+
+class WCA1(D1):
+    
+    # intiialize class
+    def __init__(
+        self,
+        param: list[float],
+    ): 
+        """
+        Initialize the class for the 1-dimensional repulsive WCA potential 
+        based on the given parameter epsilon and sigma.
+
+        Parameters:
+            - param (list): a list of parameters representing:
+            - param[0] => epsilon (float) - Potential depth
+            - param[1] => sigma (float)   - Potential minimum at sigma*2**1/6
+
+        Raises:
+        - ValueError: If param does not have exactly 2 elements.
+        """
+
+        # Check if param has the correct number of elements
+        if len(param) != 2:
+            raise ValueError("param must have exactly 2 elements.")
+
+        # Assign parameters
+        self.epsilon = param[0]
+        self.sigma = param[1]
+        self.rmin = 2.0**(1./6.)*self.sigma
+
+        # Pre-compute potencies of sigma
+        self.sigma6 = self.sigma**6
+        self.sigma12 = self.sigma6**2
+        
+        return
+
+    # the potential energy function 
+    def potential(self, x):
+        """
+        Calculate the potential energy V(x) for the 1-dimensional repulsive WCA
+        potential.
+    
+        The potential energy function is given by:
+        V(x) = 4*epsilon * ( (sigma/x)**12 - (sigma/x)**6 )
+    
+        The units of V(x) are kJ/mol, following the convention in GROMACS.
+    
+        Parameters:
+            - x (float): distance
+
+        Returns:
+            float: The value of the potential energy function at the given distance x.
+        """
+        if x < self.rmin:
+            x6 = x**6
+            x12 = x6**2
+            return self.epsilon + 4.0*self.epsilon*(
+                self.sigma12/x12 - self.sigma6/x6
+            )
+        else:
+            return 0.0
+          
+    # the force, analytical expression 
+    def force_ana(self, x):
+        """
+        Calculate the force F(x) analytically for the 1-dimensional repulsive
+        WCA potential.
+        Since the potential is one-dimensional, the force is a vector with one
+        element.
+    
+        The force is given by:
+        F(x) = - dV(x) / dx 
+             = - 24*epsilon * ( sigma**6/x**7 - 2 * sigma**12/x**13 )
+    
+        The units of F(x) are kJ/(mol * nm), following the convention in
+        GROMACS.
+    
+        Parameters:
+            - x (float): distance
+    
+        Returns:
+            numpy array:
+                The value of the force at the given position x, returned as
+                vector with 1 element.
+        """
+
+        if x < self.rmin:
+            x6 = x**6
+            x12 = x6**2
+            F = -24.0*self.epsilon*(
+                self.sigma6/(x*x6) - 2.0*self.sigma12/(x*x12)
+            )
+        else:
+            F = 0.0
+
+        return np.array([F])
+
+    # the Hessian matrix, analytical expression
+    def hessian_ana(self, x):
+        """
+        Calculate the Hessian matrx H(x) analytically for the 1-dimensional
+        repulsive WCA potential.
+        Since the potential is one dimensional, the Hessian matrix has
+        dimensions 1x1.
+        
+        The Hessian is given by:
+        H(x) = d^2 V(x) / dx^2 
+             = 2k
+        
+        The units of H(x) are kJ/(mol * nm * nm), following the convention in   
+        GROMACS.
+        
+        Parameters:
+            - x (float): distance
+        
+        Returns:
+            numpy array: The 1x1 Hessian matrix at the given position x.
+        """
+
+        if x < self.rmin:
+
+            # Compute potencies of the distance
+            x2 = x**2
+            x6 = x2**3
+            x12 = x6**2
+      
+            # Calculate the Hessian as a float
+            H = -24.0*self.epsilon*(
+                26.0*self.sigma12/(x2*x12) - 7.0*self.sigma6/(x2*x6)
+            )
+            H = np.full_like(x, H)
+
+        else:
+
+            H = np.full_like(x, 0.0)
+
+        # Cast Hessian as a 1x1 numpy array and return
+        return  np.array([[H]])
