@@ -4,6 +4,19 @@ __generated_with = "0.25.2"
 app = marimo.App(width="medium")
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## AlgoSB 2026: Learning Protein Dynamics
+    # Dynamic Reweighting for Unbinding Processes
+
+    ### (2) Biased Potential
+
+    In this part, the original potential gets biased and used to yield unbinding times which gets reweigthed to estimate the unbinding times or rates for the original potential done previously.
+    """)
+    return
+
+
 @app.cell
 def _():
     import sys
@@ -33,6 +46,7 @@ def _():
         Dn_stochastic,
         get_biased_potential,
         get_thermalized_velocities_nd,
+        mo,
         np,
         optimize_cluster,
         plt,
@@ -41,6 +55,114 @@ def _():
         system,
         view_structure,
     )
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    From the previous simulation, we now know the unbinding rate for the chosen cluster and potential parameters. In this idealized case, the unbiased simulation should have progresses fast enough to get a good rate estimation at a decent time. However, higher unbinding rates should also require shorter dynamics runs and, thus, should be quicker to compute.
+
+    Here, the previous initial cluster setup is loaded (<code> cluster_data = np.load('lj_cluster_init.npz') </code>) with the same (adjust if needed) potential definition but also an additional bias potential of a 1D LJ potential between the central C and leaving N atom. In case of the same &sigma; parameter value, the sum of two LJ potentials between the same atoms yields one LJ potential with an effective &epsilon; parameter value formed by the sum of both.
+    <math display="block" style="font-size: 1.5rem;">
+        <mrow>
+            <mi>V<sub>LJ</sub></mi>
+            <mo>=</mo>
+            4<mn>&epsilon;</mn>
+        </mrow>
+        <mrow>
+            <mo>[</mo>
+                <msup>
+                    <mrow>
+                        <mo>(</mo>
+                        <mfrac>
+                            <mn>&sigma;</mn>
+                            <mi>r</mi>
+                        </mfrac>
+                        <mo>)</mo>
+                    </mrow>
+                    <mn>12</mn>
+                </msup>
+                -
+                <msup>
+                    <mrow>
+                        <mo>(</mo>
+                        <mfrac>
+                            <mn>&sigma;</mn>
+                            <mi>r</mi>
+                        </mfrac>
+                        <mo>)</mo>
+                    </mrow>
+                    <mn>6</mn>
+                </msup>
+            <mo>]</mo>
+        </mrow>
+        <mrow>
+            +4<mn>&epsilon;'</mn>
+        </mrow>
+        <mrow>
+            <mo>[</mo>
+                <msup>
+                    <mrow>
+                        <mo>(</mo>
+                        <mfrac>
+                            <mn>&sigma;</mn>
+                            <mi>r</mi>
+                        </mfrac>
+                        <mo>)</mo>
+                    </mrow>
+                    <mn>12</mn>
+                </msup>
+                -
+                <msup>
+                    <mrow>
+                        <mo>(</mo>
+                        <mfrac>
+                            <mn>&sigma;</mn>
+                            <mi>r</mi>
+                        </mfrac>
+                        <mo>)</mo>
+                    </mrow>
+                    <mn>6</mn>
+                </msup>
+            <mo>]</mo>
+        </mrow>
+        <mrow>
+            <mo>=</mo>
+            4(<mn>&epsilon; + &epsilon;'</mn>)
+        </mrow>
+        <mrow>
+            <mo>[</mo>
+                <msup>
+                    <mrow>
+                        <mo>(</mo>
+                        <mfrac>
+                            <mn>&sigma;</mn>
+                            <mi>r</mi>
+                        </mfrac>
+                        <mo>)</mo>
+                    </mrow>
+                    <mn>12</mn>
+                </msup>
+                -
+                <msup>
+                    <mrow>
+                        <mo>(</mo>
+                        <mfrac>
+                            <mn>&sigma;</mn>
+                            <mi>r</mi>
+                        </mfrac>
+                        <mo>)</mo>
+                    </mrow>
+                    <mn>6</mn>
+                </msup>
+            <mo>]</mo>
+        </mrow>
+    </math>
+    Thus, by assigning a negative &epsilon; value in the bias potential, the binding strength between C and N is lowered.
+
+    <b> TASK </b> Modify the cluster potential by a bias to reduce the binding strength between the C and N atom significantly (e.g. half or less than the original potential). The effective atom pair potential will be plotted below after a initial structure minimization and potential scan along the C-N distance.
+    """)
+    return
 
 
 @app.cell
@@ -52,7 +174,6 @@ def _(D1, get_biased_potential, np):
     natoms = cluster_data['natoms']
     ndims = cluster_data['ndims']
 
-
     # Define atom pair properties in terms of:
     # [pair potential ('LJ1' or 'WCA1'), epsilon (kJ/mol), sigma (nm)]
     # Pair potentials:
@@ -60,7 +181,7 @@ def _(D1, get_biased_potential, np):
     #   WCA1: 1-dimensional repulsive Weeks-Chandler-Andersen potential
     cluster_1d_potentials = {
         # 'C' to else
-        ('C', 'N'): [D1.LJ1, 10.0, 0.20],
+        ('C', 'N'): [D1.LJ1, 15.0, 0.20],
         ('C', 'H'): [D1.LJ1, 40.0, 0.20],
         ('C', 'S'): [D1.LJ1, 80.0, 0.20],
         # 'N' to else
@@ -80,9 +201,9 @@ def _(D1, get_biased_potential, np):
     #      = 4*(epsilon_pot + epsilon_bias)*((sigma/d)**12 - (sigma/d)**6)
     cluster_1d_bias = {
         # 'C' to 'N'
-        ('C', 'N'):   [D1.LJ1,  -5.0, 0.20],
+        ('C', 'N'):   [D1.LJ1, -10.0, 0.20],
         # or by atom indices
-        # (0, 1):   [D1.LJ1,  -5.0, 0.20],
+        # (0, 1):   [D1.LJ1, -10.0, 0.20],
     }
 
     # Prepare atom pair potential but only for atom pairs with defined pair parameters.
@@ -204,6 +325,14 @@ def _(ndims, np, plt, positions_min, potential_biased, scan_distance):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    <b> TASK </b> Same as with the unbiased simulations, iterate over a number of unbinding simulations with different intial atom velocities until the C-N distance increases up to a certain threshold distance and store the unbinding times and average bias potential for the computation of the accelaration factor &alpha;. While the simulations are running, prepare code to reweight the unbinding times or rates.
+    """)
+    return
+
+
 @app.cell
 def _(
     Dn_stochastic,
@@ -256,18 +385,6 @@ def _(
 
     # Sample one trajectory
 
-    """
-    # Student task:
-
-    # Perform MD simulations of the cluster and store how long it takes for the 'N' atom to leave the cluster
-    # Also define the 'N' atom distance threshold to the center 'C' atom, at which the system is counted as dissociated.
-    md_unbinding_times = []
-    md_unbinding_bias = []
-    md_threshold_distance = 1.0 # nm
-    md_threshold_atom_i = 0 # 'C'
-    md_threshold_atom_j = 1 # 'N'
-    """
-
     # How many steps should the MD simulation run
     Nsteps = 100_000 # Nsteps*time_step = 100ps
 
@@ -307,25 +424,6 @@ def _(
             verbose=True,
         )['bias']
 
-        """
-        # Student task:
-
-        # Check for unbinding of atom 'N' and if the distance to the center 'C' atom is larger then the trheshold,
-        # terminate the simulation.
-        _distance = np.linalg.norm(
-            (
-                system.x.reshape(natoms, ndims)[md_threshold_atom_i, :]
-                - system.x.reshape(natoms, ndims)[md_threshold_atom_j, :]
-            )
-        )
-
-        if _distance > md_threshold_distance:
-            md_unbinding_times.append(_step*time_step)
-            md_unbinding_bias.append(np.mean(trajectory_test_bias[:step + 1]))
-            print(f"Unbinding at {_step*time_step:6.3f} ps!")
-            break
-        """
-
     # Show as 3d trajectory
     view_structure(
         [
@@ -345,92 +443,11 @@ def _(
 
 
 @app.cell
-def _(md_diffusion_bias, md_unbinding_times, np):
-    """
-    # Student task:
-
-    # Perform MD simulations of the cluster and store how long it takes for the 'N' atom to leave the cluster
-    # Also define the 'N' atom distance threshold to the center 'C' atom, at which the system is counted as dissociated.
-    md_unbinding_times = []
-    md_unbinding_bias = []
-    md_threshold_distance = 1.0 # nm
-    md_threshold_atom_i = 0 # 'C'
-    md_threshold_atom_j = 1 # 'N'
-
-    # How many simulations will be performed
-    Nsimulation = 1_000
-
-    # Run simulation n time with different initial velocity distributions
-    for irun in range(Nsimulation):
-
-        # Reset cluster positions and velocities with respect to Boltzman distribution
-        cluster.x = positions_min
-        cluster.v = get_thermalized_velocities_nd(temperature, masses, scale_exactly=True)
-
-        # Create trajectory position and velocity arrays and store the initial conditions
-        trajectory_md_positions = np.zeros([Nsteps + 1, cluster.x.shape[0]], dtype=float)
-        trajectory_md_velocities = np.zeros([Nsteps + 1, cluster.v.shape[0]], dtype=float)
-        trajectory_md_bias = np.zeros(Nsteps + 1, dtype=float)
-
-        trajectory_md_positions[0, :] = cluster.x.copy()
-        trajectory_md_velocities[0, :] = cluster.v.copy()
-
-        # Run the simulation by iterating over time steps
-        sucess = False
-        for _step in range(Nsteps):
-
-            # Perform the time step by the Langevin integrator
-            Dn_stochastic.BOAOB(
-                cluster,
-                potential_md,
-                fixed=mask_md,
-            )
-
-            # Store positions and velocities
-            trajectory_md_positions[_step + 1, :] = cluster.x.copy()
-            trajectory_md_velocities[_step + 1, :] = cluster.v.copy()
-
-            # Store bias potential
-            trajectory_md_bias[step + 1] = potential_biased.potential(
-                system_2d.x,
-                verbose=True,
-            )['bias']
-
-            # Check for unbinding of atom 'N' and if the distance to the center 'C' atom is larger then the trheshold,
-            # terminate the simulation.
-            distance = np.linalg.norm(
-                (
-                    cluster.x.reshape(natoms, ndims)[md_threshold_atom_i, :]
-                    - cluster.x.reshape(natoms, ndims)[md_threshold_atom_j, :]
-                )
-            )
-
-            if distance > md_threshold_distance:
-                # Add unbinding time and print success
-                md_unbinding_times.append(_step*time_step)
-                md_unbinding_mean = np.mean(md_unbinding_times)
-                md_unbinding_rmsd = np.std(md_unbinding_times)
-                md_diffusion_bias.append(np.mean(trajectory_md_bias[:step + 1]))
-                print(
-                    f"({irun + 1:3d}/{Nsimulation:d}) Unbinding at {_step*time_step:6.3f} ps "
-                    + f"({md_unbinding_mean:4.1f} +- {md_unbinding_rmsd:4.1f} ps)"
-                )
-                sucess = True
-                break
-
-        if not sucess:
-            print(f"({irun + 1:d}/{Nsimulation:d}) No unbinding occured")
-
-    # Show unbinding time
-    md_unbinding_mean = np.mean(md_unbinding_times)
-    md_unbinding_rmsd = np.std(md_unbinding_times)
-    print(f"Mean unbinding time at {md_unbinding_mean:.3f} +- {md_unbinding_rmsd:.3f} ps")
-
-    """
+def _(md_unbinding_bias, md_unbinding_times, np):
     # Store results
     np.savetxt(
         'unbinding_times_biased.dat',
-        np.vstack((md_unbinding_times, md_diffusion_bias)).T
+        np.vstack((md_unbinding_times, md_unbinding_bias)).T
     )
     return
 
@@ -438,146 +455,7 @@ def _(md_diffusion_bias, md_unbinding_times, np):
 @app.cell
 def _(np):
     # Load unbinding times and bias results
-    md_unbinding_times_eval, md_unbinding_bias_eval = np.loadtxt('unbinding_times_biased.dat')
-
-    """
-    # Student task:
-
-    # Subtract the time until the first dissociation happens and declare this the equilibration time
-    #md_unbinding_times_red = md_unbinding_times_eval - np.min(md_unbinding_times_eval)
-    #md_unbinding_times_red = md_unbinding_times_red[md_unbinding_times_red > 0.0]
-    md_unbinding_times_red = md_unbinding_times_eval
-
-    # First, compute a time histogram of the unbinding times
-    eval_tau_range = [0.0, 40.0] #ps
-    eval_tau_nbins = 160 # 0.25 ps bins
-    eval_tau_edges = np.linspace(*eval_tau_range, num=(eval_tau_nbins + 1))
-    eval_tau_step = eval_tau_edges[1] - eval_tau_edges[0]
-    eval_tau_centers = eval_tau_edges[:-1] + eval_tau_step/2.
-
-    md_unbinding_times_histogram, _ = np.histogram(
-        md_unbinding_times_red,
-        bins=eval_tau_edges,
-    )
-
-    # Normalize the histogram to sum = 1
-    md_unbinding_times_histogram = md_unbinding_times_histogram.astype(float)/np.sum(md_unbinding_times_histogram)
-
-    # Second, convert to survival probability by summing up for each lifetime tau_i
-    # the number of trajectories which were not dissociated yet
-    md_unbinding_survival_propability = 1.0 - np.cumsum(md_unbinding_times_histogram)
-
-    # Get time derivative
-    der_md_unbinding_survival_propability = np.gradient(md_unbinding_survival_propability, eval_tau_step)
-
-    # Fit linear function to the derivative
-    mask_rate = np.logical_and(
-        eval_tau_centers > 5.0,
-        eval_tau_centers < 15.0,
-    )
-
-    md_unbinding_survival_rates = (
-        -der_md_unbinding_survival_propability
-        / md_unbinding_survival_propability
-    )
-
-    md_unbinding_survival_rate_mean = np.mean(md_unbinding_survival_rates[mask_rate])
-
-    # Try exponential curve fit
-    def exponential_decay(t, A, k):
-        return A*np.exp(-k*t)
-    def exponential_decay_delay(t, A, k, b):
-        return A*np.exp(-(k*t)**b)
-
-    popt, _ = sp.optimize.curve_fit(
-        exponential_decay,
-        eval_tau_centers[mask_rate],
-        md_unbinding_survival_propability[mask_rate],
-        p0=[1.0, 1.0]
-    )
-
-    popt_delay, _ = sp.optimize.curve_fit(
-        exponential_decay_delay,
-        eval_tau_centers,
-        md_unbinding_survival_propability,
-        p0=[1.0, 1.0, 1.0]
-    )
-
-    # Plot results
-    fig2, axs2 = plt.subplots()
-
-    axs2.scatter(
-        eval_tau_centers,
-        md_unbinding_survival_propability,
-        color='grey',
-        label=r'Survival Probability $S_A(t)$'
-    )
-    axs2.plot(
-        eval_tau_centers,
-        exponential_decay(eval_tau_centers, *popt),
-        color='blue',
-        label=r'Fit: $s_A(t) = $' + f'{popt[0]:.2f}$\cdot$exp(-{popt[1]:.2f}$t$)'
-    )
-    axs2.plot(
-        eval_tau_centers,
-        exponential_decay_delay(eval_tau_centers, *popt_delay),
-        color='black',
-        label=r'Fit: $f_A(t) = $' + f'{popt_delay[0]:.2f}$\cdot$exp(-({popt_delay[1]:.2f}$t)**${popt_delay[2]:.2f})'
-    )
-    taxs2 = axs2.twinx()
-    taxs2.scatter(
-        eval_tau_centers,
-        der_md_unbinding_survival_propability,
-        color='red',
-        label=r'$d S_A(t) / d t$',
-    )
-    taxs2.scatter(
-        eval_tau_centers,
-        md_unbinding_survival_rates,
-        color='green',
-        label=r'$-(d S_A(t) / d t) / S_A(t)$'
-    )
-
-    taxs2.hlines(
-        md_unbinding_survival_rate_mean,
-        eval_tau_centers[0],
-        eval_tau_centers[-1],
-        linestyle='--',
-        color='blue',
-        label=r'$k_{AB}$ = ' + f'{md_unbinding_survival_rate_mean:.2f} 1/ps'
-    )
-    axs2.set_ylim(-0.1, 1.5)
-    taxs2.set_ylim(-.2, 0.75)
-
-    axs2.set_xlabel('Time t [ps]')
-    axs2.set_ylabel('Survival Probability')
-    taxs2.set_ylabel('Time Derivative [1/ps]', color='red')
-
-    axs2.legend(loc='upper left', framealpha=1.0)
-    taxs2.legend(loc='upper right', framealpha=1.0)
-
-    print(r'Survival rate of $k_{AB}$ = ' + f'{md_unbinding_survival_rate_mean:.3f} 1/ps')
-
-    plt.show()
-    """
-    return
-
-
-@app.cell
-def _():
-    """
-    # Student task:
-
-    # Compute accelaration factor alpha = k_AB_biased / k_AB_MD
-    kB_kJmolK = 0.008314462618
-    beta = 1./(kB_kJmolK*temperature)
-    alpha = np.mean(np.exp(+beta*np.array(md_diffusion_bias_eval)))
-
-    # Estimate diffusion rate of the unbiased simulations
-    print(r"Survival rate from biased simulatin $k_{AB,biased}$ = " + f"{md_diffusion_survival_rate_mean:.3f} 1/ps")
-    print("Acceleration factor is estimated from the bias potential by: " + f"{alpha:.3f}")
-    print(f"Estimation of the survival rate in unbiased simulations: {md_diffusion_survival_rate_mean/alpha:.3f} 1/ps")
-    """
+    md_unbinding_times_eval, md_unbinding_bias_eval = np.loadtxt('unbinding_times_biased.dat').T
     return
 
 

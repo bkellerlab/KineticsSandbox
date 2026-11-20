@@ -4,6 +4,19 @@ __generated_with = "0.25.2"
 app = marimo.App(width="medium")
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    ## AlgoSB 2026: Learning Protein Dynamics
+    # Dynamic Reweighting for Unbinding Processes
+
+    ### (3) Dynamic Reweigthing
+
+    Now the original potential gets biased on the fly by the metadyanimcs algorithm to accelarate the unbinding process.
+    """)
+    return
+
+
 @app.cell
 def _():
     import sys
@@ -33,6 +46,7 @@ def _():
         Dn_stochastic,
         get_biased_potential,
         get_thermalized_velocities_nd,
+        mo,
         np,
         optimize_cluster,
         plt,
@@ -41,6 +55,14 @@ def _():
         system,
         view_structure,
     )
+
+
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    As the bias is updated on the fly, we define the effective potential as a sum of the original potential and an empty bias potential.
+    """)
+    return
 
 
 @app.cell
@@ -94,7 +116,7 @@ def _(D1, get_biased_potential, np):
         + f"(bias is {energies_init['bias']:.3f} kJ/mol)\n"
         + f"with a maximum force component of {np.amax(forces_init):.3f} kJ/mol/nm"
     )
-    return ndims, positions_init, potential_biased, species_init
+    return natoms, ndims, positions_init, potential_biased, species_init
 
 
 @app.cell
@@ -144,11 +166,22 @@ def _(
     return cluster_masses, positions_min
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    <b> TASK </b> Before iterating over mutliple accelerated metadynamics simulations, test first the implementation of adding a Gaussian potential bias every n steps located at the respective C-N atom distance of that step with a certain Gaussian potential heigth and width. The second panel below shows the final bias potential over a potential scan of the C-N atom pair distance.
+
+    Also store the accelerated sampled unbinding time and the rescaled unbinding time according to eq. (5.11).
+    """)
+    return
+
+
 @app.cell
 def _(
     Dn_stochastic,
     cluster_masses,
     get_thermalized_velocities_nd,
+    natoms,
     ndims,
     np,
     positions_min,
@@ -162,6 +195,9 @@ def _(
     temperature = 300.0 # Kelvin, rememer <E_kin> = kB*T = 0.008314 kJ⋅mol-1⋅K-1 * T, <E_kin(300K)> = 2.5 kJ/mol
     friction = 1.0 # 1/ps
     time_step = 0.001 # ps
+
+    kB_kJmolK = 0.008314462618
+    beta = 1./(kB_kJmolK*temperature)
 
     # Assign atom masses (for numerical reasons, set 0 masses to 1, their velocities will set to 0 each step)
     masses = np.array(
@@ -196,39 +232,42 @@ def _(
 
     # Sample one trajectory
 
-    """
     # Student task:
 
     # Perform MD simulations of the cluster and store how long it takes for the 'N' atom to leave the cluster
     # Also define the 'N' atom distance threshold to the center 'C' atom, at which the system is counted as dissociated.
-    md_unbinding_times = []
-    md_unbinding_bias = []
-    md_threshold_distance = 0.4 # nm
+    _md_unbinding_times = []
+    md_threshold_distance = 1.0 # nm
     md_threshold_atom_i = 0 # 'C'
     md_threshold_atom_j = 1 # 'N'
 
     # Define here the metadynamics parameters such as the collective variable CV, add-frequency, the add-potential
     # and its parameters
+    """
+    # Student task:
+
+    _md_unbinding_times_scaled = []
+
     meta_cv_atom_i = 0 # 'C'
     meta_cv_atom_j = 1 # 'N'
-    meta_add_steps = 1000 # every 100 steps or 0.1 ps
+    meta_add_steps = 100 # every 100 steps or 0.1 ps
     meta_potential = D1.GeneralGaussian # General Gaussian function alpha * exp(c*(x - a)**2)
-    meta_parameter = [None, np.sqrt(2./0.0001), 1.0] # a, c = sqrt(sigma/2) with sigma in [nm], alpha in [kJ/mol]
+    meta_parameter = [None, 100., 0.1] # a, c = sqrt(sigma/2) with sigma in [nm], alpha in [kJ/mol]
     # (parameter a for the location will be updated during the simulation)
+
     """
 
-
     # How many steps should the MD simulation run
-    Nsteps = 10_000 # Nsteps*time_step = 1ps
+    Nsteps_bias = 100_000 # Nsteps*time_step = 100ps
 
     # Set cluster positions and velocities with respect to Boltzman distribution
     cluster.x = positions_min
     cluster.v = get_thermalized_velocities_nd(temperature, masses, scale_exactly=True)
 
     # Create trajectory position and velocity arrays and store the initial conditions
-    trajectory_test_positions = np.zeros([Nsteps + 1, cluster.x.shape[0]], dtype=float)
-    trajectory_test_velocities = np.zeros([Nsteps + 1, cluster.v.shape[0]], dtype=float)
-    trajectory_test_bias = np.zeros(Nsteps + 1, dtype=float)
+    trajectory_test_positions = np.zeros([Nsteps_bias + 1, cluster.x.shape[0]], dtype=float)
+    trajectory_test_velocities = np.zeros([Nsteps_bias + 1, cluster.v.shape[0]], dtype=float)
+    trajectory_test_bias = np.zeros(Nsteps_bias + 1, dtype=float)
 
     trajectory_test_positions[0, :] = cluster.x.copy()
     trajectory_test_velocities[0, :] = cluster.v.copy()
@@ -241,7 +280,7 @@ def _(
     potential_biased.remove_bias()
 
     # Run the simulation by iterating over time steps
-    for _step in range(Nsteps):
+    for _step in range(Nsteps_bias):
 
         # Perform the time step by the Langevin integrator
         Dn_stochastic.BOAOB(
@@ -259,7 +298,7 @@ def _(
             cluster.x,
             verbose=True,
         )['bias']
-    
+
         """
         # Student task:
 
@@ -279,6 +318,7 @@ def _(
                 ],
                 bias_indices=np.array([[meta_cv_atom_i], [meta_cv_atom_j]])
             )
+        """
 
         # Check for unbinding of atom 'N' and if the distance to the center 'C' atom is larger then the trheshold,
         # terminate the simulation.
@@ -290,11 +330,18 @@ def _(
         )
 
         if _distance > md_threshold_distance:
-            md_unbinding_times.append(_step*time_step)
-            md_unbinding_bias.append(np.mean(trajectory_test_bias[:_step + 1]))
-            print(f"Unbinding at {_step*time_step:6.3f} ps!")
+            _md_unbinding_times.append(_step*time_step)
+            """
+            # Student task:
+            _md_unbinding_times_scaled.append(
+                time_step*np.sum(np.exp(+beta*trajectory_test_bias[:_step + 1]))
+            )
+            print(
+                f"Accelerated unbinding at {_md_unbinding_times[-1]:6.3f} ps, "
+                + f"which corresponds to an unbinding time of {_md_unbinding_times_scaled[-1]:6.3f} ps!"
+            )
+            """
             break
-        """
 
     # Show as 3d trajectory
     view_structure(
@@ -373,24 +420,33 @@ def _(ndims, np, plt, positions_min, potential_biased, scan_distance):
     return
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    <b> TASK </b> Iterate over multiple accelerated metadynamics simulations and store the accelerated and reweigthed unbinding time for the subsequent evaluation as done before.
+    """)
+    return
+
+
 @app.cell
-def _(md_diffusion_bias, md_unbinding_times, np):
+def _(md_unbinding_times, md_unbinding_times_scaled, np):
     """
     # Student task:
 
-    # Perform MD simulations of the cluster and store how long it takes for the 'N' atom to leave the cluster
-    # Also define the 'N' atom distance threshold to the center 'C' atom, at which the system is counted as dissociated.
     md_unbinding_times = []
-    md_unbinding_bias = []
-    md_threshold_distance = 1.0 # nm
-    md_threshold_atom_i = 0 # 'C'
-    md_threshold_atom_j = 1 # 'N'
+    md_unbinding_times_scaled = []
 
     # How many simulations will be performed
     Nsimulation = 1_000
 
+    # How many steps should the MD simulation run
+    Nsteps = 100_000 # Nsteps*time_step = 100ps
+
     # Run simulation n time with different initial velocity distributions
     for irun in range(Nsimulation):
+
+        # Remove previous potential bias, if it already exists from a previous run
+        potential_biased.remove_bias()
 
         # Reset cluster positions and velocities with respect to Boltzman distribution
         cluster.x = positions_min
@@ -411,7 +467,7 @@ def _(md_diffusion_bias, md_unbinding_times, np):
             # Perform the time step by the Langevin integrator
             Dn_stochastic.BOAOB(
                 cluster,
-                potential_md,
+                potential_biased,
                 fixed=mask_md,
             )
 
@@ -420,10 +476,27 @@ def _(md_diffusion_bias, md_unbinding_times, np):
             trajectory_md_velocities[_step + 1, :] = cluster.v.copy()
 
             # Store bias potential
-            trajectory_md_bias[step + 1] = potential_biased.potential(
-                system_2d.x,
+            trajectory_md_bias[_step + 1] = potential_biased.potential(
+                cluster.x,
                 verbose=True,
             )['bias']
+    
+            # Add metadynamic bias if when time is come
+            if not (_step + 1) % meta_add_steps:
+    
+                _distance = np.linalg.norm(
+                    (
+                        cluster.x.reshape(natoms, ndims)[meta_cv_atom_i, :]
+                        - cluster.x.reshape(natoms, ndims)[meta_cv_atom_j, :]
+                    )
+                )
+    
+                potential_biased.add_bias(
+                    bias_potentials=[
+                        meta_potential([_distance, *meta_parameter[1:]])
+                    ],
+                    bias_indices=np.array([[meta_cv_atom_i], [meta_cv_atom_j]])
+                )
 
             # Check for unbinding of atom 'N' and if the distance to the center 'C' atom is larger then the trheshold,
             # terminate the simulation.
@@ -439,10 +512,16 @@ def _(md_diffusion_bias, md_unbinding_times, np):
                 md_unbinding_times.append(_step*time_step)
                 md_unbinding_mean = np.mean(md_unbinding_times)
                 md_unbinding_rmsd = np.std(md_unbinding_times)
-                md_diffusion_bias.append(np.mean(trajectory_md_bias[:step + 1]))
+                md_unbinding_times_scaled.append(
+                    time_step*np.sum(np.exp(+beta*trajectory_test_bias[:_step + 1]))
+                )
+                md_unbinding_mean_scaled = np.mean(md_unbinding_times_scaled)
+                md_unbinding_rmsd_scaled = np.std(md_unbinding_times_scaled)
                 print(
-                    f"({irun + 1:3d}/{Nsimulation:d}) Unbinding at {_step*time_step:6.3f} ps "
-                    + f"({md_unbinding_mean:4.1f} +- {md_unbinding_rmsd:4.1f} ps)"
+                    f"({irun + 1:3d}/{Nsimulation:d}) Accelerated unbinding at {_step*time_step:6.3f} ps "
+                    + f"({md_unbinding_mean:4.1f} +- {md_unbinding_rmsd:4.1f} ps), "
+                    + f"which corresponds to an unbinding time of {md_unbinding_times_scaled[-1]:6.3f} ps "
+                    + f"({md_unbinding_mean_scaled:4.1f} +- {md_unbinding_rmsd_scaled:4.1f} ps)."
                 )
                 sucess = True
                 break
@@ -453,29 +532,27 @@ def _(md_diffusion_bias, md_unbinding_times, np):
     # Show unbinding time
     md_unbinding_mean = np.mean(md_unbinding_times)
     md_unbinding_rmsd = np.std(md_unbinding_times)
-    print(f"Mean unbinding time at {md_unbinding_mean:.3f} +- {md_unbinding_rmsd:.3f} ps")
-
+    print(f"Mean accelerated unbinding time at {md_unbinding_mean:.3f} +- {md_unbinding_rmsd:.3f} ps")
+    print(f"Mean reweighted unbinding time at {md_unbinding_mean:.3f} +- {md_unbinding_rmsd:.3f} ps")
     """
+
     # Store results
     np.savetxt(
         'unbinding_times_meta.dat',
-        np.vstack((md_unbinding_times, md_diffusion_bias)).T
+        np.vstack((md_unbinding_times, md_unbinding_times_scaled)).T
     )
     return
 
 
 @app.cell
 def _(np):
-    # Load unbinding times and bias results
-    md_unbinding_times_eval, md_unbinding_bias_eval = np.loadtxt('unbinding_times_meta.dat')
+    # Load unbinding times
+    md_unbinding_times_eval, md_unbinding_times_scaled_eval = np.loadtxt('unbinding_times_meta.dat').T
 
     """
     # Student task:
 
-    # Subtract the time until the first dissociation happens and declare this the equilibration time
-    #md_unbinding_times_red = md_unbinding_times_eval - np.min(md_unbinding_times_eval)
-    #md_unbinding_times_red = md_unbinding_times_red[md_unbinding_times_red > 0.0]
-    md_unbinding_times_red = md_unbinding_times_eval
+    # Student task:
 
     # First, compute a time histogram of the unbinding times
     eval_tau_range = [0.0, 40.0] #ps
@@ -485,7 +562,7 @@ def _(np):
     eval_tau_centers = eval_tau_edges[:-1] + eval_tau_step/2.
 
     md_unbinding_times_histogram, _ = np.histogram(
-        md_unbinding_times_red,
+        md_unbinding_times_scaled_eval,
         bins=eval_tau_edges,
     )
 
@@ -501,8 +578,8 @@ def _(np):
 
     # Fit linear function to the derivative
     mask_rate = np.logical_and(
-        eval_tau_centers > 5.0,
-        eval_tau_centers < 15.0,
+        eval_tau_centers > 2.5,
+        eval_tau_centers < 7.5,
     )
 
     md_unbinding_survival_rates = (
@@ -576,7 +653,7 @@ def _(np):
         label=r'$k_{AB}$ = ' + f'{md_unbinding_survival_rate_mean:.2f} 1/ps'
     )
     axs2.set_ylim(-0.1, 1.5)
-    taxs2.set_ylim(-.2, 0.75)
+    taxs2.set_ylim(-.3, 0.75)
 
     axs2.set_xlabel('Time t [ps]')
     axs2.set_ylabel('Survival Probability')
@@ -585,27 +662,10 @@ def _(np):
     axs2.legend(loc='upper left', framealpha=1.0)
     taxs2.legend(loc='upper right', framealpha=1.0)
 
-    print(r'Survival rate of $k_{AB}$ = ' + f'{md_unbinding_survival_rate_mean:.3f} 1/ps')
+    print(r'Survival rate by exponential fit: $k_{AB,1}$ = ' + f'{popt[1]:.3f} 1/ps')
+    print(r'Survival rate by linear fit: $k_{AB,2}$ = ' + f'{md_unbinding_survival_rate_mean:.3f} 1/ps')
 
     plt.show()
-    """
-    return
-
-
-@app.cell
-def _():
-    """
-    # Student task:
-
-    # Compute accelaration factor alpha = k_AB_biased / k_AB_MD
-    kB_kJmolK = 0.008314462618
-    beta = 1./(kB_kJmolK*temperature)
-    alpha = np.mean(np.exp(+beta*np.array(md_diffusion_bias_eval)))
-
-    # Estimate diffusion rate of the unbiased simulations
-    print(r"Survival rate from biased simulatin $k_{AB,biased}$ = " + f"{md_diffusion_survival_rate_mean:.3f} 1/ps")
-    print("Acceleration factor is estimated from the bias potential by: " + f"{alpha:.3f}")
-    print(f"Estimation of the survival rate in unbiased simulations: {md_diffusion_survival_rate_mean/alpha:.3f} 1/ps")
     """
     return
 

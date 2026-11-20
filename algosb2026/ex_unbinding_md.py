@@ -10,6 +10,8 @@ def _(mo):
     ## AlgoSB 2026: Learning Protein Dynamics
     # Dynamic Reweighting for Unbinding Processes
 
+    ### (1) Unbiased Simulations
+
     Flavor text for introducing model systems for unbinding processes such as the simple Lennard-Jones cluster in either 2D or 3D.
 
     <figure>
@@ -492,17 +494,6 @@ def _(
 
     # Sample one trajectory
 
-    """
-    # Student task:
-
-    # Perform MD simulations of the cluster and store how long it takes for the 'N' atom to leave the cluster
-    # Also define the 'N' atom distance threshold to the center 'C' atom, at which the system is counted as dissociated.
-    md_unbinding_times = []
-    md_threshold_distance = 1.0 # nm
-    md_threshold_atom_i = 0 # 'C'
-    md_threshold_atom_j = 1 # 'N'
-    """
-
     # How many steps should the MD simulation run
     Nsteps = 100_000 # Nsteps*time_step = 100ps
 
@@ -530,24 +521,6 @@ def _(
         # Store positions and velocities
         trajectory_test_positions[_step + 1, :] = cluster.x.copy()
         trajectory_test_velocities[_step + 1, :] = cluster.v.copy()
-
-        """
-        # Student task:
-
-        # Check for unbinding of atom 'N' and if the distance to the center 'C' atom is larger then the trheshold,
-        # terminate the simulation.
-        _distance = np.linalg.norm(
-            (
-                system.x.reshape(natoms, ndims)[md_threshold_atom_i, :]
-                - system.x.reshape(natoms, ndims)[md_threshold_atom_j, :]
-            )
-        )
-
-        if _distance > md_threshold_distance:
-            md_unbinding_times.append(_step*time_step)
-            print(f"Unbinding at {_step*time_step:6.3f} ps!")
-            break
-        """
 
     # Show as 3d trajectory
     view_structure(
@@ -643,7 +616,6 @@ def _(md_unbinding_times, np):
     """
     # Store results
     np.savetxt('unbinding_times_md.dat', md_unbinding_times)
-
     return
 
 
@@ -782,7 +754,8 @@ def _(np):
     axs2.legend(loc='upper left', framealpha=1.0)
     taxs2.legend(loc='upper right', framealpha=1.0)
 
-    print(r'Survival rate of $k_{AB}$ = ' + f'{md_unbinding_survival_rate_mean:.3f} 1/ps')
+    print(r'Survival rate by exponential fit: $k_{AB,1}$ = ' + f'{popt[1]:.3f} 1/ps')
+    print(r'Survival rate by linear fit: $k_{AB,2}$ = ' + f'{md_unbinding_survival_rate_mean:.3f} 1/ps')
 
     plt.show()
     """
