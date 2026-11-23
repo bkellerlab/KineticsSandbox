@@ -82,7 +82,7 @@ def _(D1, get_biased_potential, np):
     #   WCA1: 1-dimensional repulsive Weeks-Chandler-Andersen potential
     cluster_1d_potentials = {
         # 'C' to else
-        ('C', 'N'): [D1.LJ1, 15.0, 0.20],
+        ('C', 'N'): [D1.LJ1, 12.0, 0.20],
         ('C', 'H'): [D1.LJ1, 40.0, 0.20],
         ('C', 'S'): [D1.LJ1, 80.0, 0.20],
         # 'N' to else
@@ -195,7 +195,7 @@ def _(
     # First, the Langevin integrator parameters must be defined
     temperature = 300.0 # Kelvin, rememer <E_kin> = kB*T = 0.008314 kJ⋅mol-1⋅K-1 * T, <E_kin(300K)> = 2.5 kJ/mol
     friction = 1.0 # 1/ps
-    time_step = 0.001 # ps
+    time_step = 0.002 # ps
 
     kB_kJmolK = 0.008314462618
     beta = 1./(kB_kJmolK*temperature)
@@ -247,14 +247,14 @@ def _(
     # and its parameters
     meta_cv_atom_i = 0 # 'C'
     meta_cv_atom_j = 1 # 'N'
-    meta_add_steps = 500 # every ?00 steps or 0.? ps
+    meta_add_steps = 100 # every ?00 steps or 0.? ps
     meta_potential = D1.GeneralGaussian # General Gaussian function alpha * exp(c*(x - a)**2)
-    meta_parameter = [None, 50., 0.25] # a, c = 1/(2*sigma**2) with sigma in [nm], alpha in [kJ/mol]
+    meta_parameter = [None, 50., 0.05] # a, c = 1/(2*sigma**2) with sigma in [nm], alpha in [kJ/mol]
     # (parameter a for the location will be updated during the simulation)
 
 
     # How many steps should the MD simulation run
-    Nsteps_bias = 100_000 # Nsteps*time_step = 100ps
+    Nsteps_bias = 100_000 # Nsteps*time_step = 200ps
 
     # Set cluster positions and velocities with respect to Boltzman distribution
     cluster.x = positions_min
@@ -466,7 +466,7 @@ def _(
     md_unbinding_times_scaled = []
 
     # How many simulations will be performed
-    Nsimulation = 1_000
+    Nsimulation = 100
 
     # How many steps should the MD simulation run
     Nsteps = 100_000 # Nsteps*time_step = 100ps
@@ -509,17 +509,17 @@ def _(
                 cluster.x,
                 verbose=True,
             )['bias']
-    
+
             # Add metadynamic bias if when time is come
             if not (_step + 1) % meta_add_steps:
-    
+
                 _distance = np.linalg.norm(
                     (
                         cluster.x.reshape(natoms, ndims)[meta_cv_atom_i, :]
                         - cluster.x.reshape(natoms, ndims)[meta_cv_atom_j, :]
                     )
                 )
-    
+
                 potential_biased.add_bias(
                     bias_potentials=[
                         meta_potential([_distance, *meta_parameter[1:]])
@@ -580,8 +580,8 @@ def _(np, plt, sp):
     # Student task:
 
     # First, compute a time histogram of the unbinding times
-    eval_tau_range = [0.0, 40.0] #ps
-    eval_tau_nbins = 160 # 0.25 ps bins
+    eval_tau_range = [0.0, 50.0] #ps
+    eval_tau_nbins = 50 # 1.0 ps bins
     eval_tau_edges = np.linspace(*eval_tau_range, num=(eval_tau_nbins + 1))
     eval_tau_step = eval_tau_edges[1] - eval_tau_edges[0]
     eval_tau_centers = eval_tau_edges[:-1] + eval_tau_step/2.
@@ -603,8 +603,8 @@ def _(np, plt, sp):
 
     # Fit linear function to the derivative
     mask_rate = np.logical_and(
-        eval_tau_centers > 15.0,
-        eval_tau_centers < 25.0,
+        eval_tau_centers > 10.0,
+        eval_tau_centers < 40.0,
     )
 
     md_unbinding_survival_rates = (

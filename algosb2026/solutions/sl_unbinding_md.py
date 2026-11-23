@@ -10,8 +10,6 @@ def _(mo):
     ## AlgoSB 2026: Learning Protein Dynamics
     # Dynamic Reweighting for Unbinding Processes
 
-    Flavor text for introducing model systems for unbinding processes such as the simple Lennard-Jones cluster in either 2D or 3D.
-
     <figure>
       <img src="public/cluster_intro.png" width="600" />
       <figcaption>Figure 1: Sketch of a 2D cluster and the unbinding process.</figcaption>
@@ -108,7 +106,7 @@ def _(get_cluster_2d, show_cluster, view_structure):
             species_init_2d,
         )
     )
-    return (sigma2rmin,)
+    return positions_init_2d, sigma2rmin, species_init_2d
 
 
 @app.cell(hide_code=True)
@@ -152,7 +150,7 @@ def _(get_cluster_3d, show_cluster, sigma2rmin, view_structure):
             species_init_3d,
         )
     )
-    return positions_init_3d, species_init_3d
+    return
 
 
 @app.cell(hide_code=True)
@@ -262,10 +260,10 @@ def _(mo):
 
 
 @app.cell
-def _(D1, get_potential, np, positions_init_3d, species_init_3d):
+def _(D1, get_potential, np, positions_init_2d, species_init_2d):
     # Decide whether you want to simulate in 2D or 3D and store the cluster positions and species for later use
-    positions_init = positions_init_3d
-    species_init = species_init_3d
+    positions_init = positions_init_2d
+    species_init = species_init_2d
     natoms = positions_init.shape[0]
     ndims = positions_init.shape[1]
 
@@ -284,7 +282,7 @@ def _(D1, get_potential, np, positions_init_3d, species_init_3d):
     #   WCA1: 1-dimensional repulsive Weeks-Chandler-Andersen potential
     cluster_1d_potentials = {
         # 'C' to else
-        ('C', 'N'): [D1.LJ1, 15.0, 0.20],
+        ('C', 'N'): [D1.LJ1, 12.0, 0.20],
         ('C', 'H'): [D1.LJ1, 40.0, 0.20],
         ('C', 'S'): [D1.LJ1, 80.0, 0.20],
         # 'N' to else
@@ -463,7 +461,7 @@ def _(
     # First, the Langevin integrator parameters must be defined
     temperature = 300.0 # Kelvin, rememer <E_kin> = kB*T = 0.008314 kJ⋅mol-1⋅K-1 * T, <E_kin(300K)> = 2.5 kJ/mol
     friction = 1.0 # 1/ps
-    time_step = 0.001 # ps
+    time_step = 0.002 # ps
 
     # Assign atom masses (for numerical reasons, set 0 masses to 1, their velocities will set to 0 each step)
     masses = np.array(
@@ -508,7 +506,7 @@ def _(
     md_threshold_atom_j = 1 # 'N'
 
     # How many steps should the MD simulation run
-    Nsteps = 100_000 # Nsteps*time_step = 100ps
+    Nsteps = 100_000 # Nsteps*time_step = 200ps
 
     # Set cluster positions and velocities with respect to Boltzman distribution
     cluster.x = positions_min
@@ -603,7 +601,7 @@ def _(
     md_unbinding_times = []
 
     # How many simulations will be performed
-    Nsimulation = 1_000
+    Nsimulation = 100
 
     # Run simulation n time with different initial velocity distributions
     for irun in range(Nsimulation):
@@ -690,8 +688,8 @@ def _(np, plt, sp):
     # Student task:
 
     # First, compute a time histogram of the unbinding times
-    eval_tau_range = [0.0, 40.0] #ps
-    eval_tau_nbins = 160 # 0.25 ps bins
+    eval_tau_range = [0.0, 50.0] #ps
+    eval_tau_nbins = 50 # 1.0 ps bins
     eval_tau_edges = np.linspace(*eval_tau_range, num=(eval_tau_nbins + 1))
     eval_tau_step = eval_tau_edges[1] - eval_tau_edges[0]
     eval_tau_centers = eval_tau_edges[:-1] + eval_tau_step/2.
@@ -713,8 +711,8 @@ def _(np, plt, sp):
 
     # Fit linear function to the derivative
     mask_rate = np.logical_and(
-        eval_tau_centers > 7.5,
-        eval_tau_centers < 20.0,
+        eval_tau_centers > 10.0,
+        eval_tau_centers < 30.0,
     )
 
     md_unbinding_survival_rates = (
@@ -727,8 +725,6 @@ def _(np, plt, sp):
     # Try exponential curve fit
     def exponential_decay(t, A, k):
         return A*np.exp(-k*t)
-    def exponential_decay_delay(t, A, k, b):
-        return A*np.exp(-(k*t)**b)
 
     popt, _ = sp.optimize.curve_fit(
         exponential_decay,
@@ -737,12 +733,6 @@ def _(np, plt, sp):
         p0=[1.0, 1.0]
     )
 
-    popt_delay, _ = sp.optimize.curve_fit(
-        exponential_decay_delay,
-        eval_tau_centers,
-        md_unbinding_survival_propability,
-        p0=[1.0, 1.0, 1.0]
-    )
 
     # Plot results
     fig2, axs2 = plt.subplots()
@@ -759,12 +749,7 @@ def _(np, plt, sp):
         color='blue',
         label=r'Fit: $s_A(t) = $' + f'{popt[0]:.2f}$\cdot$exp(-{popt[1]:.2f}$t$)'
     )
-    axs2.plot(
-        eval_tau_centers,
-        exponential_decay_delay(eval_tau_centers, *popt_delay),
-        color='black',
-        label=r'Fit: $f_A(t) = $' + f'{popt_delay[0]:.2f}$\cdot$exp(-({popt_delay[1]:.2f}$t)**${popt_delay[2]:.2f})'
-    )
+
     taxs2 = axs2.twinx()
     taxs2.scatter(
         eval_tau_centers,

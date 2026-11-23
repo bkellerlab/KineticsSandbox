@@ -182,7 +182,7 @@ def _(D1, get_biased_potential, np):
     #   WCA1: 1-dimensional repulsive Weeks-Chandler-Andersen potential
     cluster_1d_potentials = {
         # 'C' to else
-        ('C', 'N'): [D1.LJ1, 15.0, 0.20],
+        ('C', 'N'): [D1.LJ1, 12.0, 0.20],
         ('C', 'H'): [D1.LJ1, 40.0, 0.20],
         ('C', 'S'): [D1.LJ1, 80.0, 0.20],
         # 'N' to else
@@ -202,9 +202,9 @@ def _(D1, get_biased_potential, np):
     #      = 4*(epsilon_pot + epsilon_bias)*((sigma/d)**12 - (sigma/d)**6)
     cluster_1d_bias = {
         # 'C' to 'N'
-        ('C', 'N'):   [D1.LJ1,  -10.0, 0.20],
+        ('C', 'N'):   [D1.LJ1,  -6.0, 0.20],
         # or by atom indices
-        # (0, 1):   [D1.LJ1,  -5.0, 0.20],
+        # (0, 1):   [D1.LJ1,  -6.0, 0.20],
     }
 
     # Prepare atom pair potential but only for atom pairs with defined pair parameters.
@@ -329,7 +329,8 @@ def _(ndims, np, plt, positions_min, potential_biased, scan_distance):
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    <b> TASK </b> Same as with the unbiased simulations, iterate over a number of unbinding simulations with different intial atom velocities until the C-N distance increases up to a certain threshold distance and store the unbinding times and average bias potential for the computation of the accelaration factor &alpha;. While the simulations are running, prepare code to reweight the unbinding times or rates.
+    <b> TASK </b> Same as with the unbiased simulations, iterate over a number of unbinding simulations with different intial atom velocities until the C-N distance increases up to a certain threshold distance.
+    Store the unbinding times and average bias potential of each simulation run for the computation of the accelaration factor &alpha;. While the simulations are running, prepare code to reweight the unbinding times or rates.
     """)
     return
 
@@ -352,7 +353,7 @@ def _(
     # First, the Langevin integrator parameters must be defined
     temperature = 300.0 # Kelvin, rememer <E_kin> = kB*T = 0.008314 kJ⋅mol-1⋅K-1 * T, <E_kin(300K)> = 2.5 kJ/mol
     friction = 1.0 # 1/ps
-    time_step = 0.001 # ps
+    time_step = 0.002 # ps
 
     # Assign atom masses (for numerical reasons, set 0 masses to 1, their velocities will set to 0 each step)
     masses = np.array(
@@ -398,7 +399,7 @@ def _(
     md_threshold_atom_j = 1 # 'N'
 
     # How many steps should the MD simulation run
-    Nsteps = 100_000 # Nsteps*time_step = 100ps
+    Nsteps = 100_000 # Nsteps*time_step = 200ps
 
     # Set cluster positions and velocities with respect to Boltzman distribution
     cluster.x = positions_min
@@ -506,7 +507,7 @@ def _(
     md_unbinding_bias = []
 
     # How many simulations will be performed
-    Nsimulation = 1_000
+    Nsimulation = 100
 
     # Run simulation n time with different initial velocity distributions
     for irun in range(Nsimulation):
@@ -595,8 +596,8 @@ def _(np, plt, sp, temperature):
     md_unbinding_alpha = np.exp(+beta*np.array(md_unbinding_bias_eval))
 
     # First, compute a time histogram of the unbinding times without and with acceleration factor
-    eval_tau_range = [0.0, 40.0] #ps
-    eval_tau_nbins = 160 # 0.25 ps bins
+    eval_tau_range = [0.0, 50.0] #ps
+    eval_tau_nbins = 50 # 1.0 ps bins
     eval_tau_edges = np.linspace(*eval_tau_range, num=(eval_tau_nbins + 1))
     eval_tau_step = eval_tau_edges[1] - eval_tau_edges[0]
     eval_tau_centers = eval_tau_edges[:-1] + eval_tau_step/2.
@@ -629,11 +630,11 @@ def _(np, plt, sp, temperature):
     # Fit linear function to the derivative
     mask_rate = np.logical_and(
         eval_tau_centers > 7.5,
-        eval_tau_centers < 17.5,
+        eval_tau_centers < 20.0,
     )
     mask_rate_alpha = np.logical_and(
-        eval_tau_centers > 7.5,
-        eval_tau_centers < 17.5,
+        eval_tau_centers > 10.0,
+        eval_tau_centers < 30.0,
     )
 
     md_unbinding_survival_rates = (
@@ -651,21 +652,12 @@ def _(np, plt, sp, temperature):
     # Try exponential curve fit
     def exponential_decay(t, A, k):
         return A*np.exp(-k*t)
-    def exponential_decay_delay(t, A, k, b):
-        return A*np.exp(-(k*t)**b)
 
     popt, _ = sp.optimize.curve_fit(
         exponential_decay,
         eval_tau_centers[mask_rate],
         md_unbinding_survival_propability[mask_rate],
         p0=[1.0, 1.0]
-    )
-
-    popt_delay, _ = sp.optimize.curve_fit(
-        exponential_decay_delay,
-        eval_tau_centers,
-        md_unbinding_survival_propability,
-        p0=[1.0, 1.0, 1.0]
     )
 
     popt_alpha, _ = sp.optimize.curve_fit(
@@ -675,15 +667,8 @@ def _(np, plt, sp, temperature):
         p0=[1.0, 1.0]
     )
 
-    popt_delay_alpha, _ = sp.optimize.curve_fit(
-        exponential_decay_delay,
-        eval_tau_centers,
-        md_unbinding_survival_propability_alpha,
-        p0=[1.0, 1.0, 1.0]
-    )
-
     # Plot results
-    fig2, (axs2, axs3) = plt.subplots(1, 2, figsize=(12, 6))
+    fig2, (axs2, axs3) = plt.subplots(1, 2, figsize=(16, 6))
 
     axs2.scatter(
         eval_tau_centers,
@@ -697,12 +682,7 @@ def _(np, plt, sp, temperature):
         color='blue',
         label=r'Fit: $s_A(t) = $' + f'{popt[0]:.2f}$\cdot$exp(-{popt[1]:.2f}$t$)'
     )
-    axs2.plot(
-        eval_tau_centers,
-        exponential_decay_delay(eval_tau_centers, *popt_delay),
-        color='black',
-        label=r'Fit: $f_A(t) = $' + f'{popt_delay[0]:.2f}$\cdot$exp(-({popt_delay[1]:.2f}$t)**${popt_delay[2]:.2f})'
-    )
+
     taxs2 = axs2.twinx()
     taxs2.scatter(
         eval_tau_centers,
@@ -745,7 +725,7 @@ def _(np, plt, sp, temperature):
         eval_tau_centers,
         md_unbinding_survival_propability_alpha,
         color='grey',
-        label=r'Reweighted Survival Probability $S*_A(t)$'
+        label=r'Rew. Survival Probability $S*_A(t)$'
     )
     axs3.plot(
         eval_tau_centers,
@@ -753,12 +733,7 @@ def _(np, plt, sp, temperature):
         color='blue',
         label=r'Fit: $s*_A(t) = $' + f'{popt_alpha[0]:.2f}$\cdot$exp(-{popt_alpha[1]:.2f}$t$)'
     )
-    axs3.plot(
-        eval_tau_centers,
-        exponential_decay_delay(eval_tau_centers, *popt_delay_alpha),
-        color='black',
-        label=r'Fit: $f*_A(t) = $' + f'{popt_delay_alpha[0]:.2f}$\cdot$exp(-({popt_delay_alpha[1]:.2f}$t)**${popt_delay_alpha[2]:.2f})'
-    )
+
     taxs3 = axs3.twinx()
     taxs3.scatter(
         eval_tau_centers,
@@ -784,6 +759,7 @@ def _(np, plt, sp, temperature):
     axs3.set_ylim(-0.1, 1.5)
     taxs3.set_ylim(-.2, 0.75)
 
+    axs3.set_title('Accelerated Unbinding times')
     axs3.set_xlabel('Time t [ps]')
     axs3.set_ylabel('Survival Probability')
     taxs3.set_ylabel('Time Derivative [1/ps]', color='red')
@@ -795,27 +771,28 @@ def _(np, plt, sp, temperature):
     print(r'Reweigthed survival rate by linear fit: $k*_{AB,2}$ = ' + f'{md_unbinding_survival_rate_alpha_mean:.3f} 1/ps')
 
     plt.show()
-    return md_unbinding_bias_eval, md_unbinding_survival_rate_mean
+    return beta, md_unbinding_bias_eval, md_unbinding_survival_rate_mean, popt
 
 
 @app.cell
-def _(
-    md_unbinding_bias_eval,
-    md_unbinding_survival_rate_mean,
-    np,
-    temperature,
-):
+def _(beta, md_unbinding_bias_eval, md_unbinding_survival_rate_mean, np, popt):
     # Student task:
 
     # Compute accelaration factor alpha = k_AB_biased / k_AB_MD
-    kB_kJmolK = 0.008314462618
-    beta = 1./(kB_kJmolK*temperature)
     alpha = np.mean(np.exp(+beta*np.array(md_unbinding_bias_eval)))
 
     # Estimate diffusion rate of the unbiased simulations
-    print(r"Survival rate from biased simulatin $k_{AB,biased}$ = " + f"{md_unbinding_survival_rate_mean:.3f} 1/ps")
-    print("Acceleration factor is estimated from the bias potential by: " + f"{alpha:.3f}")
-    print(f"Estimation of the survival rate in unbiased simulations: {md_unbinding_survival_rate_mean/alpha:.3f} 1/ps")
+    print(r"Survival rate from biased simulatin $k*_{AB,1}$ = " + f"{popt[1]:.3f} 1/ps")
+    print(r"Survival rate from biased simulatin $k*_{AB,2}$ = " + f"{md_unbinding_survival_rate_mean:.3f} 1/ps")
+    print(r"Acceleration factor is estimated from the bias potential by: $\alpha$ = " + f"{alpha:.3f}")
+    print(
+        r"Estimation of the survival rate in unbiased simulations $k*_{AB,1}/\alpha$: "
+        + f"{popt[1]/alpha:.3f} 1/ps"
+    )
+    print(
+        r"Estimation of the survival rate in unbiased simulations $k*_{AB,2}/\alpha$: "
+        + f"{md_unbinding_survival_rate_mean/alpha:.3f} 1/ps"
+    )
     return
 
 

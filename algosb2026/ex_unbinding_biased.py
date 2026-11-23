@@ -181,7 +181,7 @@ def _(D1, get_biased_potential, np):
     #   WCA1: 1-dimensional repulsive Weeks-Chandler-Andersen potential
     cluster_1d_potentials = {
         # 'C' to else
-        ('C', 'N'): [D1.LJ1, 15.0, 0.20],
+        ('C', 'N'): [D1.LJ1, 10.0, 0.20],
         ('C', 'H'): [D1.LJ1, 40.0, 0.20],
         ('C', 'S'): [D1.LJ1, 80.0, 0.20],
         # 'N' to else
@@ -201,9 +201,9 @@ def _(D1, get_biased_potential, np):
     #      = 4*(epsilon_pot + epsilon_bias)*((sigma/d)**12 - (sigma/d)**6)
     cluster_1d_bias = {
         # 'C' to 'N'
-        ('C', 'N'):   [D1.LJ1, -10.0, 0.20],
+        ('C', 'N'):   [D1.LJ1, -5.0, 0.20],
         # or by atom indices
-        # (0, 1):   [D1.LJ1, -10.0, 0.20],
+        # (0, 1):   [D1.LJ1, -5.0, 0.20],
     }
 
     # Prepare atom pair potential but only for atom pairs with defined pair parameters.
@@ -444,6 +444,8 @@ def _(
 
 @app.cell
 def _(md_unbinding_bias, md_unbinding_times, np):
+    ...
+
     # Store results
     np.savetxt(
         'unbinding_times_biased.dat',
@@ -456,6 +458,8 @@ def _(md_unbinding_bias, md_unbinding_times, np):
 def _(np):
     # Load unbinding times and bias results
     md_unbinding_times_eval, md_unbinding_bias_eval = np.loadtxt('unbinding_times_biased.dat').T
+
+    ...
     return
 
 

@@ -12,8 +12,6 @@ def _(mo):
 
     ### (1) Unbiased Simulations
 
-    Flavor text for introducing model systems for unbinding processes such as the simple Lennard-Jones cluster in either 2D or 3D.
-
     <figure>
       <img src="public/cluster_intro.png" width="600" />
       <figcaption>Figure 1: Sketch of a 2D cluster and the unbinding process.</figcaption>
@@ -109,7 +107,7 @@ def _(get_cluster_2d, show_cluster, view_structure):
             species_init_2d,
         )
     )
-    return (sigma2rmin,)
+    return positions_init_2d, sigma2rmin, species_init_2d
 
 
 @app.cell(hide_code=True)
@@ -148,7 +146,7 @@ def _(get_cluster_3d, show_cluster, sigma2rmin, view_structure):
             species_init_3d,
         )
     )
-    return positions_init_3d, species_init_3d
+    return
 
 
 @app.cell(hide_code=True)
@@ -258,10 +256,10 @@ def _(mo):
 
 
 @app.cell
-def _(D1, get_potential, np, positions_init_3d, species_init_3d):
+def _(D1, get_potential, np, positions_init_2d, species_init_2d):
     # Decide whether you want to simulate in 2D or 3D and store the cluster positions and species for later use
-    positions_init = positions_init_3d
-    species_init = species_init_3d
+    positions_init = positions_init_2d
+    species_init = species_init_2d
     natoms = positions_init.shape[0]
     ndims = positions_init.shape[1]
 
@@ -433,10 +431,10 @@ def _(mo):
     Let us start with a first simulation of the cluster. First the integrator parameters (simulation temperature, friction coefficient and time step) is defined and collected into one system instance with the variable name <code> cluster </code>.
 
     <b> TASK 1 </b>
-    Modify the code below that the simulation terminates when the distance between the center atom C and leaving atom N becomes larger than a threshold distance and store the elapsed simulation time.
+    Modify the code below that the simulation terminates when the distance between the center atom C and leaving atom N becomes larger than a threshold distance (e.g. 1 nm) and store the elapsed simulation time.
 
     <b> TASK 2 </b>
-    Furhter extend the code to run the simulation N times to sample a set of leaving times. Best is also to save the list of leaving times in a file as a backup and for further evaluation.
+    Furhter extend the code to run the simulation N times (e.g. N >= 100) to sample a set of leaving times. Best is also to save the list of leaving times in a file as a backup and for further evaluation.
     """)
     return
 
@@ -542,78 +540,8 @@ def _(
 
 @app.cell
 def _(md_unbinding_times, np):
-    """
-    # Student task:
+    ...
 
-    # Perform MD simulations of the cluster and store how long it takes for the 'N' atom to leave the cluster
-    # Also define the 'N' atom distance threshold to the center 'C' atom, at which the system is counted as dissociated.
-    md_unbinding_times = []
-    md_threshold_distance = 1.0 # nm
-    md_threshold_atom_i = 0 # 'C'
-    md_threshold_atom_j = 1 # 'N'
-
-    # How many simulations will be performed
-    Nsimulation = 1_000
-
-    # Run simulation n time with different initial velocity distributions
-    for irun in range(Nsimulation):
-
-        # Reset cluster positions and velocities with respect to Boltzman distribution
-        cluster.x = positions_min
-        cluster.v = get_thermalized_velocities_nd(temperature, masses, scale_exactly=True)
-
-        # Create trajectory position and velocity arrays and store the initial conditions
-        trajectory_md_positions = np.zeros([Nsteps + 1, cluster.x.shape[0]], dtype=float)
-        trajectory_md_velocities = np.zeros([Nsteps + 1, cluster.v.shape[0]], dtype=float)
-
-        trajectory_md_positions[0, :] = cluster.x.copy()
-        trajectory_md_velocities[0, :] = cluster.v.copy()
-
-        # Run the simulation by iterating over time steps
-        sucess = False
-        for _step in range(Nsteps):
-
-            # Perform the time step by the Langevin integrator
-            Dn_stochastic.BOAOB(
-                cluster,
-                potential_md,
-                fixed=mask_md,
-            )
-
-            # Store positions and velocities
-            trajectory_md_positions[_step + 1, :] = cluster.x.copy()
-            trajectory_md_velocities[_step + 1, :] = cluster.v.copy()
-
-            # Check for unbinding of atom 'N' and if the distance to the center 'C' atom is larger then the trheshold,
-            # terminate the simulation.
-            distance = np.linalg.norm(
-                (
-                    cluster.x.reshape(natoms, ndims)[md_threshold_atom_i, :]
-                    - cluster.x.reshape(natoms, ndims)[md_threshold_atom_j, :]
-                )
-            )
-
-            if distance > md_threshold_distance:
-                # Add unbinding time and print success
-                md_unbinding_times.append(_step*time_step)
-                md_unbinding_mean = np.mean(md_unbinding_times)
-                md_unbinding_rmsd = np.std(md_unbinding_times)
-                print(
-                    f"({irun + 1:3d}/{Nsimulation:d}) Unbinding at {_step*time_step:6.3f} ps "
-                    + f"({md_unbinding_mean:4.1f} +- {md_unbinding_rmsd:4.1f} ps)"
-                )
-                sucess = True
-                break
-
-        if not sucess:
-            print(f"({irun + 1:d}/{Nsimulation:d}) No unbinding occured")
-
-    # Show unbinding time
-    md_unbinding_mean = np.mean(md_unbinding_times)
-    md_unbinding_rmsd = np.std(md_unbinding_times)
-    print(f"Mean unbinding time at {md_unbinding_mean:.3f} +- {md_unbinding_rmsd:.3f} ps")
-
-    """
     # Store results
     np.savetxt('unbinding_times_md.dat', md_unbinding_times)
     return
@@ -638,127 +566,7 @@ def _(np):
     # Load unbinding times results
     md_unbinding_times_eval = np.loadtxt('unbinding_times_md.dat')
 
-    """
-    # Student task:
-
-    # Subtract the time until the first dissociation happens and declare this the equilibration time
-    #md_unbinding_times_red = md_unbinding_times_eval - np.min(md_unbinding_times_eval)
-    #md_unbinding_times_red = md_unbinding_times_red[md_unbinding_times_red > 0.0]
-    md_unbinding_times_red = md_unbinding_times_eval
-
-    # First, compute a time histogram of the unbinding times
-    eval_tau_range = [0.0, 40.0] #ps
-    eval_tau_nbins = 160 # 0.25 ps bins
-    eval_tau_edges = np.linspace(*eval_tau_range, num=(eval_tau_nbins + 1))
-    eval_tau_step = eval_tau_edges[1] - eval_tau_edges[0]
-    eval_tau_centers = eval_tau_edges[:-1] + eval_tau_step/2.
-
-    md_unbinding_times_histogram, _ = np.histogram(
-        md_unbinding_times_red,
-        bins=eval_tau_edges,
-    )
-
-    # Normalize the histogram to sum = 1
-    md_unbinding_times_histogram = md_unbinding_times_histogram.astype(float)/np.sum(md_unbinding_times_histogram)
-
-    # Second, convert to survival probability by summing up for each lifetime tau_i
-    # the number of trajectories which were not dissociated yet
-    md_unbinding_survival_propability = 1.0 - np.cumsum(md_unbinding_times_histogram)
-
-    # Get time derivative
-    der_md_unbinding_survival_propability = np.gradient(md_unbinding_survival_propability, eval_tau_step)
-
-    # Fit linear function to the derivative
-    mask_rate = np.logical_and(
-        eval_tau_centers > 5.0,
-        eval_tau_centers < 15.0,
-    )
-
-    md_unbinding_survival_rates = (
-        -der_md_unbinding_survival_propability
-        / md_unbinding_survival_propability
-    )
-
-    md_unbinding_survival_rate_mean = np.mean(md_unbinding_survival_rates[mask_rate])
-
-    # Try exponential curve fit
-    def exponential_decay(t, A, k):
-        return A*np.exp(-k*t)
-    def exponential_decay_delay(t, A, k, b):
-        return A*np.exp(-(k*t)**b)
-
-    popt, _ = sp.optimize.curve_fit(
-        exponential_decay,
-        eval_tau_centers[mask_rate],
-        md_unbinding_survival_propability[mask_rate],
-        p0=[1.0, 1.0]
-    )
-
-    popt_delay, _ = sp.optimize.curve_fit(
-        exponential_decay_delay,
-        eval_tau_centers,
-        md_unbinding_survival_propability,
-        p0=[1.0, 1.0, 1.0]
-    )
-
-    # Plot results
-    fig2, axs2 = plt.subplots()
-
-    axs2.scatter(
-        eval_tau_centers,
-        md_unbinding_survival_propability,
-        color='grey',
-        label=r'Survival Probability $S_A(t)$'
-    )
-    axs2.plot(
-        eval_tau_centers,
-        exponential_decay(eval_tau_centers, *popt),
-        color='blue',
-        label=r'Fit: $s_A(t) = $' + f'{popt[0]:.2f}$\cdot$exp(-{popt[1]:.2f}$t$)'
-    )
-    axs2.plot(
-        eval_tau_centers,
-        exponential_decay_delay(eval_tau_centers, *popt_delay),
-        color='black',
-        label=r'Fit: $f_A(t) = $' + f'{popt_delay[0]:.2f}$\cdot$exp(-({popt_delay[1]:.2f}$t)**${popt_delay[2]:.2f})'
-    )
-    taxs2 = axs2.twinx()
-    taxs2.scatter(
-        eval_tau_centers,
-        der_md_unbinding_survival_propability,
-        color='red',
-        label=r'$d S_A(t) / d t$',
-    )
-    taxs2.scatter(
-        eval_tau_centers,
-        md_unbinding_survival_rates,
-        color='green',
-        label=r'$-(d S_A(t) / d t) / S_A(t)$'
-    )
-
-    taxs2.hlines(
-        md_unbinding_survival_rate_mean,
-        eval_tau_centers[0],
-        eval_tau_centers[-1],
-        linestyle='--',
-        color='blue',
-        label=r'$k_{AB}$ = ' + f'{md_unbinding_survival_rate_mean:.2f} 1/ps'
-    )
-    axs2.set_ylim(-0.1, 1.5)
-    taxs2.set_ylim(-.2, 0.75)
-
-    axs2.set_xlabel('Time t [ps]')
-    axs2.set_ylabel('Survival Probability')
-    taxs2.set_ylabel('Time Derivative [1/ps]', color='red')
-
-    axs2.legend(loc='upper left', framealpha=1.0)
-    taxs2.legend(loc='upper right', framealpha=1.0)
-
-    print(r'Survival rate by exponential fit: $k_{AB,1}$ = ' + f'{popt[1]:.3f} 1/ps')
-    print(r'Survival rate by linear fit: $k_{AB,2}$ = ' + f'{md_unbinding_survival_rate_mean:.3f} 1/ps')
-
-    plt.show()
-    """
+    ...
     return
 
 
