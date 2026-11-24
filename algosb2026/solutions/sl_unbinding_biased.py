@@ -353,7 +353,7 @@ def _(
     # First, the Langevin integrator parameters must be defined
     temperature = 300.0 # Kelvin, rememer <E_kin> = kB*T = 0.008314 kJ⋅mol-1⋅K-1 * T, <E_kin(300K)> = 2.5 kJ/mol
     friction = 1.0 # 1/ps
-    time_step = 0.002 # ps
+    time_step = 0.010 # ps
 
     # Assign atom masses (for numerical reasons, set 0 masses to 1, their velocities will set to 0 each step)
     masses = np.array(
@@ -373,7 +373,7 @@ def _(
         T=temperature,
         xi=friction,
         dt=time_step,
-        h=0.001,
+        h=None,
     )
 
     # Use the same atom mask as in the minimization step to fix certain cluster atom positions
@@ -386,159 +386,55 @@ def _(
         dtype=bool
     )
 
-    # Sample one trajectory
+    # Result list of unbinding times and average bias potential
+    md_unbinding_times = []
+    md_unbinding_bias = []
 
-    # Student task:
-
-    # Perform MD simulations of the cluster and store how long it takes for the 'N' atom to leave the cluster
-    # Also define the 'N' atom distance threshold to the center 'C' atom, at which the system is counted as dissociated.
-    _md_unbinding_times = []
-    _md_unbinding_bias = []
+    # Define the 'N' atom distance threshold to the center 'C' atom, at which the system is counted as dissociated.
     md_threshold_distance = 1.0 # nm
     md_threshold_atom_i = 0 # 'C'
     md_threshold_atom_j = 1 # 'N'
 
-    # How many steps should the MD simulation run
-    Nsteps = 100_000 # Nsteps*time_step = 200ps
-
-    # Set cluster positions and velocities with respect to Boltzman distribution
-    cluster.x = positions_min
-    cluster.v = get_thermalized_velocities_nd(temperature, masses, scale_exactly=True)
-
-    # Create trajectory position and velocity arrays and store the initial conditions
-    trajectory_test_positions = np.zeros([Nsteps + 1, cluster.x.shape[0]], dtype=float)
-    trajectory_test_velocities = np.zeros([Nsteps + 1, cluster.v.shape[0]], dtype=float)
-    trajectory_test_bias = np.zeros(Nsteps + 1, dtype=float)
-
-    trajectory_test_positions[0, :] = cluster.x.copy()
-    trajectory_test_velocities[0, :] = cluster.v.copy()
-    trajectory_test_bias[0] = potential_biased.potential(
-        cluster.x,
-        verbose=True,
-    )['bias'] # dictionary with items for 'original', 'bias', 'effective' (= 'original' + 'bias')
-
-    # Run the simulation by iterating over time steps
-    for _step in range(Nsteps):
-
-        # Perform the time step by the Langevin integrator
-        Dn_stochastic.BOAOB(
-            cluster,
-            potential_biased,
-            fixed=mask_md,
-        )
-
-        # Store positions and velocities
-        trajectory_test_positions[_step + 1, :] = cluster.x.copy()
-        trajectory_test_velocities[_step + 1, :] = cluster.v.copy()
-
-        # Store bias potential
-        trajectory_test_bias[_step + 1] = potential_biased.potential(
-            cluster.x,
-            verbose=True,
-        )['bias']
-
-        # Student task:
-
-        # Check for unbinding of atom 'N' and if the distance to the center 'C' atom is larger then the trheshold,
-        # terminate the simulation.
-        _distance = np.linalg.norm(
-            (
-                cluster.x.reshape(natoms, ndims)[md_threshold_atom_i, :]
-                - cluster.x.reshape(natoms, ndims)[md_threshold_atom_j, :]
-            )
-        )
-
-        if _distance > md_threshold_distance:
-            _md_unbinding_times.append(_step*time_step)
-            _md_unbinding_bias.append(np.mean(trajectory_test_bias[:_step + 1]))
-            print(f"Unbinding at {_step*time_step:6.3f} ps!")
-            break
-
-    # Show as 3d trajectory
-    view_structure(
-        [
-            show_cluster(positions_i.reshape(-1, ndims), species_init)
-            for positions_i in np.concatenate(
-                (
-                    trajectory_test_positions[0:_step + 1:100],
-                    trajectory_test_positions[_step + 1].reshape(1, -1),
-                )
-            )
-        ],
-        trajectory_slider=True,
-        measuring_tool=True,
-        recording_tools=True,
-    )
-    return (
-        Nsteps,
-        cluster,
-        mask_md,
-        masses,
-        md_threshold_atom_i,
-        md_threshold_atom_j,
-        md_threshold_distance,
-        temperature,
-        time_step,
-    )
-
-
-@app.cell
-def _(
-    Dn_stochastic,
-    Nsteps,
-    cluster,
-    get_thermalized_velocities_nd,
-    mask_md,
-    masses,
-    md_threshold_atom_i,
-    md_threshold_atom_j,
-    md_threshold_distance,
-    natoms,
-    ndims,
-    np,
-    positions_min,
-    potential_biased,
-    temperature,
-    time_step,
-):
-    # Student task:
-
-    md_unbinding_times = []
-    md_unbinding_bias = []
-
     # How many simulations will be performed
     Nsimulation = 100
 
+    # How many steps should the MD simulation run
+    Nsteps = 10_000 # Nsteps*time_step = 100ps
+
     # Run simulation n time with different initial velocity distributions
     for irun in range(Nsimulation):
-
-        # Reset cluster positions and velocities with respect to Boltzman distribution
+    
+        # Set cluster positions and velocities with respect to Boltzman distribution
         cluster.x = positions_min
         cluster.v = get_thermalized_velocities_nd(temperature, masses, scale_exactly=True)
-
+    
         # Create trajectory position and velocity arrays and store the initial conditions
-        trajectory_md_positions = np.zeros([Nsteps + 1, cluster.x.shape[0]], dtype=float)
-        trajectory_md_velocities = np.zeros([Nsteps + 1, cluster.v.shape[0]], dtype=float)
+        trajectory_md_positions = np.zeros([Nsteps + 1, natoms, ndims], dtype=float)
+        trajectory_md_velocities = np.zeros([Nsteps + 1, natoms, ndims], dtype=float)
         trajectory_md_bias = np.zeros(Nsteps + 1, dtype=float)
-
-        trajectory_md_positions[0, :] = cluster.x.copy()
-        trajectory_md_velocities[0, :] = cluster.v.copy()
-
+    
+        trajectory_md_positions[0] = cluster.x.reshape(natoms, ndims)
+        trajectory_md_velocities[0] = cluster.v.reshape(natoms, ndims)
+        trajectory_md_bias[0] = potential_biased.potential(
+            cluster.x,
+            verbose=True,
+        )['bias'] # dictionary with items for 'original', 'bias', 'effective' (= 'original' + 'bias')
+    
         # Run the simulation by iterating over time steps
         sucess = False
         for _step in range(Nsteps):
-
+    
             # Perform the time step by the Langevin integrator
             Dn_stochastic.BOAOB(
                 cluster,
                 potential_biased,
                 fixed=mask_md,
             )
-
+    
             # Store positions and velocities
-            trajectory_md_positions[_step + 1, :] = cluster.x.copy()
-            trajectory_md_velocities[_step + 1, :] = cluster.v.copy()
-
+            trajectory_md_positions[_step + 1] = cluster.x.reshape(natoms, ndims)
+            trajectory_md_velocities[_step + 1] = cluster.v.reshape(natoms, ndims)
+    
             # Store bias potential
             trajectory_md_bias[_step + 1] = potential_biased.potential(
                 cluster.x,
@@ -576,11 +472,28 @@ def _(
     print(f"Mean unbinding time at {md_unbinding_mean:.3f} +- {md_unbinding_rmsd:.3f} ps")
 
     # Store results
-    np.savetxt(
-        'unbinding_times_biased.dat',
-        np.vstack((md_unbinding_times, md_unbinding_bias)).T
+    if len(md_unbinding_times):
+        np.savetxt(
+            'unbinding_times_biased.dat',
+            np.vstack((md_unbinding_times, md_unbinding_bias)).T
+        )
+
+    # Show as 3d trajectory
+    view_structure(
+        [
+            show_cluster(positions_i.reshape(-1, ndims), species_init)
+            for positions_i in np.concatenate(
+                (
+                    trajectory_md_positions[0:_step + 1:10],
+                    trajectory_md_positions[_step + 1][np.newaxis,: ],
+                )
+            )
+        ],
+        trajectory_slider=True,
+        measuring_tool=True,
+        recording_tools=True,
     )
-    return
+    return (temperature,)
 
 
 @app.cell

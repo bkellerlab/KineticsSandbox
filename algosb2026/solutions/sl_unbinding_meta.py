@@ -195,7 +195,7 @@ def _(
     # First, the Langevin integrator parameters must be defined
     temperature = 300.0 # Kelvin, rememer <E_kin> = kB*T = 0.008314 kJ⋅mol-1⋅K-1 * T, <E_kin(300K)> = 2.5 kJ/mol
     friction = 1.0 # 1/ps
-    time_step = 0.002 # ps
+    time_step = 0.010 # ps
 
     kB_kJmolK = 0.008314462618
     beta = 1./(kB_kJmolK*temperature)
@@ -247,26 +247,26 @@ def _(
     # and its parameters
     meta_cv_atom_i = 0 # 'C'
     meta_cv_atom_j = 1 # 'N'
-    meta_add_steps = 100 # every ?00 steps or 0.? ps
+    meta_add_steps = 10 # every ?00 steps or 0.? ps
     meta_potential = D1.GeneralGaussian # General Gaussian function alpha * exp(c*(x - a)**2)
     meta_parameter = [None, 50., 0.05] # a, c = 1/(2*sigma**2) with sigma in [nm], alpha in [kJ/mol]
     # (parameter a for the location will be updated during the simulation)
 
 
     # How many steps should the MD simulation run
-    Nsteps_bias = 100_000 # Nsteps*time_step = 200ps
+    Nsteps_bias = 10_000 # Nsteps*time_step = 100ps
 
     # Set cluster positions and velocities with respect to Boltzman distribution
     cluster.x = positions_min
     cluster.v = get_thermalized_velocities_nd(temperature, masses, scale_exactly=True)
 
     # Create trajectory position and velocity arrays and store the initial conditions
-    trajectory_test_positions = np.zeros([Nsteps_bias + 1, cluster.x.shape[0]], dtype=float)
-    trajectory_test_velocities = np.zeros([Nsteps_bias + 1, cluster.v.shape[0]], dtype=float)
+    trajectory_test_positions = np.zeros([Nsteps_bias + 1, natoms, ndims], dtype=float)
+    trajectory_test_velocities = np.zeros([Nsteps_bias + 1, natoms, ndims], dtype=float)
     trajectory_test_bias = np.zeros(Nsteps_bias + 1, dtype=float)
 
-    trajectory_test_positions[0, :] = cluster.x.copy()
-    trajectory_test_velocities[0, :] = cluster.v.copy()
+    trajectory_test_positions[0, :] = cluster.x.reshape(natoms, ndims)
+    trajectory_test_velocities[0, :] = cluster.v.reshape(natoms, ndims)
     trajectory_test_bias[0] = potential_biased.potential(
         cluster.x,
         verbose=True,
@@ -286,8 +286,8 @@ def _(
         )
 
         # Store positions and velocities
-        trajectory_test_positions[_step + 1, :] = cluster.x.copy()
-        trajectory_test_velocities[_step + 1, :] = cluster.v.copy()
+        trajectory_test_positions[_step + 1, :] = cluster.x.reshape(natoms, ndims)
+        trajectory_test_velocities[_step + 1, :] = cluster.v.reshape(natoms, ndims)
 
         # Store bias potential
         trajectory_test_bias[_step + 1] = potential_biased.potential(
@@ -302,8 +302,8 @@ def _(
 
             _distance = np.linalg.norm(
                 (
-                    cluster.x.reshape(natoms, ndims)[meta_cv_atom_i, :]
-                    - cluster.x.reshape(natoms, ndims)[meta_cv_atom_j, :]
+                    cluster.x.reshape(natoms, ndims)[meta_cv_atom_i]
+                    - cluster.x.reshape(natoms, ndims)[meta_cv_atom_j]
                 )
             )
 
@@ -318,8 +318,8 @@ def _(
         # terminate the simulation.
         _distance = np.linalg.norm(
             (
-                cluster.x.reshape(natoms, ndims)[md_threshold_atom_i, :]
-                - cluster.x.reshape(natoms, ndims)[md_threshold_atom_j, :]
+                cluster.x.reshape(natoms, ndims)[md_threshold_atom_i]
+                - cluster.x.reshape(natoms, ndims)[md_threshold_atom_j]
             )
         )
 
@@ -341,7 +341,7 @@ def _(
             for positions_i in np.concatenate(
                 (
                     trajectory_test_positions[0:_step + 1:100],
-                    trajectory_test_positions[_step + 1].reshape(1, -1),
+                    trajectory_test_positions[_step + 1][np.newaxis, :],
                 )
             )
         ],
@@ -469,7 +469,7 @@ def _(
     Nsimulation = 100
 
     # How many steps should the MD simulation run
-    Nsteps = 100_000 # Nsteps*time_step = 100ps
+    Nsteps = 10_000 # Nsteps*time_step = 100ps
 
     # Run simulation n time with different initial velocity distributions
     for irun in range(Nsimulation):
@@ -482,12 +482,12 @@ def _(
         cluster.v = get_thermalized_velocities_nd(temperature, masses, scale_exactly=True)
 
         # Create trajectory position and velocity arrays and store the initial conditions
-        trajectory_md_positions = np.zeros([Nsteps + 1, cluster.x.shape[0]], dtype=float)
-        trajectory_md_velocities = np.zeros([Nsteps + 1, cluster.v.shape[0]], dtype=float)
+        trajectory_md_positions = np.zeros([Nsteps + 1, natoms, ndims], dtype=float)
+        trajectory_md_velocities = np.zeros([Nsteps + 1, natoms, ndims], dtype=float)
         trajectory_md_bias = np.zeros(Nsteps + 1, dtype=float)
 
-        trajectory_md_positions[0, :] = cluster.x.copy()
-        trajectory_md_velocities[0, :] = cluster.v.copy()
+        trajectory_md_positions[0] = cluster.x.reshape(natoms, ndims)
+        trajectory_md_velocities[0] = cluster.v.reshape(natoms, ndims)
 
         # Run the simulation by iterating over time steps
         sucess = False
@@ -501,8 +501,8 @@ def _(
             )
 
             # Store positions and velocities
-            trajectory_md_positions[_step + 1, :] = cluster.x.copy()
-            trajectory_md_velocities[_step + 1, :] = cluster.v.copy()
+            trajectory_md_positions[_step + 1] = cluster.x.reshape(natoms, ndims)
+            trajectory_md_velocities[_step + 1] = cluster.v.reshape(natoms, ndims)
 
             # Store bias potential
             trajectory_md_bias[_step + 1] = potential_biased.potential(
@@ -531,8 +531,8 @@ def _(
             # terminate the simulation.
             distance = np.linalg.norm(
                 (
-                    cluster.x.reshape(natoms, ndims)[md_threshold_atom_i, :]
-                    - cluster.x.reshape(natoms, ndims)[md_threshold_atom_j, :]
+                    cluster.x.reshape(natoms, ndims)[md_threshold_atom_i]
+                    - cluster.x.reshape(natoms, ndims)[md_threshold_atom_j]
                 )
             )
 

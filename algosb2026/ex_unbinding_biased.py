@@ -224,7 +224,7 @@ def _(D1, get_biased_potential, np):
         + f"(bias is {energies_init['bias']:.3f} kJ/mol)\n"
         + f"with a maximum force component of {np.amax(forces_init):.3f} kJ/mol/nm"
     )
-    return ndims, positions_init, potential_biased, species_init
+    return natoms, ndims, positions_init, potential_biased, species_init
 
 
 @app.cell
@@ -338,6 +338,7 @@ def _(
     Dn_stochastic,
     cluster_masses,
     get_thermalized_velocities_nd,
+    natoms,
     ndims,
     np,
     positions_min,
@@ -350,7 +351,7 @@ def _(
     # First, the Langevin integrator parameters must be defined
     temperature = 300.0 # Kelvin, rememer <E_kin> = kB*T = 0.008314 kJ⋅mol-1⋅K-1 * T, <E_kin(300K)> = 2.5 kJ/mol
     friction = 1.0 # 1/ps
-    time_step = 0.001 # ps
+    time_step = 0.010 # ps
 
     # Assign atom masses (for numerical reasons, set 0 masses to 1, their velocities will set to 0 each step)
     masses = np.array(
@@ -370,7 +371,7 @@ def _(
         T=temperature,
         xi=friction,
         dt=time_step,
-        h=0.001,
+        h=None,
     )
 
     # Use the same atom mask as in the minimization step to fix certain cluster atom positions
@@ -383,23 +384,25 @@ def _(
         dtype=bool
     )
 
-    # Sample one trajectory
+    # Result list of unbinding times and average bias potential
+    md_unbinding_times = []
+    md_unbinding_bias = []
 
     # How many steps should the MD simulation run
-    Nsteps = 100_000 # Nsteps*time_step = 100ps
+    Nsteps = 10_000 # Nsteps*time_step = 100ps
 
     # Set cluster positions and velocities with respect to Boltzman distribution
     cluster.x = positions_min
     cluster.v = get_thermalized_velocities_nd(temperature, masses, scale_exactly=True)
 
     # Create trajectory position and velocity arrays and store the initial conditions
-    trajectory_test_positions = np.zeros([Nsteps + 1, cluster.x.shape[0]], dtype=float)
-    trajectory_test_velocities = np.zeros([Nsteps + 1, cluster.v.shape[0]], dtype=float)
-    trajectory_test_bias = np.zeros(Nsteps + 1, dtype=float)
+    trajectory_md_positions = np.zeros([Nsteps + 1, natoms, ndims], dtype=float)
+    trajectory_md_velocities = np.zeros([Nsteps + 1, natoms, ndims], dtype=float)
+    trajectory_md_bias = np.zeros(Nsteps + 1, dtype=float)
 
-    trajectory_test_positions[0, :] = cluster.x.copy()
-    trajectory_test_velocities[0, :] = cluster.v.copy()
-    trajectory_test_bias[0] = potential_biased.potential(
+    trajectory_md_positions[0] = cluster.x.reshape(natoms, ndims)
+    trajectory_md_velocities[0] = cluster.v.reshape(natoms, ndims)
+    trajectory_md_bias[0] = potential_biased.potential(
         cluster.x,
         verbose=True,
     )['bias'] # dictionary with items for 'original', 'bias', 'effective' (= 'original' + 'bias')
@@ -415,14 +418,21 @@ def _(
         )
 
         # Store positions and velocities
-        trajectory_test_positions[_step + 1, :] = cluster.x.copy()
-        trajectory_test_velocities[_step + 1, :] = cluster.v.copy()
+        trajectory_md_positions[_step + 1] = cluster.x.reshape(natoms, ndims)
+        trajectory_md_velocities[_step + 1] = cluster.v.reshape(natoms, ndims)
 
         # Store bias potential
-        trajectory_test_bias[_step + 1] = potential_biased.potential(
+        trajectory_md_bias[_step + 1] = potential_biased.potential(
             cluster.x,
             verbose=True,
         )['bias']
+
+    # Store results
+    if len(md_unbinding_times):
+        np.savetxt(
+            'unbinding_times_biased.dat',
+            np.vstack((md_unbinding_times, md_unbinding_bias)).T
+        )
 
     # Show as 3d trajectory
     view_structure(
@@ -430,26 +440,14 @@ def _(
             show_cluster(positions_i.reshape(-1, ndims), species_init)
             for positions_i in np.concatenate(
                 (
-                    trajectory_test_positions[0:_step + 1:100],
-                    trajectory_test_positions[_step + 1].reshape(1, -1),
+                    trajectory_md_positions[0:_step + 1:10],
+                    trajectory_md_positions[_step + 1][np.newaxis,: ],
                 )
             )
         ],
         trajectory_slider=True,
         measuring_tool=True,
         recording_tools=True,
-    )
-    return
-
-
-@app.cell
-def _(md_unbinding_bias, md_unbinding_times, np):
-    ...
-
-    # Store results
-    np.savetxt(
-        'unbinding_times_biased.dat',
-        np.vstack((md_unbinding_times, md_unbinding_bias)).T
     )
     return
 

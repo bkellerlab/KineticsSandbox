@@ -317,7 +317,7 @@ def _(mo):
     Physically, an atom can be fixed by increasing its mass to infinity. Technically, it is easier to set the mass of fixed atoms to zero (e.g. as done in openmm).
 
     <b> TASK </b>
-    Optimize your cluster and, eventually, adjust your potential parameters or cluster build to achieve a suitable configuration where the center and leaving atom are still bonded and surrounded by 'solvent' atoms.
+    Optimize your cluster and, eventually, adjust your potential parameters or cluster setup to achieve a suitable configuration where the center and leaving atom are still bonded and surrounded by 'solvent' atoms.
     """)
     return
 
@@ -457,7 +457,7 @@ def _(
     # First, the Langevin integrator parameters must be defined
     temperature = 300.0 # Kelvin, rememer <E_kin> = kB*T = 0.008314 kJ⋅mol-1⋅K-1 * T, <E_kin(300K)> = 2.5 kJ/mol
     friction = 1.0 # 1/ps
-    time_step = 0.001 # ps
+    time_step = 0.010 # ps
 
     # Assign atom masses (for numerical reasons, set 0 masses to 1, their velocities will set to 0 each step)
     masses = np.array(
@@ -477,7 +477,7 @@ def _(
         T=temperature,
         xi=friction,
         dt=time_step,
-        h=0.001,
+        h=None
     )
 
     # Use the same atom mask as in the minimization step to fix certain cluster atom positions
@@ -490,21 +490,22 @@ def _(
         dtype=bool
     )
 
-    # Sample one trajectory
+    # Result list of unbinding times
+    md_unbinding_times = []
 
     # How many steps should the MD simulation run
-    Nsteps = 100_000 # Nsteps*time_step = 100ps
+    Nsteps = 10_000 # Nsteps*time_step = 100ps
 
     # Set cluster positions and velocities with respect to Boltzman distribution
     cluster.x = positions_min
     cluster.v = get_thermalized_velocities_nd(temperature, masses, scale_exactly=True)
 
     # Create trajectory position and velocity arrays and store the initial conditions
-    trajectory_test_positions = np.zeros([Nsteps + 1, cluster.x.shape[0]], dtype=float)
-    trajectory_test_velocities = np.zeros([Nsteps + 1, cluster.v.shape[0]], dtype=float)
+    trajectory_md_positions = np.zeros([Nsteps + 1, natoms, ndims], dtype=float)
+    trajectory_md_velocities = np.zeros([Nsteps + 1, natoms, ndims], dtype=float)
 
-    trajectory_test_positions[0, :] = cluster.x.copy()
-    trajectory_test_velocities[0, :] = cluster.v.copy()
+    trajectory_md_positions[0] = cluster.x.reshape(natoms, ndims)
+    trajectory_md_velocities[0] = cluster.v.reshape(natoms, ndims)
 
     # Run the simulation by iterating over time steps
     for _step in range(Nsteps):
@@ -517,33 +518,30 @@ def _(
         )
 
         # Store positions and velocities
-        trajectory_test_positions[_step + 1, :] = cluster.x.copy()
-        trajectory_test_velocities[_step + 1, :] = cluster.v.copy()
+        trajectory_md_positions[_step + 1] = cluster.x.reshape(natoms, ndims)
+        trajectory_md_velocities[_step + 1] = cluster.v.reshape(natoms, ndims)
+
+
+    # Store results
+    if len(md_unbinding_times):
+        np.savetxt('unbinding_times_md.dat', md_unbinding_times)
 
     # Show as 3d trajectory
     view_structure(
         [
-            show_cluster(positions_i.reshape(natoms, ndims), species_init)
+            show_cluster(positions_i, species_init)
             for positions_i in np.concatenate(
                 (
-                    trajectory_test_positions[0:_step + 1:100],
-                    trajectory_test_positions[_step + 1].reshape(1, -1),
-                )
+                    trajectory_md_positions[0:_step + 1:10],
+                    trajectory_md_positions[_step + 1][np.newaxis, :],
+                ),
+                axis=0,
             )
         ],
         trajectory_slider=True,
         measuring_tool=True,
         recording_tools=True,
     )
-    return
-
-
-@app.cell
-def _(md_unbinding_times, np):
-    ...
-
-    # Store results
-    np.savetxt('unbinding_times_md.dat', md_unbinding_times)
     return
 
 

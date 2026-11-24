@@ -178,6 +178,7 @@ def _(mo):
 
 @app.cell
 def _(
+    D1,
     Dn_stochastic,
     cluster_masses,
     get_thermalized_velocities_nd,
@@ -194,7 +195,7 @@ def _(
     # First, the Langevin integrator parameters must be defined
     temperature = 300.0 # Kelvin, rememer <E_kin> = kB*T = 0.008314 kJ⋅mol-1⋅K-1 * T, <E_kin(300K)> = 2.5 kJ/mol
     friction = 1.0 # 1/ps
-    time_step = 0.002 # ps
+    time_step = 0.010 # ps
 
     kB_kJmolK = 0.008314462618
     beta = 1./(kB_kJmolK*temperature)
@@ -217,7 +218,7 @@ def _(
         T=temperature,
         xi=friction,
         dt=time_step,
-        h=0.001,
+        h=None,
     )
 
     # Use the same atom mask as in the minimization step to fix certain cluster atom positions
@@ -230,10 +231,6 @@ def _(
         dtype=bool
     )
 
-    # Sample one trajectory
-
-    # Student task:
-
     # Perform MD simulations of the cluster and store how long it takes for the 'N' atom to leave the cluster
     # Also define the 'N' atom distance threshold to the center 'C' atom, at which the system is counted as dissociated.
     _md_unbinding_times = []
@@ -243,21 +240,27 @@ def _(
 
     # Define here the metadynamics parameters such as the collective variable CV, add-frequency, the add-potential
     # and its parameters
+    meta_cv_atom_i = 0 # 'C'
+    meta_cv_atom_j = 0 # 'N'
+    meta_add_steps = 0 # every ?00 steps or 0.? ps
+    meta_potential = D1.GeneralGaussian # General Gaussian function alpha * exp(c*(x - a)**2)
+    meta_parameter = [None, 100., 0.00] # a, c = 1/(2*sigma**2) with sigma in [nm], alpha in [kJ/mol]
+    # (parameter a for the location will be updated during the simulation)
 
     # How many steps should the MD simulation run
-    Nsteps_bias = 100_000 # Nsteps*time_step = 100ps
+    Nsteps_bias = 10_000 # Nsteps*time_step = 100ps
 
     # Set cluster positions and velocities with respect to Boltzman distribution
     cluster.x = positions_min
     cluster.v = get_thermalized_velocities_nd(temperature, masses, scale_exactly=True)
 
     # Create trajectory position and velocity arrays and store the initial conditions
-    trajectory_test_positions = np.zeros([Nsteps_bias + 1, cluster.x.shape[0]], dtype=float)
-    trajectory_test_velocities = np.zeros([Nsteps_bias + 1, cluster.v.shape[0]], dtype=float)
+    trajectory_test_positions = np.zeros([Nsteps_bias + 1, natoms, ndims], dtype=float)
+    trajectory_test_velocities = np.zeros([Nsteps_bias + 1, natoms, ndims], dtype=float)
     trajectory_test_bias = np.zeros(Nsteps_bias + 1, dtype=float)
 
-    trajectory_test_positions[0, :] = cluster.x.copy()
-    trajectory_test_velocities[0, :] = cluster.v.copy()
+    trajectory_test_positions[0, :] = cluster.x.reshape(natoms, ndims)
+    trajectory_test_velocities[0, :] = cluster.v.reshape(natoms, ndims)
     trajectory_test_bias[0] = potential_biased.potential(
         cluster.x,
         verbose=True,
@@ -277,8 +280,8 @@ def _(
         )
 
         # Store positions and velocities
-        trajectory_test_positions[_step + 1, :] = cluster.x.copy()
-        trajectory_test_velocities[_step + 1, :] = cluster.v.copy()
+        trajectory_test_positions[_step + 1] = cluster.x.reshape(natoms, ndims)
+        trajectory_test_velocities[_step + 1] = cluster.v.reshape(natoms, ndims)
 
         # Store bias potential
         trajectory_test_bias[_step + 1] = potential_biased.potential(
@@ -290,8 +293,8 @@ def _(
         # terminate the simulation.
         _distance = np.linalg.norm(
             (
-                cluster.x.reshape(natoms, ndims)[md_threshold_atom_i, :]
-                - cluster.x.reshape(natoms, ndims)[md_threshold_atom_j, :]
+                cluster.x.reshape(natoms, ndims)[md_threshold_atom_i]
+                - cluster.x.reshape(natoms, ndims)[md_threshold_atom_j]
             )
         )
 
@@ -306,8 +309,8 @@ def _(
             show_cluster(positions_i.reshape(-1, ndims), species_init)
             for positions_i in np.concatenate(
                 (
-                    trajectory_test_positions[0:_step + 1:100],
-                    trajectory_test_positions[_step + 1].reshape(1, -1),
+                    trajectory_test_positions[0:_step + 1:10],
+                    trajectory_test_positions[_step + 1][np.newaxis, :],
                 )
             )
         ],
