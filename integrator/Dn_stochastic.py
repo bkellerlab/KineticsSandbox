@@ -265,29 +265,52 @@ def O_step(
 #----------------------------------------------------------------------------
 
 # ABO integrator
-def ABO(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
+def ABO(
+    system,
+    potential,
+    fixed: np.ndarray[bool] | None = None,
+    bias=None,
+    eta_k: float | None = None,
+    girsanov_reweighting=False,
+):
     """
     Perform a full Langevin integration step consisting of A-step, B-step, and O-step.
 
     Parameters:
-    - system (object): An object representing the physical system undergoing Langevin integration.
-                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
-                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
-    - potential (object): An object representing the potential energy landscape of the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - bias (object or None, optional): An object representing the bias potential added to the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
-                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
-    - girsanov_reweighting (bool): If True Girsanov path reweighting factors are evaluated on-the-fly.
+        - system (object):
+        An object representing the physical system undergoing Langevin
+        integration. It should have attributes
+            'x' (position),
+            'v' (velocity),
+            'xi_m' (mass * friction coefficient),
+            'sigma' (standard deviation of the random noise)
+            'dt' (time step) and
+            'h' (discretization interval for numerical force).
+    - potential (object):
+        An object representing the potential energy landscape of the system.
+        It should have a 'force' method that calculates the force at a given
+        position.
+    - fixed (bool array or None, optional):
+        If mask array of bools with shape equal to the number of system DoFs,
+        fix the atom position by setting velocities to zero.
+    - bias (object or None, optional):
+        An object representing the bias potential or pertubation potential
+        added to the of the system. It should have a 'force' method that
+        calculates the force at a given position.
+    - eta_k (float or None, optional):
+        If provided, use the given value as the random noise term (eta_k) in
+        the Langevin integrator. If None, draw a new value from a Gaussian
+        normal distribution.
+    - girsanov_reweighting (bool):
+        If True Girsanov path reweighting factors are evaluated on-the-fly.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
     
     A_step(system)
-    B_step(system, potential, bias) 
-    O_step(system, eta_k = eta_k)
+    B_step(system, potential, fixed=fixed, bias=bias)
+    O_step(system, fixed=fixed, eta_k=eta_k)
 
     if girsanov_reweighting:
         system.delta_eta[0] = system.d / system.f * system.dt * system.bias_force
@@ -295,31 +318,55 @@ def ABO(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
     
     return None   
 
+
 # ABOBA integrator
-def ABOBA(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
+def ABOBA(
+    system,
+    potential,
+    fixed: np.ndarray[bool] | None = None,
+    bias=None,
+    eta_k: float | None = None,
+    girsanov_reweighting=False,
+):
     """
     Perform a full Langevin integration step for the ABOBA algorithm
 
     Parameters:
-    - system (object): An object representing the physical system undergoing Langevin integration.
-                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
-                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
-    - potential (object): An object representing the potential energy landscape of the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - bias (object or None, optional): An object representing the bias potential added to the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
-                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
-    - girsanov_reweighting (bool): If True Girsanov path reweighting factors are evaluated on-the-fly.
+    - system (object):
+        An object representing the physical system undergoing Langevin
+        integration. It should have attributes
+            'x' (position),
+            'v' (velocity),
+            'xi_m' (mass * friction coefficient),
+            'sigma' (standard deviation of the random noise)
+            'dt' (time step) and
+            'h' (discretization interval for numerical force).
+    - potential (object):
+        An object representing the potential energy landscape of the system.
+        It should have a 'force' method that calculates the force at a given
+        position.
+    - fixed (bool array or None, optional):
+        If mask array of bools with shape equal to the number of system DoFs,
+        fix the atom position by setting velocities to zero.
+    - bias (object or None, optional):
+        An object representing the bias potential or pertubation potential
+        added to the of the system. It should have a 'force' method that
+        calculates the force at a given position.
+    - eta_k (float or None, optional):
+        If provided, use the given value as the random noise term (eta_k) in
+        the Langevin integrator. If None, draw a new value from a Gaussian
+        normal distribution.
+    - girsanov_reweighting (bool):
+        If True Girsanov path reweighting factors are evaluated on-the-fly.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
     
     A_step(system, half_step= True)
-    B_step(system, potential, bias=bias, half_step = True) 
-    O_step(system, eta_k = eta_k)    
-    B_step(system, potential, bias=bias, half_step = True) 
+    B_step(system, potential, fixed=fixed, bias=bias, half_step=True)
+    O_step(system, fixed=fixed, eta_k=eta_k)
+    B_step(system, potential, fixed=fixed, bias=bias, half_step=True)
     A_step(system, half_step = True)
     
     if girsanov_reweighting:
@@ -328,31 +375,55 @@ def ABOBA(system, potential, bias=None, eta_k = None, girsanov_reweighting=False
     
     return None   
 
+
 # AOBOA integrator
-def AOBOA(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
+def AOBOA(
+    system,
+    potential,
+    fixed: np.ndarray[bool] | None = None,
+    bias=None,
+    eta_k: float | None = None,
+    girsanov_reweighting=False,
+):
     """
     Perform a full Langevin integration step for the AOBOA algorithm
 
     Parameters:
-    - system (object): An object representing the physical system undergoing Langevin integration.
-                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
-                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
-    - potential (object): An object representing the potential energy landscape of the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - bias (object or None, optional): An object representing the bias potential added to the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
-                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
-    - girsanov_reweighting (bool): If True Girsanov path reweighting factors are evaluated on-the-fly.
+    - system (object):
+        An object representing the physical system undergoing Langevin
+        integration. It should have attributes
+            'x' (position),
+            'v' (velocity),
+            'xi_m' (mass * friction coefficient),
+            'sigma' (standard deviation of the random noise)
+            'dt' (time step) and
+            'h' (discretization interval for numerical force).
+    - potential (object):
+        An object representing the potential energy landscape of the system.
+        It should have a 'force' method that calculates the force at a given
+        position.
+    - fixed (bool array or None, optional):
+        If mask array of bools with shape equal to the number of system DoFs,
+        fix the atom position by setting velocities to zero.
+    - bias (object or None, optional):
+        An object representing the bias potential or pertubation potential
+        added to the of the system. It should have a 'force' method that
+        calculates the force at a given position.
+    - eta_k (float or None, optional):
+        If provided, use the given value as the random noise term (eta_k) in
+        the Langevin integrator. If None, draw a new value from a Gaussian
+        normal distribution.
+    - girsanov_reweighting (bool):
+        If True Girsanov path reweighting factors are evaluated on-the-fly.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
 
     A_step(system, half_step = True)
-    O_step(system, half_step = True, eta_k = eta_k, step_index=0) 
-    B_step(system, potential, bias) 
-    O_step(system, half_step = True, eta_k = eta_k, step_index=1) 
+    O_step(system, fixed=fixed, half_step=True, eta_k=eta_k, step_index=0)
+    B_step(system, potential, fixed=fixed, bias=bias)
+    O_step(system, fixed=fixed, half_step=True, eta_k=eta_k, step_index=1)
     A_step(system, half_step = True)
     
     if girsanov_reweighting:
@@ -361,6 +432,7 @@ def AOBOA(system, potential, bias=None, eta_k = None, girsanov_reweighting=False
         system.logM = eta_combined * system.delta_eta[0] / (system.d_prime * system.d_prime + 1) + 0.5 * system.delta_eta[0] * system.delta_eta[0] / (system.d_prime * system.d_prime + 1)
     
     return None      
+
 
 # BAOAB integrator
 def BAOAB(
@@ -394,7 +466,7 @@ def BAOAB(
         An object representing the bias potential or pertubation potential
         added to the of the system. It should have a 'force' method that 
         calculates the force at a given position.
-     - eta_k (float or None, optional):
+    - eta_k (float or None, optional):
         If provided, use the given value as the random noise term (eta_k) in
         the Langevin integrator. If None, draw a new value from a Gaussian
         normal distribution.
@@ -412,6 +484,7 @@ def BAOAB(
     B_step(system, potential, fixed=fixed, bias=bias, half_step=True) 
     
     return None   
+
 
 # BOAOB integrator
 def BOAOB(
@@ -475,33 +548,57 @@ def BOAOB(
     
     return None  
 
+
 # OBABO integrator
-def OBABO(system, potential, bias=None, eta_k = None, girsanov_reweighting=False):
+def OBABO(
+    system,
+    potential,
+    fixed: np.ndarray[bool] | None = None,
+    bias=None,
+    eta_k: float | None = None,
+    girsanov_reweighting: bool = False,
+):
     """
     Perform a full Langevin integration step for the OBABO algorithm
 
     Parameters:
-    - system (object): An object representing the physical system undergoing Langevin integration.
-                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
-                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
-    - potential (object): An object representing the potential energy landscape of the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - bias (object or None, optional): An object representing the bias potential added to the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
-                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
-    - girsanov_reweighting (bool): If True Girsanov path reweighting factors are evaluated on-the-fly.
+    - system (object):
+        An object representing the physical system undergoing Langevin
+        integration. It should have attributes
+            'x' (position),
+            'v' (velocity),
+            'xi_m' (mass * friction coefficient),
+            'sigma' (standard deviation of the random noise)
+            'dt' (time step) and
+            'h' (discretization interval for numerical force).
+    - potential (object):
+        An object representing the potential energy landscape of the system.
+        It should have a 'force' method that calculates the force at a given
+        position.
+    - fixed (bool array or None, optional):
+        If mask array of bools with shape equal to the number of system DoFs,
+        fix the atom position by setting velocities to zero.
+    - bias (object or None, optional):
+        An object representing the bias potential or pertubation potential
+        added to the of the system. It should have a 'force' method that
+        calculates the force at a given position.
+     - eta_k (float or None, optional):
+        If provided, use the given value as the random noise term (eta_k) in
+        the Langevin integrator. If None, draw a new value from a Gaussian
+        normal distribution.
+    - girsanov_reweighting (bool):
+        If True Girsanov path reweighting factors are evaluated on-the-fly.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
 
     bias_force_k = system.bias_force
-    O_step(system, half_step = True, eta_k = eta_k, step_index=0)   
-    B_step(system, potential, bias, half_step = True) 
+    O_step(system, fixed=fixed, half_step=True, eta_k=eta_k, step_index=0)
+    B_step(system, potential, fixed=fixed, bias=bias, half_step=True)
     A_step(system)
-    B_step(system, potential, bias, half_step = True)
-    O_step(system, half_step = True, eta_k = eta_k, step_index=1)   
+    B_step(system, potential, fixed=fixed, bias=bias, half_step = True)
+    O_step(system, fixed=fixed, half_step=True, eta_k=eta_k, step_index=1)
     
     if girsanov_reweighting:
         system.delta_eta[0] = 1 / system.f_prime * system.dt / 2 * bias_force_k
@@ -512,57 +609,101 @@ def OBABO(system, potential, bias=None, eta_k = None, girsanov_reweighting=False
     
     return None  
 
+
 # OABAO integrator
-def OABAO(system, potential, bias=None, eta_k = None):
+def OABAO(
+    system,
+    potential,
+    fixed: np.ndarray[bool] | None = None,
+    bias=None,
+    eta_k: float | None = None,
+):
     """
     Perform a full Langevin integration step for the OABAO algorithm
 
     Parameters:
-    - system (object): An object representing the physical system undergoing Langevin integration.
-                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
-                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
-    - potential (object): An object representing the potential energy landscape of the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - bias (object or None, optional): An object representing the bias potential added to the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
-                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+    - system (object):
+        An object representing the physical system undergoing Langevin
+        integration. It should have attributes
+            'x' (position),
+            'v' (velocity),
+            'xi_m' (mass * friction coefficient),
+            'sigma' (standard deviation of the random noise)
+            'dt' (time step) and
+            'h' (discretization interval for numerical force).
+    - potential (object):
+        An object representing the potential energy landscape of the system.
+        It should have a 'force' method that calculates the force at a given
+        position.
+    - fixed (bool array or None, optional):
+        If mask array of bools with shape equal to the number of system DoFs,
+        fix the atom position by setting velocities to zero.
+    - bias (object or None, optional):
+        An object representing the bias potential or pertubation potential
+        added to the of the system. It should have a 'force' method that
+        calculates the force at a given position.
+     - eta_k (float or None, optional):
+        If provided, use the given value as the random noise term (eta_k) in
+        the Langevin integrator. If None, draw a new value from a Gaussian
+        normal distribution.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
     
-    O_step(system, half_step = True, eta_k = eta_k)   
-    A_step(system, half_step = True)   
-    B_step(system, potential, bias, half_step = True) 
-    A_step(system, half_step = True)   
-    O_step(system, half_step = True, eta_k = eta_k)   
+    O_step(system, fixed=fixed, half_step=True, eta_k=eta_k)
+    A_step(system, half_step=True)
+    B_step(system, potential, fixed=fixed, bias=bias, half_step=True)
+    A_step(system, half_step=True)
+    O_step(system, fixed=fixed, half_step=True, eta_k=eta_k)
     
     return None 
 
+
 # BAOA integrator
-def BAOA(system, potential, bias=None, eta_k = None):
+def BAOA(
+    system,
+    potential,
+    fixed: np.ndarray[bool] | None = None,
+    bias=None,
+    eta_k: float | None = None,
+):
     """
     Perform a full Langevin integration step for the BAOA algorithm
 
     Parameters:
-    - system (object): An object representing the physical system undergoing Langevin integration.
-                      It should have attributes 'x' (position), 'v' (velocity), 'm' (mass), 'xi'
-                      (friction coefficient), 'T' (temperature), and 'dt' (time step).
-    - potential (object): An object representing the potential energy landscape of the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - bias (object or None, optional): An object representing the bias potential added to the system.
-                         It should have a 'force' method that calculates the force at a given position.
-    - eta_k (float or None, optional): If provided, use the given value as the random noise term (eta_k)
-                        in the Langevin integrator. If None, draw a new value from a Gaussian normal distribution.
+    - system (object):
+        An object representing the physical system undergoing Langevin
+        integration. It should have attributes
+            'x' (position),
+            'v' (velocity),
+            'xi_m' (mass * friction coefficient),
+            'sigma' (standard deviation of the random noise)
+            'dt' (time step) and
+            'h' (discretization interval for numerical force).
+    - potential (object):
+        An object representing the potential energy landscape of the system.
+        It should have a 'force' method that calculates the force at a given
+        position.
+    - fixed (bool array or None, optional):
+        If mask array of bools with shape equal to the number of system DoFs,
+        fix the atom position by setting velocities to zero.
+    - bias (object or None, optional):
+        An object representing the bias potential or pertubation potential
+        added to the of the system. It should have a 'force' method that
+        calculates the force at a given position.
+     - eta_k (float or None, optional):
+        If provided, use the given value as the random noise term (eta_k) in
+        the Langevin integrator. If None, draw a new value from a Gaussian
+        normal distribution.
 
     Returns:
     None: The function modifies the 'x' and 'v' attributes of the provided system object in place.
     """    
     
-    B_step(system, potential, bias) 
-    A_step(system, half_step = True)   
-    O_step(system, eta_k = eta_k)   
-    A_step(system, half_step = True)   
+    B_step(system, potential, fixed=fixed, bias=bias)
+    A_step(system, half_step=True)
+    O_step(system, fixed=fixed, eta_k=eta_k)
+    A_step(system, half_step=True)
     
     return None 
